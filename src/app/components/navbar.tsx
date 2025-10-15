@@ -11,7 +11,6 @@ import { ModeToggle } from "./ThemeToggle"
 const links = [
   { href: "#features", label: "Platform" },
   { href: "#how-it-works", label: "Method" },
-  { href: "#footer", label: "Library" },
 ]
 
 export function Navbar() {
@@ -25,7 +24,7 @@ export function Navbar() {
           <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
             <Logo />
           </span>
-          <span className="text-lg font-semibold tracking-[0.32em] uppercase text-foreground">GitWit</span>
+          <img src="/text.png" alt="GitWit" className="h-7 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
@@ -39,9 +38,6 @@ export function Navbar() {
             </Link>
           ))}
           <ModeToggle />
-          <Button variant="outline" size="sm" onClick={() => router.push("/sign-in")} className="rounded-full">
-            Request Access
-          </Button>
           <Button size="sm" onClick={() => router.push("/sign-up")} className="rounded-full">
             Start now
           </Button>
@@ -69,19 +65,6 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
-            <div className="flex items-center gap-4">
-              <ModeToggle />
-              <Button
-                className="flex-1"
-                variant="outline"
-                onClick={() => {
-                  router.push("/sign-in")
-                  setIsMenuOpen(false)
-                }}
-              >
-                Request Access
-              </Button>
-            </div>
             <Button
               onClick={() => {
                 router.push("/sign-up")

@@ -97,38 +97,6 @@ export default function FeaturesPage() {
         "AI Context Injection"
       ]
     },
-    {
-      icon: BookOpen,
-      title: "Smart Documentation",
-      description: "AI-generated documentation, API references, architecture diagrams, and automated changelogs.",
-      color: "orange",
-      gradient: "from-orange-500/10 to-orange-500/5",
-      href: "#",
-      badges: ["Coming Soon", "AI"],
-      features: [
-        "Auto API Documentation",
-        "Architecture Diagrams",
-        "Onboarding Guides",
-        "Changelog Automation",
-        "Version Control"
-      ]
-    },
-    {
-      icon: CheckSquare,
-      title: "Action Items & Tasks",
-      description: "Automatically extract tasks from meetings and sync with Jira, Linear, and Asana.",
-      color: "red",
-      gradient: "from-red-500/10 to-red-500/5",
-      href: "#",
-      badges: ["Coming Soon", "Integrations"],
-      features: [
-        "Auto Task Extraction",
-        "Jira Integration",
-        "Linear Integration",
-        "Priority Management",
-        "Due Date Tracking"
-      ]
-    }
   ]
 
   const getColorClasses = (color: string) => {
@@ -174,7 +142,6 @@ export default function FeaturesPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-12 animate-fade-in">
-      {}
       <div className="text-center space-y-4">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 mx-auto">
           <Sparkles className="h-8 w-8 text-primary" />
@@ -187,7 +154,6 @@ export default function FeaturesPage() {
         </p>
       </div>
 
-      {}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Core Features</h2>
@@ -239,7 +205,6 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Advanced Features</h2>
@@ -310,7 +275,6 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {}
       <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-primary/5 to-primary/0 p-12 text-center">
         <div className="absolute inset-0 bg-grid-white/5" />
         <div className="relative space-y-4">

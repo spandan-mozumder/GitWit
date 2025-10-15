@@ -118,7 +118,6 @@ export default function AnalyticsPage() {
         </Tabs>
       </div>
 
-      {}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total Commits"
@@ -150,9 +149,7 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {}
         <Card>
           <CardHeader>
             <CardTitle>Team Velocity</CardTitle>
@@ -204,7 +201,6 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -257,7 +253,6 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        {}
         <Card>
           <CardHeader>
             <CardTitle>Top Contributors</CardTitle>
@@ -294,7 +289,6 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        {}
         <Card>
           <CardHeader>
             <CardTitle>Code Hotspots</CardTitle>

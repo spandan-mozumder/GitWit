@@ -71,6 +71,9 @@ model Project{
     documentation Documentation[]
     apiEndpoints APIEndpoint[]
     architectureDiagrams ArchitectureDiagram[]
+    
+    featureIdeas FeatureIdea[]
+    pullRequests PullRequest[]
 }
 
 model UserToProject{
@@ -653,4 +656,169 @@ enum TaskStatus{
     BLOCKED
     DONE
     CANCELLED
+}
+
+// ============================================
+// TIER 2: FEATURE BRAINSTORMING & CODE BROWSER
+// ============================================
+
+model FeatureIdea{
+    id         String   @id @default(cuid())
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+    
+    title String
+    description String @db.Text
+    
+    // AI generated details
+    implementation String? @db.Text // Implementation steps
+    complexity FeatureComplexity @default(MEDIUM)
+    estimatedHours Int? // Time estimate
+    techStack String[] // Suggested technologies
+    userStories String[] // User story format
+    
+    // Prioritization
+    priority Int @default(3) // 1-5 scale
+    voteCount Int @default(0)
+    status FeatureStatus @default(IDEA)
+    
+    // Categorization
+    category FeatureCategory?
+    tags String[] // e.g., ["Performance", "UX", "Security"]
+    
+    // Integration
+    githubIssueUrl String?
+    jiraTicketId String?
+    
+    projectId String
+    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    
+    votes FeatureVote[]
+}
+
+model FeatureVote{
+    id         String   @id @default(cuid())
+    createdAt  DateTime @default(now())
+    
+    userId String
+    featureId String
+    feature FeatureIdea @relation(fields: [featureId], references: [id], onDelete: Cascade)
+    
+    @@unique([userId, featureId])
+}
+
+model PullRequest{
+    id         String   @id @default(cuid())
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+    
+    // GitHub PR data
+    prNumber Int
+    title String
+    description String? @db.Text
+    status PRStatus @default(OPEN)
+    
+    // Metadata
+    author String
+    authorAvatar String?
+    branch String
+    baseBranch String @default("main")
+    
+    // Statistics
+    filesChanged Int @default(0)
+    additions Int @default(0)
+    deletions Int @default(0)
+    commits Int @default(0)
+    
+    // AI Analysis
+    aiSummary String? @db.Text
+    qualityScore Int? // 0-100
+    riskLevel PRRiskLevel?
+    
+    // Breaking changes detection
+    hasBreakingChanges Boolean @default(false)
+    breakingChangesDesc String? @db.Text
+    
+    // Test coverage impact
+    testCoverageImpact String?
+    
+    // Timestamps
+    openedAt DateTime
+    closedAt DateTime?
+    mergedAt DateTime?
+    
+    projectId String
+    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    
+    files PRFile[]
+    
+    @@unique([projectId, prNumber])
+}
+
+model PRFile{
+    id         String   @id @default(cuid())
+    
+    filename String
+    status FileChangeStatus // added, modified, deleted, renamed
+    additions Int @default(0)
+    deletions Int @default(0)
+    changes Int @default(0)
+    
+    // Diff content
+    patch String? @db.Text
+    
+    // AI analysis per file
+    aiSummary String? @db.Text
+    riskScore Int? // 0-100
+    
+    pullRequestId String
+    pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+}
+
+enum FeatureComplexity{
+    EASY
+    MEDIUM
+    HARD
+    VERY_HARD
+}
+
+enum FeatureStatus{
+    IDEA
+    PLANNED
+    IN_PROGRESS
+    DONE
+    REJECTED
+}
+
+enum FeatureCategory{
+    NEW_FEATURE
+    ENHANCEMENT
+    BUG_FIX
+    PERFORMANCE
+    SECURITY
+    UI_UX
+    REFACTOR
+    TESTING
+    DOCUMENTATION
+}
+
+enum PRStatus{
+    OPEN
+    CLOSED
+    MERGED
+    DRAFT
+}
+
+enum PRRiskLevel{
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+}
+
+enum FileChangeStatus{
+    ADDED
+    MODIFIED
+    DELETED
+    RENAMED
 }

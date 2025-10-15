@@ -39,7 +39,7 @@ export function Footer() {
               <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
                 <Logo />
               </span>
-              <span className="text-lg font-semibold tracking-[0.32em] uppercase text-foreground">GitWit</span>
+              <img src="/text.png" alt="GitWit" className="h-7 w-auto" />
             </Link>
             <p className="max-w-md text-sm text-muted-foreground">
               GitWit is the trusted operating system for product engineering. We blend your rituals, data, and

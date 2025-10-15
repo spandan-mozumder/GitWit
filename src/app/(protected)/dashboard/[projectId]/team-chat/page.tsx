@@ -266,7 +266,6 @@ export default function TeamChatPage() {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-20rem)]">
-        {}
         <Card className="col-span-3 flex flex-col border-border/70 shadow-lg">
           <div className="p-4 border-b border-border/50 bg-card/70">
             <div className="flex items-center justify-between">
@@ -293,7 +292,6 @@ export default function TeamChatPage() {
             </div>
           </div>
 
-          {}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/30">
             {messages?.messages.map((msg) => (
               <div key={msg.id} className="flex gap-3 group">
@@ -389,7 +387,6 @@ export default function TeamChatPage() {
                       </div>
                     )}
                   </div>
-                  {}
                   {msg.reactions.length > 0 && (
                     <div className="flex gap-1 mt-2 flex-wrap">
                       {Object.entries(
@@ -410,7 +407,6 @@ export default function TeamChatPage() {
                       ))}
                     </div>
                   )}
-                  {}
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity mt-1">
                     <Popover>
                       <PopoverTrigger asChild>
@@ -436,7 +432,6 @@ export default function TeamChatPage() {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  {}
                   {msg.threadMessages.length > 0 && (
                     <div className="mt-2 ml-4 space-y-2">
                       {msg.threadMessages.map((reply) => (
@@ -470,9 +465,7 @@ export default function TeamChatPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {}
           <div className="p-4 border-t border-border/50 space-y-3">
-            {}
             {uploadedFile && (
               <div className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg border border-border">
                 {filePreviewUrl ? (
@@ -497,7 +490,6 @@ export default function TeamChatPage() {
               </div>
             )}
 
-            {}
             {isCodeMode && (
               <div className="flex items-center justify-between p-2 bg-blue-500/10 rounded border border-blue-500/20">
                 <div className="flex items-center gap-2 text-sm text-blue-600">
@@ -515,7 +507,6 @@ export default function TeamChatPage() {
             )}
 
             <div className="flex gap-2">
-              {}
               <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -578,7 +569,6 @@ export default function TeamChatPage() {
                 </DialogContent>
               </Dialog>
 
-              {}
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="icon" title="Add emoji">
@@ -605,7 +595,6 @@ export default function TeamChatPage() {
                 </PopoverContent>
               </Popover>
 
-              {}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -622,7 +611,6 @@ export default function TeamChatPage() {
                 <Paperclip className="h-4 w-4" />
               </Button>
 
-              {}
               {isCodeMode ? (
                 <Textarea
                   value={message}
@@ -640,7 +628,6 @@ export default function TeamChatPage() {
                 />
               )}
 
-              {}
               <Button
                 onClick={handleSendMessage}
                 disabled={(!message.trim() && !uploadedFile) || sendMessage.isPending}
@@ -651,7 +638,6 @@ export default function TeamChatPage() {
           </div>
         </Card>
 
-        {}
         <Card className="col-span-1">
           <Tabs defaultValue="annotations" className="h-full">
             <TabsList className="w-full">

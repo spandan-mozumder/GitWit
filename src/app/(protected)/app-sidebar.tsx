@@ -11,7 +11,9 @@ import {
     MessageSquare, 
     BookOpen, 
     CheckSquare,
-    Sparkles
+    Sparkles,
+    Lightbulb,
+    FolderTree
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -72,14 +74,26 @@ export function AppSidebar(){
         icon:MessageSquare,
         badge: "Live",
         description: "Real-time collaboration"
+    },{
+        title:"Brainstorming",
+        url:"/brainstorming",
+        icon:Lightbulb,
+        badge: "AI",
+        description: "Generate feature ideas"
+    },{
+        title:"Code Browser",
+        url:"/code-browser",
+        icon:FolderTree,
+        badge: "New",
+        description: "Browse code & PRs"
     }]
 
     return (
         <Sidebar collapsible="icon" variant="floating" >
             <SidebarHeader>
                 <div className="flex items-center gap-2">
-                    <img src={'/favicon.ico'} alt="logo" className="size-8" />
-                    {open && <h1 className="text-xl font-semibold tracking-[0.3em] text-primary/80">GITWIT</h1>}
+                    <img src={'/icon.png'} alt="logo" className="size-8" />
+                    {open && <img src="/text.png" alt="GitWit" className="h-7 w-auto" />}
                 </div>
             </SidebarHeader>
             <SidebarContent>

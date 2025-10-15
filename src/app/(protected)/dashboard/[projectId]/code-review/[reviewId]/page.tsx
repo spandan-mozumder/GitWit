@@ -109,7 +109,6 @@ export default function ReviewDetailPage() {
         <QuickNav />
       </div>
 
-      {}
       <Button
         variant="ghost"
         onClick={() => router.push(`/dashboard/${params.projectId}/code-review`)}
@@ -119,7 +118,6 @@ export default function ReviewDetailPage() {
         Back to Reviews
       </Button>
 
-      {}
       <Card className="border-border/70">
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -144,7 +142,6 @@ export default function ReviewDetailPage() {
         </CardHeader>
       </Card>
 
-      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-border/70">
           <CardHeader className="pb-3">
@@ -219,7 +216,6 @@ export default function ReviewDetailPage() {
         </Card>
       </div>
 
-      {}
       <Card className="border-border/70">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -297,7 +293,6 @@ export default function ReviewDetailPage() {
         </CardContent>
       </Card>
 
-      {}
       {review.suggestions && review.suggestions.length > 0 && (
         <Card className="border-border/70">
           <CardHeader>

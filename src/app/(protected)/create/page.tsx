@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Label } from '~/components/ui/label';
 import { Github, ArrowRight, Info, Layers, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Spinner } from '~/components/ui/spinner';
+import { useLocalStorage } from 'usehooks-ts';
 
 type FormInput= {
     repoUrl: string;
@@ -21,6 +22,7 @@ const Create = () => {
     const [isRedirecting, setIsRedirecting] = useState(false);
     const {register, handleSubmit, formState: { errors }}= useForm<FormInput>()
     const createProject= api.project.createProject.useMutation();
+    const [, setProjectId] = useLocalStorage('gitwit-project-id', '');
 
     function onSubmit(data: FormInput){
         const {projectName, repoUrl, gitHubToken}= data;
@@ -38,8 +40,9 @@ const Create = () => {
         });
 
         createProject.mutate({name: projectName, repoUrl, gitHubToken},{
-            onSuccess: () => {
+            onSuccess: (project) => {
                 toast.dismiss(loadingToast);
+                setProjectId(project.id);
                 toast.success("Workspace launched successfully!", {
                     description: "Your project is ready. Redirecting to dashboard...",
                     icon: <CheckCircle2 className="h-4 w-4" />
@@ -82,7 +85,6 @@ const Create = () => {
 
   return (
     <div className='container mx-auto max-w-6xl px-4 py-12 animate-fade-in relative'>
-        {}
         {(createProject.isPending || isRedirecting) && (
             <div className="fixed inset-0 z-50 loading-overlay flex items-center justify-center">
                 <div className="rounded-3xl border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-sm flex flex-col items-center gap-4">
@@ -98,7 +100,6 @@ const Create = () => {
         )}
         
         <div className='grid items-start gap-10 lg:grid-cols-[minmax(0,0.95fr),minmax(0,1fr)]'>
-            {}
             <div className="space-y-8">
                 <div className="space-y-4">
                     <span className="inline-flex items-center rounded-full border border-border/60 bg-accent/40 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-foreground/70">
@@ -137,7 +138,6 @@ const Create = () => {
                 </div>
             </div>
 
-            {}
             <div className="space-y-6 rounded-3xl border border-border/70 bg-card/70 p-6 shadow-lg shadow-primary/5">
                 <div className="space-y-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Project intake</p>

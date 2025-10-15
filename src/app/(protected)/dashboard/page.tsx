@@ -1,5 +1,5 @@
 "use client"
-import { ExternalLink, Github, Sparkles, BarChart3, Code2, MessageSquare, ArrowRight } from 'lucide-react';
+import { ExternalLink, Github, Sparkles, BarChart3, Code2, MessageSquare, ArrowRight, Lightbulb, FolderTree } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react'
 import useProject from '~/hooks/use-project';
@@ -53,7 +53,6 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-10 animate-fade-in">
-      {}
       <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/70 p-6 md:p-8">
         <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-primary/30 via-border/60 to-transparent" />
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
@@ -99,13 +98,11 @@ const DashboardPage = () => {
         </div>
       </section>
 
-      {}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <AskQuestionCard />
         <MeetingCard/>
       </div>
 
-      {}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -119,7 +116,6 @@ const DashboardPage = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {}
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -144,7 +140,6 @@ const DashboardPage = () => {
             </CardContent>
           </Card>
 
-          {}
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -169,7 +164,6 @@ const DashboardPage = () => {
             </CardContent>
           </Card>
 
-          {}
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-green-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -193,10 +187,57 @@ const DashboardPage = () => {
               </Link>
             </CardContent>
           </Card>
+
+          <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-yellow-500/10 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-500/10 text-yellow-500">
+                  <Lightbulb className="h-6 w-6" />
+                </div>
+                <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20">AI</Badge>
+              </div>
+              <CardTitle className="mt-4">Feature Brainstorming</CardTitle>
+              <CardDescription>
+                AI-generated feature ideas with implementation plans, time estimates, and user stories.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/brainstorming">
+                <Button variant="ghost" className="w-full justify-between group/btn">
+                  Generate Ideas
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-500">
+                  <FolderTree className="h-6 w-6" />
+                </div>
+                <Badge variant="outline" className="text-xs">New</Badge>
+              </div>
+              <CardTitle className="mt-4">Code Browser</CardTitle>
+              <CardDescription>
+                Browse your entire codebase, view PRs with AI analysis, and explore file changes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/code-browser">
+                <Button variant="ghost" className="w-full justify-between group/btn">
+                  Browse Code
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
-      {}
       <CommitLog/>
     </div>
   )

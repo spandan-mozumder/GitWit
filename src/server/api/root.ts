@@ -4,6 +4,8 @@ import { teamChatRouter } from "@/server/api/routers/teamChat";
 import { analyticsRouter } from "@/server/api/routers/analytics";
 import { documentationRouter } from "@/server/api/routers/documentation";
 import { meetingsEnhancedRouter } from "@/server/api/routers/meetingsEnhanced";
+import { featureBrainstormingRouter } from "@/server/api/routers/featureBrainstorming";
+import { codeBrowserRouter } from "@/server/api/routers/codeBrowser";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
 export const appRouter = createTRPCRouter({
@@ -18,6 +20,10 @@ export const appRouter = createTRPCRouter({
   documentation: documentationRouter,
   
   meetingsEnhanced: meetingsEnhancedRouter,
+  
+  featureBrainstorming: featureBrainstormingRouter,
+  
+  codeBrowser: codeBrowserRouter,
 });
 
 export type AppRouter = typeof appRouter;

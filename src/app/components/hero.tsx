@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button"
 const caseStudies = [
   {
     icon: LineChart,
-    title: "Engineering velocity up 42%",
+    title: "Engineering velocity increased",
     body: "Ship weekly releases without drowning in context switching or stale documentation.",
   },
   {
@@ -61,20 +61,6 @@ export function Hero() {
               </Button>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-3">
-              <div className="space-y-1 border-l border-border/70 pl-4">
-                <div className="text-2xl font-semibold text-foreground md:text-3xl">28,000+</div>
-                <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Deployments shipped</div>
-              </div>
-              <div className="space-y-1 border-l border-border/70 pl-4">
-                <div className="text-2xl font-semibold text-foreground md:text-3xl">11 countries</div>
-                <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Distributed teams</div>
-              </div>
-              <div className="space-y-1 border-l border-border/70 pl-4">
-                <div className="text-2xl font-semibold text-foreground md:text-3xl">98% CSAT</div>
-                <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Quarterly survey</div>
-              </div>
-            </div>
           </div>
 
           <aside className="relative isolate flex flex-col gap-5 rounded-3xl border border-border/70 bg-card/70 p-6 shadow-2xl shadow-primary/5 backdrop-blur-sm lg:translate-y-2">

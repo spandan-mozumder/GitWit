@@ -139,7 +139,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
         </DialogHeader>
 
         <div className="space-y-6">
-          {}
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Global
@@ -157,7 +156,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
             </div>
           </div>
 
-          {}
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Dashboard
@@ -175,7 +173,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
             </div>
           </div>
 
-          {}
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Analytics
@@ -193,7 +190,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
             </div>
           </div>
 
-          {}
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Code Review
@@ -211,7 +207,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
             </div>
           </div>
 
-          {}
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Team Chat
@@ -229,7 +224,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
             </div>
           </div>
 
-          {}
           {shortcuts && shortcuts.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Shield,
   Zap,
@@ -32,6 +34,10 @@ import {
   Code2,
   Sparkles,
   Play,
+  GitBranch,
+  GitCommit,
+  Calendar,
+  User,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -39,8 +45,9 @@ export default function CodeReviewPage() {
   const params = useParams<{ projectId: string }>();
   const router = useRouter();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [branch, setBranch] = useState("");
-  const [commitHash, setCommitHash] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
+  const [selectedCommit, setSelectedCommit] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: reviews, isLoading, refetch } = api.codeReview.getProjectReviews.useQuery({
     projectId: params.projectId,
@@ -51,24 +58,48 @@ export default function CodeReviewPage() {
     projectId: params.projectId,
   });
 
+  const { data: branches, isLoading: loadingBranches } = api.codeBrowser.getBranches.useQuery({
+    projectId: params.projectId,
+  }, { enabled: isCreateOpen });
+
+  const { data: commits, isLoading: loadingCommits } = api.codeBrowser.getCommits.useQuery({
+    projectId: params.projectId,
+    branch: selectedBranch || undefined,
+  }, { enabled: isCreateOpen && !!selectedBranch });
+
+  useEffect(() => {
+    if (branches && branches.length > 0 && !selectedBranch) {
+      const defaultBranch = branches.find(b => b.name === 'main') || branches[0];
+      if (defaultBranch) {
+        setSelectedBranch(defaultBranch.name);
+      }
+    }
+  }, [branches, selectedBranch]);
+
   const createReview = api.codeReview.createReview.useMutation({
     onSuccess: () => {
       refetch();
       setIsCreateOpen(false);
-      setBranch("");
-      setCommitHash("");
+      setSelectedBranch("");
+      setSelectedCommit("");
     },
   });
 
   const handleCreateReview = () => {
-    if (!branch || !commitHash) return;
+    if (!selectedBranch || !selectedCommit) return;
 
     createReview.mutate({
       projectId: params.projectId,
-      branch,
-      commitHash,
+      branch: selectedBranch,
+      commitHash: selectedCommit,
     });
   };
+
+  const filteredCommits = commits?.filter(commit => 
+    commit.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    commit.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    commit.sha.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -90,6 +121,17 @@ export default function CodeReviewPage() {
     if (score >= 70) return "text-yellow-600";
     if (score >= 50) return "text-orange-600";
     return "text-red-600";
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'Unknown';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -130,45 +172,130 @@ export default function CodeReviewPage() {
               Start New Review
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[80vh]">
             <DialogHeader>
-              <DialogTitle>Create Code Review</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <Code2 className="h-5 w-5" />
+                Create Code Review
+              </DialogTitle>
               <DialogDescription>
-                AI will analyze your code for security, performance, and best practices
+                Select a branch and commit to analyze. AI will scan for security, performance, and best practices.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="branch">Branch</Label>
-                <Input
-                  id="branch"
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                  placeholder="main"
-                />
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="branch" className="flex items-center gap-2">
+                  <GitBranch className="h-4 w-4" />
+                  Branch
+                </Label>
+                {loadingBranches ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : (
+                  <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches?.map((branch) => (
+                        <SelectItem key={branch.name} value={branch.name}>
+                          <div className="flex items-center gap-2">
+                            <GitBranch className="h-3 w-3" />
+                            {branch.name}
+                            {branch.protected && (
+                              <Badge variant="secondary" className="ml-2 text-xs">Protected</Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
-              <div>
-                <Label htmlFor="commitHash">Commit Hash</Label>
-                <Input
-                  id="commitHash"
-                  value={commitHash}
-                  onChange={(e) => setCommitHash(e.target.value)}
-                  placeholder="abc123def456..."
-                />
-              </div>
+
+              {selectedBranch && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-2">
+                      <GitCommit className="h-4 w-4" />
+                      Commits on {selectedBranch}
+                    </Label>
+                    <Input
+                      placeholder="Search commits..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="max-w-xs"
+                    />
+                  </div>
+                  
+                  {loadingCommits ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
+                  ) : (
+                    <ScrollArea className="h-[300px] rounded-md border">
+                      <div className="p-4 space-y-2">
+                        {filteredCommits && filteredCommits.length > 0 ? (
+                          filteredCommits.map((commit) => (
+                            <Card
+                              key={commit.sha}
+                              className={`cursor-pointer transition-all hover:border-primary/50 ${
+                                selectedCommit === commit.sha ? 'ring-2 ring-primary border-primary' : ''
+                              }`}
+                              onClick={() => setSelectedCommit(commit.sha)}
+                            >
+                              <CardContent className="p-4">
+                                <div className="space-y-2">
+                                  <div className="flex items-start justify-between gap-4">
+                                    <p className="text-sm font-medium line-clamp-2">
+                                      {commit.message?.split('\n')[0] || 'No message'}
+                                    </p>
+                                    {selectedCommit === commit.sha && (
+                                      <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                      <User className="h-3 w-3" />
+                                      {commit.author || 'Unknown'}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" />
+                                      {formatDate(commit.date)}
+                                    </div>
+                                  </div>
+                                  <code className="text-xs text-muted-foreground font-mono">
+                                    {commit.sha.substring(0, 8)}
+                                  </code>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))
+                        ) : (
+                          <p className="text-sm text-muted-foreground text-center py-8">
+                            {searchTerm ? 'No commits found matching your search' : 'No commits available'}
+                          </p>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </div>
+              )}
+
               <Button
                 onClick={handleCreateReview}
-                disabled={createReview.isPending || !branch || !commitHash}
+                disabled={createReview.isPending || !selectedBranch || !selectedCommit}
                 className="w-full"
+                size="lg"
               >
-                {createReview.isPending ? "Creating..." : "Start Review"}
+                {createReview.isPending ? "Creating Review..." : "Start AI Review"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
           title="Total Reviews"
@@ -195,7 +322,6 @@ export default function CodeReviewPage() {
         />
       </div>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle>Recent Reviews</CardTitle>

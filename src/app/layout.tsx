@@ -10,7 +10,7 @@ import { ThemeProvider } from "@/app/components/theme-provider";
 export const metadata: Metadata = {
   title: "GitWit",
   description: "The operating surface for product engineering teams.",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [{ rel: "icon", url: "/icon.png" }],
 };
 
 export default function RootLayout({
