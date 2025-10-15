@@ -35,7 +35,7 @@ const MeetingCard = () => {
     const uploadMeeting = api.project.uploadMeeting.useMutation()
     
     const SUPPORTED_FORMATS = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/m4a', 'audio/x-m4a'];
-    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; 
 
     const {getInputProps, getRootProps, isDragActive}= useDropzone({
         accept:{
@@ -44,7 +44,7 @@ const MeetingCard = () => {
         multiple: false,
         maxSize: MAX_FILE_SIZE,
         onDrop: async(acceptedFiles, rejectedFiles)=> {
-            // Handle rejected files
+            
             if (rejectedFiles.length > 0) {
                 const rejection = rejectedFiles[0];
                 if (rejection?.errors[0]?.code === 'file-too-large') {

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const teamChatRouter = createTRPCRouter({
-  // Create or get team chat for a project
+  
   getOrCreateChat: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -54,18 +54,24 @@ export const teamChatRouter = createTRPCRouter({
       return chat;
     }),
 
-  // Send a message
   sendMessage: protectedProcedure
     .input(
       z.object({
         chatId: z.string(),
-        content: z.string().min(1),
+        content: z.string(),
         messageType: z
           .enum(["TEXT", "CODE", "FILE", "SYSTEM"])
           .default("TEXT"),
+        
+        attachmentUrl: z.string().optional(),
+        attachmentName: z.string().optional(),
+        attachmentSize: z.number().optional(),
+        attachmentType: z.string().optional(),
+        
         filePath: z.string().optional(),
         lineNumber: z.number().optional(),
         codeSnippet: z.string().optional(),
+        codeLanguage: z.string().optional(),
         commitHash: z.string().optional(),
         parentMessageId: z.string().optional(),
         mentionedUserIds: z.array(z.string()).optional(),
@@ -74,7 +80,6 @@ export const teamChatRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { mentionedUserIds, ...messageData } = input;
 
-      // Create message with AI context if it's code-related
       const aiContext = input.messageType === "CODE" && input.codeSnippet
         ? await generateAIContext(input.codeSnippet)
         : null;
@@ -114,7 +119,6 @@ export const teamChatRouter = createTRPCRouter({
         },
       });
 
-      // Update last read for sender
       await ctx.db.chatParticipant.updateMany({
         where: {
           chatId: input.chatId,
@@ -128,7 +132,6 @@ export const teamChatRouter = createTRPCRouter({
       return message;
     }),
 
-  // Get messages
   getMessages: protectedProcedure
     .input(
       z.object({
@@ -141,7 +144,7 @@ export const teamChatRouter = createTRPCRouter({
       const messages = await ctx.db.chatMessage.findMany({
         where: {
           chatId: input.chatId,
-          parentMessageId: null, // Only top-level messages
+          parentMessageId: null, 
         },
         include: {
           user: {
@@ -207,7 +210,6 @@ export const teamChatRouter = createTRPCRouter({
       };
     }),
 
-  // Add reaction to message
   addReaction: protectedProcedure
     .input(
       z.object({
@@ -225,7 +227,6 @@ export const teamChatRouter = createTRPCRouter({
       });
     }),
 
-  // Remove reaction
   removeReaction: protectedProcedure
     .input(
       z.object({
@@ -243,7 +244,6 @@ export const teamChatRouter = createTRPCRouter({
       });
     }),
 
-  // Mark messages as read
   markAsRead: protectedProcedure
     .input(z.object({ chatId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -258,7 +258,6 @@ export const teamChatRouter = createTRPCRouter({
       });
     }),
 
-  // Get unread count
   getUnreadCount: protectedProcedure
     .input(z.object({ chatId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -286,7 +285,6 @@ export const teamChatRouter = createTRPCRouter({
       return unreadCount;
     }),
 
-  // Create code annotation
   createAnnotation: protectedProcedure
     .input(
       z.object({
@@ -316,7 +314,6 @@ export const teamChatRouter = createTRPCRouter({
       });
     }),
 
-  // Get annotations for a file
   getAnnotations: protectedProcedure
     .input(
       z.object({
@@ -362,7 +359,6 @@ export const teamChatRouter = createTRPCRouter({
       });
     }),
 
-  // Reply to annotation
   replyToAnnotation: protectedProcedure
     .input(
       z.object({
@@ -390,7 +386,6 @@ export const teamChatRouter = createTRPCRouter({
       });
     }),
 
-  // Resolve annotation
   resolveAnnotation: protectedProcedure
     .input(z.object({ annotationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -401,9 +396,7 @@ export const teamChatRouter = createTRPCRouter({
     }),
 });
 
-// AI Context Generation
 async function generateAIContext(codeSnippet: string): Promise<string> {
-  // This would use Gemini to generate helpful context about the code
-  // For now, return a placeholder
+  
   return `This code snippet appears to be related to: [AI-generated context would go here]`;
 }

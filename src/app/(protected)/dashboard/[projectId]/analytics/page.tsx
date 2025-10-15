@@ -96,7 +96,7 @@ export default function AnalyticsPage() {
                 Analytics Dashboard
               </h1>
               <p className="text-muted-foreground mt-1">
-                Comprehensive insights into your team's performance
+                Comprehensive insights into your team&apos;s performance
               </p>
             </div>
           </div>
@@ -109,7 +109,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <Tabs value={period} onValueChange={(v) => setPeriod(v as any)} className="w-fit">
+        <Tabs value={period} onValueChange={(v) => setPeriod(v as "week" | "month" | "quarter")} className="w-fit">
           <TabsList>
             <TabsTrigger value="week">Week</TabsTrigger>
             <TabsTrigger value="month">Month</TabsTrigger>
@@ -118,7 +118,7 @@ export default function AnalyticsPage() {
         </Tabs>
       </div>
 
-      {/* Key Metrics */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total Commits"
@@ -150,9 +150,9 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      {/* Charts */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Velocity Trends */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle>Team Velocity</CardTitle>
@@ -204,7 +204,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        {/* DORA Metrics */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        {/* Developer Leaderboard */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle>Top Contributors</CardTitle>
@@ -294,7 +294,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        {/* Code Hotspots */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle>Code Hotspots</CardTitle>
@@ -328,8 +328,8 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="flex gap-4 text-xs text-muted-foreground">
                       <span>Changes: {hotspot.changeFrequency}</span>
-                      <span>Bugs: {hotspot.bugCount}</span>
-                      <span>Complexity: {hotspot.complexity}</span>
+                      <span>Lines: {hotspot.linesChanged}</span>
+                      <span>Contributors: {hotspot.contributorsCount}</span>
                     </div>
                   </div>
                 ))}

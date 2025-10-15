@@ -7,8 +7,6 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/app/components/theme-provider";
 
-
-
 export const metadata: Metadata = {
   title: "GitWit",
   description: "The operating surface for product engineering teams.",

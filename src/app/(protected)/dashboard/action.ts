@@ -13,9 +13,6 @@ export async function askQuestion(question: string, projectId: string) {
     const queryVector = await generateEmbedding(question)
     const vectorQuery = `[${queryVector.join(",")}]`
 
-    // Log the vector query for debugging
-    // console.log("Vector Query:", vectorQuery)
-
     const result = await db.$queryRaw`
     SELECT "fileName", "sourceCode", "summary",
     1-("summaryEmbedding" <=> ${vectorQuery}::vector) AS "similarity"
@@ -30,15 +27,12 @@ export async function askQuestion(question: string, projectId: string) {
         summary: string
     }[]
 
-    // Log the result for debugging
-    // console.log("Query Result:", result)
-
     let context = ""
-    // console.log("context", context);
+    
     for (const doc of result){
         context += `source: ${doc.fileName}\n code content: ${doc.sourceCode}\n summary of file: ${doc.summary} \n\n `
     }
-    // console.log("context", context);
+    
     const {textStream} = await streamText({
         model:google("gemini-2.5-flash-lite"),
         prompt: `

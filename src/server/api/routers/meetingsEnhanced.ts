@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const meetingsEnhancedRouter = createTRPCRouter({
-  // Create action item from meeting
+  
   createActionItem: protectedProcedure
     .input(
       z.object({
@@ -33,10 +33,9 @@ export const meetingsEnhancedRouter = createTRPCRouter({
         },
       });
 
-      // Create reminder if due date is set
       if (input.dueDate) {
         const reminderDate = new Date(input.dueDate);
-        reminderDate.setDate(reminderDate.getDate() - 1); // 1 day before
+        reminderDate.setDate(reminderDate.getDate() - 1); 
 
         await ctx.db.reminder.create({
           data: {
@@ -49,7 +48,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       return actionItem;
     }),
 
-  // Get action items for a meeting
   getActionItems: protectedProcedure
     .input(
       z.object({
@@ -85,7 +83,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       });
     }),
 
-  // Get my action items
   getMyActionItems: protectedProcedure
     .input(
       z.object({
@@ -125,7 +122,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       });
     }),
 
-  // Update action item status
   updateActionItem: protectedProcedure
     .input(
       z.object({
@@ -139,7 +135,7 @@ export const meetingsEnhancedRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { actionItemId, ...data } = input;
 
-      const updates: any = { ...data };
+      const updates: Record<string, unknown> = { ...data };
       if (data.status === "DONE") {
         updates.completedAt = new Date();
       }
@@ -150,7 +146,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       });
     }),
 
-  // Auto-generate action items from meeting issues
   autoGenerateActionItems: protectedProcedure
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -165,8 +160,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
         throw new Error("Meeting not found");
       }
 
-      // AI would analyze issues and create action items
-      // For now, create one action item per issue
       const actionItems = [];
 
       for (const issue of meeting.issues) {
@@ -185,7 +178,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       return { count: actionItems.length, items: actionItems };
     }),
 
-  // Link action item to external service
   linkToExternalService: protectedProcedure
     .input(
       z.object({
@@ -195,7 +187,7 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const updates: any = {};
+      const updates: Record<string, string> = {};
       if (input.service === "jira") {
         updates.jiraId = input.externalId;
       } else if (input.service === "linear") {
@@ -210,7 +202,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       });
     }),
 
-  // Get overdue action items
   getOverdueActionItems: protectedProcedure
     .input(z.object({ projectId: z.string().optional() }))
     .query(async ({ ctx, input }) => {
@@ -253,7 +244,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       });
     }),
 
-  // Send reminder for action item
   sendReminder: protectedProcedure
     .input(z.object({ actionItemId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -268,8 +258,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
         throw new Error("Action item or assignee not found");
       }
 
-      // Here you would send email/notification
-      // For now, just mark reminder as sent
       await ctx.db.reminder.updateMany({
         where: {
           actionItemId: input.actionItemId,
@@ -284,7 +272,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  // Get action item statistics
   getActionItemStats: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {

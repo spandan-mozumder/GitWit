@@ -2,7 +2,6 @@ import { auth, clerkClient, EmailAddress } from '@clerk/nextjs/server'
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/server/db';
 
-
 const SyncUser = async () => {
     const {userId} = await auth();
     if (!userId) {

@@ -10,7 +10,6 @@ const bodyParser = z.object({
     meetingId: z.string(),
 });
 
-
 export async function POST(req: NextRequest) {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

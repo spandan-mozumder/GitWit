@@ -28,8 +28,7 @@ model User{
     userToProjects UserToProject[]
     credits    Int @default(150)
     QuestionsAsked Question[]
-    
-    // Tier 1: Team Collaboration
+
     chatMessages ChatMessage[]
     chatParticipants ChatParticipant[]
     mentions UserMention[]
@@ -60,19 +59,15 @@ model Project{
     SavedQuestion Question[]
     Meetings Meeting[]
     
-    // Tier 1: Code Review & Analysis
     codeReviews CodeReview[]
     
-    // Tier 1: Team Collaboration
     teamChats TeamChat[]
     codeAnnotations CodeAnnotation[]
     
-    // Tier 1: Analytics
     developerMetrics DeveloperMetric[]
     teamMetrics TeamMetric[]
     codeHotspots CodeHotspot[]
-    
-    // Tier 1: Documentation
+
     documentation Documentation[]
     apiEndpoints APIEndpoint[]
     architectureDiagrams ArchitectureDiagram[]
@@ -137,7 +132,6 @@ model Meeting{
     project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
     issues Issue[]
     
-    // Tier 1: Enhanced Meeting Features
     actionItems ActionItem[]
 }
 
@@ -171,10 +165,6 @@ model SourceCodeEmbedding{
     projectId String
     project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
-
-// ============================================
-// TIER 1: AI-POWERED CODE REVIEW & ANALYSIS
-// ============================================
 
 model CodeReview{
     id         String   @id @default(cuid())
@@ -291,10 +281,17 @@ model ChatMessage{
     content String @db.Text
     messageType MessageType @default(TEXT)
     
+    // Attachments
+    attachmentUrl String?
+    attachmentName String?
+    attachmentSize Int?
+    attachmentType String?
+    
     // Code context
     filePath String?
     lineNumber Int?
     codeSnippet String? @db.Text
+    codeLanguage String? // Language for syntax highlighting (e.g., typescript, python)
     commitHash String?
     
     // AI context injection

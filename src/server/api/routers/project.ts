@@ -13,7 +13,6 @@ export const projectRouter = createTRPCRouter({
 
         const {name, repoUrl, gitHubToken}= input;
 
-        // Check if a project with the same name already exists for this user
         const existingProjectWithName = await ctx.db.project.findFirst({
             where: {
                 name,
@@ -30,7 +29,6 @@ export const projectRouter = createTRPCRouter({
             throw new Error(`A project with the name "${name}" already exists. Please choose a different name.`);
         }
 
-        // Check if a project accessing the same repository already exists for this user
         const existingProjectWithRepo = await ctx.db.project.findFirst({
             where: {
                 repoUrl,

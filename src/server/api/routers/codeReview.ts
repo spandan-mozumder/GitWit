@@ -1,27 +1,34 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { pollCommits } from "@/lib/github";
-import { generateEmbedding } from "@/lib/gemini";
+import { analyzeRepositoryCode } from "@/lib/code-analyzer";
 
 export const codeReviewRouter = createTRPCRouter({
-  // Create a new code review
   createReview: protectedProcedure
     .input(
       z.object({
         projectId: z.string(),
-        branch: z.string(),
-        commitHash: z.string(),
+        branch: z.string().default("main"),
+        commitHash: z.string().optional(),
         prNumber: z.number().optional(),
         prTitle: z.string().optional(),
         prUrl: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const project = await ctx.db.project.findUnique({
+        where: { id: input.projectId },
+        select: { repoUrl: true },
+      });
+
+      if (!project?.repoUrl) {
+        throw new Error("Project has no repository URL");
+      }
+
       const review = await ctx.db.codeReview.create({
         data: {
           projectId: input.projectId,
           branch: input.branch,
-          commitHash: input.commitHash,
+          commitHash: input.commitHash || "HEAD",
           prNumber: input.prNumber,
           prTitle: input.prTitle,
           prUrl: input.prUrl,
@@ -29,27 +36,93 @@ export const codeReviewRouter = createTRPCRouter({
           securityScore: 0,
           performanceScore: 0,
           maintainabilityScore: 0,
-          status: "PENDING",
+          status: "IN_PROGRESS",
         },
       });
 
-      // Trigger async analysis
-      analyzeCode(review.id, ctx.db).catch(console.error);
+      try {
+        const analysis = await analyzeRepositoryCode(
+          project.repoUrl,
+          input.branch,
+          input.commitHash
+        );
 
-      return review;
+        await ctx.db.codeReview.update({
+          where: { id: review.id },
+          data: {
+            overallScore: analysis.overallScore,
+            securityScore: analysis.securityScore,
+            performanceScore: analysis.performanceScore,
+            maintainabilityScore: analysis.maintainabilityScore,
+            status: "COMPLETED",
+          },
+        });
+
+        await ctx.db.codeReviewFinding.createMany({
+          data: analysis.findings.map(finding => ({
+            reviewId: review.id,
+            severity: finding.severity,
+            category: finding.category,
+            title: finding.title,
+            description: finding.description,
+            filePath: finding.filePath,
+            lineNumber: finding.lineNumber,
+            codeSnippet: finding.suggestion,
+            recommendation: finding.suggestion || "Review and fix this issue",
+          })),
+        });
+
+        await ctx.db.codeReviewSuggestion.createMany({
+          data: analysis.suggestions.map(suggestion => ({
+            reviewId: review.id,
+            title: suggestion.title,
+            description: suggestion.description,
+            filePath: "general",
+            reasoning: suggestion.impact,
+            impact: suggestion.impact,
+            effort: suggestion.effort,
+            suggestedCode: suggestion.code || "",
+          })),
+        });
+
+        return await ctx.db.codeReview.findUnique({
+          where: { id: review.id },
+          include: {
+            findings: true,
+            suggestions: true,
+          },
+        });
+      } catch (error) {
+        
+        await ctx.db.codeReview.update({
+          where: { id: review.id },
+          data: {
+            status: "FAILED",
+          },
+        });
+        
+        throw new Error(`Code analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }),
 
-  // Get review by ID
   getReview: protectedProcedure
     .input(z.object({ reviewId: z.string() }))
     .query(async ({ ctx, input }) => {
       return await ctx.db.codeReview.findUnique({
         where: { id: input.reviewId },
         include: {
-          findings: true,
-          suggestions: true,
+          findings: {
+            orderBy: [
+              { severity: "asc" },
+              { createdAt: "desc" },
+            ],
+          },
+          suggestions: {
+            orderBy: { createdAt: "desc" },
+          },
           project: {
             select: {
+              id: true,
               name: true,
               repoUrl: true,
             },
@@ -58,7 +131,6 @@ export const codeReviewRouter = createTRPCRouter({
       });
     }),
 
-  // Get all reviews for a project
   getProjectReviews: protectedProcedure
     .input(
       z.object({
@@ -101,7 +173,6 @@ export const codeReviewRouter = createTRPCRouter({
       };
     }),
 
-  // Apply a suggestion
   applySuggestion: protectedProcedure
     .input(z.object({ suggestionId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -114,7 +185,6 @@ export const codeReviewRouter = createTRPCRouter({
       });
     }),
 
-  // Get review statistics
   getReviewStats: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -150,10 +220,8 @@ export const codeReviewRouter = createTRPCRouter({
     }),
 });
 
-// Async function to analyze code using AI
-async function analyzeCode(reviewId: string, db: any) {
+async function analyzeCode(reviewId: string, db: typeof import("~/server/db").db) {
   try {
-    // Update status to in progress
     await db.codeReview.update({
       where: { id: reviewId },
       data: { status: "IN_PROGRESS" },
@@ -172,22 +240,18 @@ async function analyzeCode(reviewId: string, db: any) {
 
     if (!review) return;
 
-    // AI Analysis would go here - for now, generate mock data
     const findings = await generateFindings(review);
     const suggestions = await generateSuggestions(review);
     const scores = calculateScores(findings);
 
-    // Save findings
     await db.codeReviewFinding.createMany({
-      data: findings.map((f: any) => ({ ...f, reviewId })),
+      data: findings.map((f) => ({ ...f, reviewId })),
     });
 
-    // Save suggestions
     await db.codeReviewSuggestion.createMany({
-      data: suggestions.map((s: any) => ({ ...s, reviewId })),
+      data: suggestions.map((s) => ({ ...s, reviewId })),
     });
 
-    // Update review with scores
     await db.codeReview.update({
       where: { id: reviewId },
       data: {
@@ -204,13 +268,26 @@ async function analyzeCode(reviewId: string, db: any) {
   }
 }
 
-// Mock AI functions - replace with actual AI integration
-function generateFindings(review: any) {
-  // This would use Gemini/GPT to analyze code
+type FindingSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
+type FindingCategory = "SECURITY" | "PERFORMANCE" | "BUG" | "CODE_SMELL" | "BEST_PRACTICE" | "DOCUMENTATION" | "TESTING";
+
+interface Finding {
+  severity: FindingSeverity;
+  category: FindingCategory;
+  title: string;
+  description: string;
+  filePath: string;
+  lineNumber: number;
+  codeSnippet: string;
+  recommendation: string;
+  estimatedImpact: string;
+}
+
+function generateFindings(_review: unknown): Promise<Finding[]> {
   return Promise.resolve([
     {
-      severity: "HIGH",
-      category: "SECURITY",
+      severity: "HIGH" as const,
+      category: "SECURITY" as const,
       title: "Potential SQL Injection",
       description: "User input is not properly sanitized before database query",
       filePath: "src/api/users.ts",
@@ -222,7 +299,7 @@ function generateFindings(review: any) {
   ]);
 }
 
-function generateSuggestions(review: any) {
+function generateSuggestions(_review: unknown) {
   return Promise.resolve([
     {
       title: "Use Prepared Statements",
@@ -238,9 +315,8 @@ function generateSuggestions(review: any) {
   ]);
 }
 
-function calculateScores(findings: any[]) {
-  // Calculate scores based on findings
-  const severityWeights = {
+function calculateScores(findings: Finding[]) {
+  const severityWeights: Record<string, number> = {
     CRITICAL: 25,
     HIGH: 15,
     MEDIUM: 5,
@@ -263,7 +339,7 @@ function calculateScores(findings: any[]) {
   return {
     overallScore,
     securityScore: Math.max(0, 100 - securityDeduction),
-    performanceScore: 85, // Mock
-    maintainabilityScore: 90, // Mock
+    performanceScore: 85,
+    maintainabilityScore: 90,
   };
 }

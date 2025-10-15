@@ -25,7 +25,6 @@ const Create = () => {
     function onSubmit(data: FormInput){
         const {projectName, repoUrl, gitHubToken}= data;
         
-        // Validate GitHub URL format
         const githubUrlPattern = /^https:\/\/github\.com\/[\w-]+\/[\w-]+\/?$/;
         if (!githubUrlPattern.test(repoUrl)) {
             toast.error("Invalid GitHub URL", {
@@ -55,7 +54,6 @@ const Create = () => {
                 console.error("Project creation error:", error);
                 const errorMessage = error.message || "Unable to create workspace";
                 
-                // Check for specific duplicate errors
                 let errorTitle = "Workspace creation failed";
                 let errorDescription = "Please try again";
                 
@@ -84,7 +82,7 @@ const Create = () => {
 
   return (
     <div className='container mx-auto max-w-6xl px-4 py-12 animate-fade-in relative'>
-        {/* Loading Overlay */}
+        {}
         {(createProject.isPending || isRedirecting) && (
             <div className="fixed inset-0 z-50 loading-overlay flex items-center justify-center">
                 <div className="rounded-3xl border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-sm flex flex-col items-center gap-4">
@@ -100,7 +98,7 @@ const Create = () => {
         )}
         
         <div className='grid items-start gap-10 lg:grid-cols-[minmax(0,0.95fr),minmax(0,1fr)]'>
-            {/* Left side - Narrative */}
+            {}
             <div className="space-y-8">
                 <div className="space-y-4">
                     <span className="inline-flex items-center rounded-full border border-border/60 bg-accent/40 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-foreground/70">
@@ -139,7 +137,7 @@ const Create = () => {
                 </div>
             </div>
 
-            {/* Right side - Form */}
+            {}
             <div className="space-y-6 rounded-3xl border border-border/70 bg-card/70 p-6 shadow-lg shadow-primary/5">
                 <div className="space-y-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Project intake</p>

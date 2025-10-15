@@ -64,7 +64,6 @@ const IssuesList = ({meetingId}:Props) => {
   )
 }
 
-
 function IssueCard({issue}:{issue: NonNullable<RouterOutputs['project']['getMeetingById']>['issues'][number]}){
 
     const [open, setOpen] = useState(false);

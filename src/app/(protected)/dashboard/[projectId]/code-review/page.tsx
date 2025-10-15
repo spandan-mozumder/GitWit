@@ -168,7 +168,7 @@ export default function CodeReviewPage() {
         </Dialog>
       </div>
 
-      {/* Stats */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
           title="Total Reviews"
@@ -195,7 +195,7 @@ export default function CodeReviewPage() {
         />
       </div>
 
-      {/* Reviews List */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Recent Reviews</CardTitle>

@@ -9,26 +9,117 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { QuickNav } from "@/components/quick-nav";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Send,
   Code2,
   Smile,
   Paperclip,
   MessageSquare,
-  Users,
   FileCode,
   Sparkles,
   Radio,
+  X,
+  File,
+  Image as ImageIcon,
+  Download,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useTheme } from "next-themes";
+import { useKeyboardShortcuts, type KeyboardShortcut } from "@/hooks/use-keyboard-shortcuts";
+
+const EMOJI_LIST = [
+  "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂",
+  "🙂", "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩",
+  "😘", "😗", "😚", "😙", "🥲", "😋", "😛", "😜",
+  "🤪", "😝", "🤑", "🤗", "🤭", "🤫", "🤔", "🤐",
+  "👍", "👎", "👌", "✌️", "🤞", "🤝", "👏", "🙌",
+  "🎉", "🎊", "🎈", "🎁", "🏆", "🥇", "🥈", "🥉",
+  "⭐", "🌟", "✨", "💫", "🔥", "💯", "✅", "❌",
+  "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍",
+];
+
+const CODE_LANGUAGES = [
+  { value: "typescript", label: "TypeScript" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "python", label: "Python" },
+  { value: "java", label: "Java" },
+  { value: "csharp", label: "C#" },
+  { value: "cpp", label: "C++" },
+  { value: "c", label: "C" },
+  { value: "go", label: "Go" },
+  { value: "rust", label: "Rust" },
+  { value: "ruby", label: "Ruby" },
+  { value: "php", label: "PHP" },
+  { value: "swift", label: "Swift" },
+  { value: "kotlin", label: "Kotlin" },
+  { value: "sql", label: "SQL" },
+  { value: "bash", label: "Bash/Shell" },
+  { value: "json", label: "JSON" },
+  { value: "yaml", label: "YAML" },
+  { value: "markdown", label: "Markdown" },
+  { value: "html", label: "HTML" },
+  { value: "css", label: "CSS" },
+  { value: "jsx", label: "React JSX" },
+  { value: "tsx", label: "React TSX" },
+];
 
 export default function TeamChatPage() {
   const params = useParams<{ projectId: string }>();
+  const { theme } = useTheme();
   const [message, setMessage] = useState("");
   const [chatId, setChatId] = useState<string | null>(null);
+  const [isCodeMode, setIsCodeMode] = useState(false);
+  const [codeLanguage, setCodeLanguage] = useState("typescript");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [codeDialogOpen, setCodeDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const teamChatShortcuts: KeyboardShortcut[] = [
+    {
+      key: 'c',
+      metaKey: true,
+      shiftKey: true,
+      description: 'Open code snippet dialog',
+      action: () => setCodeDialogOpen(true),
+    },
+    {
+      key: 'u',
+      metaKey: true,
+      shiftKey: true,
+      description: 'Upload file',
+      action: () => fileInputRef.current?.click(),
+    },
+  ];
+
+  useKeyboardShortcuts(teamChatShortcuts, true);
 
   const chatMutation = api.teamChat.getOrCreateChat.useMutation();
   const { data: messages, refetch: refetchMessages } = api.teamChat.getMessages.useQuery(
@@ -38,7 +129,7 @@ export default function TeamChatPage() {
     },
     {
       enabled: !!chatId,
-      refetchInterval: 3000, // Poll every 3 seconds
+      refetchInterval: 3000, 
     }
   );
 
@@ -49,6 +140,9 @@ export default function TeamChatPage() {
   const sendMessage = api.teamChat.sendMessage.useMutation({
     onSuccess: () => {
       setMessage("");
+      setIsCodeMode(false);
+      setUploadedFile(null);
+      setFilePreviewUrl(null);
       refetchMessages();
       scrollToBottom();
     },
@@ -58,12 +152,8 @@ export default function TeamChatPage() {
     onSuccess: () => refetchMessages(),
   });
 
-  const createAnnotation = api.teamChat.createAnnotation.useMutation({
-    onSuccess: () => refetchMessages(),
-  });
-
   useEffect(() => {
-    // Initialize chat
+    
     chatMutation.mutate({ projectId: params.projectId });
   }, [params.projectId]);
 
@@ -82,20 +172,61 @@ export default function TeamChatPage() {
   }, [messages]);
 
   const handleSendMessage = () => {
-    if (!chatId || !message.trim()) return;
+    if (!chatId) return;
+    if (!message.trim() && !uploadedFile) return;
+
+    const messageType = isCodeMode ? "CODE" : uploadedFile ? "FILE" : "TEXT";
 
     sendMessage.mutate({
       chatId,
-      content: message,
-      messageType: "TEXT",
+      content: message.trim() || (uploadedFile ? uploadedFile.name : ""),
+      messageType,
+      codeSnippet: isCodeMode ? message : undefined,
+      codeLanguage: isCodeMode ? codeLanguage : undefined,
+      attachmentName: uploadedFile ? uploadedFile.name : undefined,
+      attachmentSize: uploadedFile ? uploadedFile.size : undefined,
+      attachmentType: uploadedFile ? uploadedFile.type : undefined,
+      attachmentUrl: filePreviewUrl || undefined,
     });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !isCodeMode) {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFilePreviewUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage(message + emoji);
+  };
+
+  const handleReaction = (messageId: string, emoji: string) => {
+    addReaction.mutate({
+      messageId,
+      emoji,
+    });
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   return (
@@ -135,7 +266,7 @@ export default function TeamChatPage() {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-20rem)]">
-        {/* Main Chat */}
+        {}
         <Card className="col-span-3 flex flex-col border-border/70 shadow-lg">
           <div className="p-4 border-b border-border/50 bg-card/70">
             <div className="flex items-center justify-between">
@@ -162,7 +293,7 @@ export default function TeamChatPage() {
             </div>
           </div>
 
-          {/* Messages */}
+          {}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/30">
             {messages?.messages.map((msg) => (
               <div key={msg.id} className="flex gap-3 group">
@@ -185,8 +316,63 @@ export default function TeamChatPage() {
                     </span>
                   </div>
                   <div className="bg-accent/50 rounded-lg p-3">
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                    {msg.codeSnippet && (
+                    {msg.messageType === "CODE" ? (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <FileCode className="h-3 w-3" />
+                            {msg.codeLanguage ? (
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {CODE_LANGUAGES.find(l => l.value === msg.codeLanguage)?.label || msg.codeLanguage}
+                              </Badge>
+                            ) : (
+                              <span>Code Snippet</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="rounded overflow-hidden border border-border">
+                          <SyntaxHighlighter
+                            language={msg.codeLanguage || 'text'}
+                            style={theme === 'dark' ? vscDarkPlus : vs}
+                            customStyle={{
+                              margin: 0,
+                              fontSize: '0.75rem',
+                              lineHeight: '1.5',
+                            }}
+                            showLineNumbers
+                          >
+                            {msg.content}
+                          </SyntaxHighlighter>
+                        </div>
+                      </div>
+                    ) : msg.messageType === "FILE" ? (
+                      <div>
+                        <div className="flex items-center gap-3 p-3 bg-background/80 rounded border border-border">
+                          {msg.attachmentUrl && msg.attachmentType?.startsWith('image/') ? (
+                            <div className="relative">
+                              <ImageIcon className="h-10 w-10 text-blue-500" />
+                            </div>
+                          ) : (
+                            <File className="h-10 w-10 text-muted-foreground" />
+                          )}
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{msg.attachmentName || 'Attachment'}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {msg.attachmentSize ? formatFileSize(msg.attachmentSize) : 'Unknown size'}
+                            </p>
+                          </div>
+                          <Button size="sm" variant="ghost">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {msg.content && msg.content !== msg.attachmentName && (
+                          <p className="text-sm mt-2 whitespace-pre-wrap">{msg.content}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    )}
+                    {msg.codeSnippet && msg.messageType !== "CODE" && (
                       <div className="mt-2 p-2 bg-background rounded border border-border/50">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                           <FileCode className="h-3 w-3" />
@@ -203,22 +389,54 @@ export default function TeamChatPage() {
                       </div>
                     )}
                   </div>
-                  {/* Reactions */}
+                  {}
                   {msg.reactions.length > 0 && (
-                    <div className="flex gap-1 mt-2">
+                    <div className="flex gap-1 mt-2 flex-wrap">
                       {Object.entries(
                         msg.reactions.reduce((acc, r) => {
                           acc[r.emoji] = (acc[r.emoji] || 0) + 1;
                           return acc;
                         }, {} as Record<string, number>)
                       ).map(([emoji, count]) => (
-                        <Badge key={emoji} variant="outline" className="text-xs">
+                        <Button
+                          key={emoji}
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-xs hover:bg-accent"
+                          onClick={() => handleReaction(msg.id, emoji)}
+                        >
                           {emoji} {count}
-                        </Badge>
+                        </Button>
                       ))}
                     </div>
                   )}
-                  {/* Thread */}
+                  {}
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs">
+                          <Smile className="h-3 w-3 mr-1" />
+                          React
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="grid grid-cols-8 gap-2">
+                          {EMOJI_LIST.slice(0, 32).map((emoji) => (
+                            <Button
+                              key={emoji}
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-lg hover:bg-accent"
+                              onClick={() => handleReaction(msg.id, emoji)}
+                            >
+                              {emoji}
+                            </Button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  {}
                   {msg.threadMessages.length > 0 && (
                     <div className="mt-2 ml-4 space-y-2">
                       {msg.threadMessages.map((reply) => (
@@ -252,28 +470,180 @@ export default function TeamChatPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <div className="p-4 border-t border-border/50">
+          {}
+          <div className="p-4 border-t border-border/50 space-y-3">
+            {}
+            {uploadedFile && (
+              <div className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg border border-border">
+                {filePreviewUrl ? (
+                  <img src={filePreviewUrl} alt="Preview" className="h-16 w-16 object-cover rounded" />
+                ) : (
+                  <File className="h-12 w-12 text-muted-foreground" />
+                )}
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{uploadedFile.name}</p>
+                  <p className="text-xs text-muted-foreground">{formatFileSize(uploadedFile.size)}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setUploadedFile(null);
+                    setFilePreviewUrl(null);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {}
+            {isCodeMode && (
+              <div className="flex items-center justify-between p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                <div className="flex items-center gap-2 text-sm text-blue-600">
+                  <FileCode className="h-4 w-4" />
+                  Code snippet mode
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsCodeMode(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
             <div className="flex gap-2">
-              <Button variant="outline" size="icon">
-                <Code2 className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <Smile className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <Paperclip className="h-4 w-4" />
-              </Button>
-              <Input
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a message..."
-                className="flex-1"
+              {}
+              <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant={isCodeMode ? "default" : "outline"}
+                    size="icon"
+                    title="Send code snippet (⌘⇧C)"
+                  >
+                    <Code2 className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Send Code Snippet</DialogTitle>
+                    <DialogDescription>
+                      Share code with syntax highlighting
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="language">Programming Language</Label>
+                      <Select
+                        value={codeLanguage}
+                        onValueChange={setCodeLanguage}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a language" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {CODE_LANGUAGES.map((lang) => (
+                            <SelectItem key={lang.value} value={lang.value}>
+                              {lang.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="code">Code</Label>
+                      <Textarea
+                        id="code"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Paste your code here..."
+                        className="font-mono text-sm min-h-[200px]"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setIsCodeMode(true);
+                        setCodeDialogOpen(false);
+                        handleSendMessage();
+                      }}
+                      className="w-full"
+                      disabled={!message.trim()}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Send Code
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" title="Add emoji">
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Choose an emoji</p>
+                    <div className="grid grid-cols-8 gap-1 max-h-64 overflow-y-auto">
+                      {EMOJI_LIST.map((emoji) => (
+                        <Button
+                          key={emoji}
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 w-9 p-0 text-xl hover:bg-accent"
+                          onClick={() => handleEmojiSelect(emoji)}
+                        >
+                          {emoji}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {}
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileSelect}
+                accept="image/*,.pdf,.doc,.docx,.txt,.csv,.json,.xml"
               />
               <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                title="Attach file (⌘⇧U)"
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+
+              {}
+              {isCodeMode ? (
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type your code here..."
+                  className="flex-1 min-h-[60px] font-mono text-sm resize-none"
+                />
+              ) : (
+                <Input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={uploadedFile ? "Add a caption (optional)..." : "Type a message..."}
+                  className="flex-1"
+                />
+              )}
+
+              {}
+              <Button
                 onClick={handleSendMessage}
-                disabled={!message.trim() || sendMessage.isPending}
+                disabled={(!message.trim() && !uploadedFile) || sendMessage.isPending}
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -281,7 +651,7 @@ export default function TeamChatPage() {
           </div>
         </Card>
 
-        {/* Sidebar */}
+        {}
         <Card className="col-span-1">
           <Tabs defaultValue="annotations" className="h-full">
             <TabsList className="w-full">

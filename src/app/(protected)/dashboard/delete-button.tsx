@@ -40,10 +40,10 @@ const DeleteButton = () => {
                     icon: <CheckCircle2 className="h-4 w-4" />
                 });
                 setOpen(false);
-                // Clear project from localStorage
+                
                 localStorage.removeItem('gitwit-project-id');
                 refetch();
-                // Redirect to dashboard or project list
+                
                 router.push('/dashboard');
             },
             onError:(error)=>{

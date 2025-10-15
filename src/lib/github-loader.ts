@@ -3,9 +3,6 @@ import { Document } from "@langchain/core/documents";
 import { generateEmbedding, summariseCode } from "./gemini";
 import { db } from "@/server/db";
 
-/**
- * Load all files from a GitHub repo using LangChain’s GithubRepoLoader.
- */
 export const loadGithubRepo = async (repoUrl: string, githubToken?: string) => {
   const loader = new GithubRepoLoader(repoUrl, {
     accessToken: githubToken || process.env.GITHUB_ACCESS_TOKEN as string,
@@ -24,9 +21,6 @@ export const loadGithubRepo = async (repoUrl: string, githubToken?: string) => {
   return loader.load();
 };
 
-/**
- * Generate embeddings for each document in the repo.
- */
 export const generateEmbeddings = async (docs: Document[]) => {
   console.log("generating embeddings-------------------");
   return Promise.all(
@@ -44,9 +38,6 @@ export const generateEmbeddings = async (docs: Document[]) => {
   );
 };
 
-/**
- * Index a GitHub repo into the database.
- */
 export const indexGithubRepo = async (
   projectId: string,
   repoUrl: string,
@@ -69,7 +60,6 @@ export const indexGithubRepo = async (
         },
       });
 
-      // Convert JS array into a Postgres-compatible vector string
       const vectorString = `[${embedding.embedding.join(",")}]`;
 
       await db.$executeRaw`
@@ -81,11 +71,7 @@ export const indexGithubRepo = async (
   );
 };
 
-/**
- * Estimate "credits" (number of files in the repo).
- * This reuses GithubRepoLoader so we don’t make extra API calls.
- */
 export const checkCredits = async (repoUrl: string, githubToken?: string) => {
   const docs = await loadGithubRepo(repoUrl, githubToken);
-  return docs.length; // just return number of files
+  return docs.length; 
 };

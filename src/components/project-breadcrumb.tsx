@@ -18,22 +18,18 @@ export function ProjectBreadcrumb() {
   const pathname = usePathname()
   const { project } = useProject()
 
-  // Parse the pathname to generate breadcrumbs
   const segments = pathname.split('/').filter(Boolean)
   
-  // Don't show breadcrumbs on main pages
   if (segments.length <= 1) return null
 
   const breadcrumbs = segments.map((segment, index) => {
     const path = `/${segments.slice(0, index + 1).join('/')}`
     
-    // Format the segment name
     let label = segment
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
 
-    // Replace project ID with project name
     if (segment === project?.id) {
       label = project.name
     }

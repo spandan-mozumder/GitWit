@@ -8,7 +8,6 @@ import { Document } from "@langchain/core/documents";
     model: "gemini-2.5-flash-lite",
   });
   
-
   export const aiSummariseCommit = async (diff: string) => {
     const response = await model.generateContent([
         `You are an expert programmer, and you are trying to summarize a git diff.
@@ -45,11 +44,10 @@ import { Document } from "@langchain/core/documents";
     return response.response.text();
   }
   
-
   export async function summariseCode(doc: Document) {
       const code = doc.pageContent.slice(0, 10000);
       console.log("summarise code ----------------------")
-      // console.log("source", doc.metadata);
+      
       console.log("source code:", code);
       try {
         const response = await model.generateContent([
@@ -63,7 +61,7 @@ import { Document } from "@langchain/core/documents";
         ]);
         return response.response.text();
       } catch (error) {
-        // console.error("Error generating content:", error);
+        
         return "";
       }
   }

@@ -7,7 +7,6 @@ export const octokit = new Octokit({
   auth: process.env.GITHUB_ACCESS_TOKEN,
 });
 
-
 type Response ={
     commitHash: string
     commitMessage: string
@@ -27,10 +26,23 @@ export const getCommitHashes = async (githubUrl: string): Promise<Response[]> =>
 
     });
     
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sortedCommits = data.sort((a: any, b: any) => new Date(b.commit.author?.date ?? 0).getTime() - new Date(a.commit.author?.date ?? 0).getTime());
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return sortedCommits.slice(0,10).map((commit: any) => ({
+    interface GitHubCommit {
+      sha: string;
+      commit: {
+        message?: string;
+        author?: {
+          name?: string;
+          date?: string;
+        };
+      };
+      author?: {
+        avatar_url?: string;
+      };
+    }
+    
+    const sortedCommits = (data as GitHubCommit[]).sort((a, b) => new Date(b.commit.author?.date ?? 0).getTime() - new Date(a.commit.author?.date ?? 0).getTime());
+    
+    return sortedCommits.slice(0,10).map((commit) => ({
         commitHash: commit.sha as string,
         commitMessage: commit.commit.message ?? "",
         commitAuthorName: commit.commit?.author?.name ?? "",

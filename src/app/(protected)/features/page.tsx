@@ -174,7 +174,7 @@ export default function FeaturesPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-12 animate-fade-in">
-      {/* Header */}
+      {}
       <div className="text-center space-y-4">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 mx-auto">
           <Sparkles className="h-8 w-8 text-primary" />
@@ -187,7 +187,7 @@ export default function FeaturesPage() {
         </p>
       </div>
 
-      {/* Core Features */}
+      {}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Core Features</h2>
@@ -239,7 +239,7 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {/* Tier 1 Features */}
+      {}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Advanced Features</h2>
@@ -310,11 +310,11 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {}
       <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-primary/5 to-primary/0 p-12 text-center">
         <div className="absolute inset-0 bg-grid-white/5" />
         <div className="relative space-y-4">
-          <h2 className="text-3xl font-bold">Ready to boost your team's productivity?</h2>
+          <h2 className="text-3xl font-bold">Ready to boost your team&apos;s productivity?</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Get started with GitWit today and transform the way your team builds software.
           </p>

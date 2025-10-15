@@ -47,14 +47,13 @@ const DashboardPage = () => {
     );
   }
 
-  // Show empty state if no project is selected
   if (!project) {
     return <EmptyProjectState />
   }
 
   return (
     <div className="space-y-10 animate-fade-in">
-      {/* Header Section */}
+      {}
       <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/70 p-6 md:p-8">
         <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-primary/30 via-border/60 to-transparent" />
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
@@ -100,18 +99,18 @@ const DashboardPage = () => {
         </div>
       </section>
 
-      {/* Main Content Cards */}
+      {}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <AskQuestionCard />
         <MeetingCard/>
       </div>
 
-      {/* New Tier 1 Features Showcase */}
+      {}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold">Platform Features</h2>
-            <p className="text-sm text-muted-foreground mt-1">Powerful tools to boost your team's productivity</p>
+            <p className="text-sm text-muted-foreground mt-1">Powerful tools to boost your team&apos;s productivity</p>
           </div>
           <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
             <Sparkles className="size-3 mr-1" />
@@ -120,7 +119,7 @@ const DashboardPage = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Analytics Card */}
+          {}
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -145,7 +144,7 @@ const DashboardPage = () => {
             </CardContent>
           </Card>
 
-          {/* Code Review Card */}
+          {}
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -170,7 +169,7 @@ const DashboardPage = () => {
             </CardContent>
           </Card>
 
-          {/* Team Chat Card */}
+          {}
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-green-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -197,7 +196,7 @@ const DashboardPage = () => {
         </div>
       </section>
 
-      {/* Commit Log */}
+      {}
       <CommitLog/>
     </div>
   )
