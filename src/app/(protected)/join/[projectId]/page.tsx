@@ -1,12 +1,9 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import React from 'react'
 import { db } from '~/server/db'
-
 type Props = {
     params: Promise<{projectId: string}>
 }
-
 const JoinHandler = async (props: Props) => {
     const {projectId}= await props.params
     const {userId} = await auth();
@@ -16,7 +13,6 @@ const JoinHandler = async (props: Props) => {
             id:userId
         }
     })
-
     const client = await clerkClient()
     const user = await client.users.getUser(userId)
     if(!dbUser){
@@ -43,10 +39,9 @@ const JoinHandler = async (props: Props) => {
                     projectId
                 }
             })
-        }catch(err){
+        }catch{
             console.log('user already in project')
     }
   return redirect(`/dashboard`)
 }
-
 export default JoinHandler

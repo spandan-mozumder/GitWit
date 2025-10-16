@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/trpc/react";
@@ -12,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { QuickNav } from "@/components/quick-nav";
+import { ChatFileUpload, AttachmentDisplay } from "@/components/chat-file-upload";
 import {
   Select,
   SelectContent,
@@ -52,7 +52,6 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from "next-themes";
 import { useKeyboardShortcuts, type KeyboardShortcut } from "@/hooks/use-keyboard-shortcuts";
-
 const EMOJI_LIST = [
   "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂",
   "🙂", "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩",
@@ -63,7 +62,6 @@ const EMOJI_LIST = [
   "⭐", "🌟", "✨", "💫", "🔥", "💯", "✅", "❌",
   "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍",
 ];
-
 const CODE_LANGUAGES = [
   { value: "typescript", label: "TypeScript" },
   { value: "javascript", label: "JavaScript" },
@@ -88,7 +86,6 @@ const CODE_LANGUAGES = [
   { value: "jsx", label: "React JSX" },
   { value: "tsx", label: "React TSX" },
 ];
-
 export default function TeamChatPage() {
   const params = useParams<{ projectId: string }>();
   const { theme } = useTheme();
@@ -98,10 +95,16 @@ export default function TeamChatPage() {
   const [codeLanguage, setCodeLanguage] = useState("typescript");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [pendingAttachments, setPendingAttachments] = useState<Array<{
+    fileName: string;
+    fileUrl: string;
+    fileType: string;
+    fileSize: number;
+  }>>([]);
   const [codeDialogOpen, setCodeDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const teamChatShortcuts: KeyboardShortcut[] = [
     {
       key: 'c',
@@ -118,13 +121,16 @@ export default function TeamChatPage() {
       action: () => fileInputRef.current?.click(),
     },
   ];
-
   useKeyboardShortcuts(teamChatShortcuts, true);
-
   const chatMutation = api.teamChat.getOrCreateChat.useMutation();
+  // Get chat rooms
+  const { data: myRooms } = api.chatRooms.getMyRooms.useQuery({ 
+    projectId: params.projectId 
+  });
   const { data: messages, refetch: refetchMessages } = api.teamChat.getMessages.useQuery(
     {
       chatId: chatId || "",
+      roomId: selectedRoomId || undefined,
       limit: 50,
     },
     {
@@ -132,55 +138,47 @@ export default function TeamChatPage() {
       refetchInterval: 3000, 
     }
   );
-
   const { data: annotations } = api.teamChat.getAnnotations.useQuery({
     projectId: params.projectId,
   });
-
   const sendMessage = api.teamChat.sendMessage.useMutation({
     onSuccess: () => {
       setMessage("");
       setIsCodeMode(false);
       setUploadedFile(null);
       setFilePreviewUrl(null);
+      setPendingAttachments([]);
       refetchMessages();
       scrollToBottom();
     },
   });
-
   const addReaction = api.teamChat.addReaction.useMutation({
     onSuccess: () => refetchMessages(),
   });
-
   useEffect(() => {
-    
     chatMutation.mutate({ projectId: params.projectId });
-  }, [params.projectId]);
-
+  }, [params.projectId, chatMutation]);
   useEffect(() => {
     if (chatMutation.data) {
       setChatId(chatMutation.data.id);
     }
   }, [chatMutation.data]);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
   const handleSendMessage = () => {
     if (!chatId) return;
-    if (!message.trim() && !uploadedFile) return;
-
-    const messageType = isCodeMode ? "CODE" : uploadedFile ? "FILE" : "TEXT";
-
+    if (!message.trim() && !uploadedFile && pendingAttachments.length === 0) return;
+    const messageType = isCodeMode ? "CODE" : (uploadedFile || pendingAttachments.length > 0) ? "FILE" : "TEXT";
     sendMessage.mutate({
       chatId,
-      content: message.trim() || (uploadedFile ? uploadedFile.name : ""),
+      roomId: selectedRoomId || undefined,
+      content: message.trim() || (uploadedFile ? uploadedFile.name : pendingAttachments.length > 0 ? "Sent files" : ""),
       messageType,
+      attachments: pendingAttachments.length > 0 ? pendingAttachments : undefined,
       codeSnippet: isCodeMode ? message : undefined,
       codeLanguage: isCodeMode ? codeLanguage : undefined,
       attachmentName: uploadedFile ? uploadedFile.name : undefined,
@@ -189,19 +187,16 @@ export default function TeamChatPage() {
       attachmentUrl: filePreviewUrl || undefined,
     });
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey && !isCodeMode) {
       e.preventDefault();
       handleSendMessage();
     }
   };
-
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setUploadedFile(file);
-      
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -211,31 +206,26 @@ export default function TeamChatPage() {
       }
     }
   };
-
   const handleEmojiSelect = (emoji: string) => {
     setMessage(message + emoji);
   };
-
   const handleReaction = (messageId: string, emoji: string) => {
     addReaction.mutate({
       messageId,
       emoji,
     });
   };
-
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
-
   return (
     <div className="container mx-auto p-6 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <ProjectBreadcrumb />
         <QuickNav />
       </div>
-      
       <div className="space-y-2 mb-6">
         <div className="flex items-center gap-3">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500/10 to-green-500/5 text-green-500">
@@ -264,11 +254,10 @@ export default function TeamChatPage() {
           </Badge>
         </div>
       </div>
-      
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-20rem)]">
         <Card className="col-span-3 flex flex-col border-border/70 shadow-lg">
           <div className="p-4 border-b border-border/50 bg-card/70">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-muted-foreground" />
                 <h2 className="text-xl font-semibold">Team Chat</h2>
@@ -290,8 +279,34 @@ export default function TeamChatPage() {
                 )}
               </div>
             </div>
+            {/* Room Selector */}
+            {myRooms && myRooms.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Room:</span>
+                <Select
+                  value={selectedRoomId || "all"}
+                  onValueChange={(value) => setSelectedRoomId(value === "all" ? null : value)}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Messages</SelectItem>
+                    {myRooms.map((room) => (
+                      <SelectItem key={room.id} value={room.id}>
+                        {room.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedRoomId && (
+                  <Badge variant="secondary" className="ml-2">
+                    Filtered
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
-
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/30">
             {messages?.messages.map((msg) => (
               <div key={msg.id} className="flex gap-3 group">
@@ -344,26 +359,45 @@ export default function TeamChatPage() {
                         </div>
                       </div>
                     ) : msg.messageType === "FILE" ? (
-                      <div>
-                        <div className="flex items-center gap-3 p-3 bg-background/80 rounded border border-border">
-                          {msg.attachmentUrl && msg.attachmentType?.startsWith('image/') ? (
-                            <div className="relative">
-                              <ImageIcon className="h-10 w-10 text-blue-500" />
-                            </div>
-                          ) : (
-                            <File className="h-10 w-10 text-muted-foreground" />
-                          )}
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">{msg.attachmentName || 'Attachment'}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {msg.attachmentSize ? formatFileSize(msg.attachmentSize) : 'Unknown size'}
-                            </p>
+                      <div className="space-y-2">
+                        {/* New attachments from Uploadthing */}
+                        {msg.attachments && msg.attachments.length > 0 && (
+                          <div className="space-y-2">
+                            {msg.attachments.map((attachment: { id: string; fileName: string; fileUrl: string; fileType: string; fileSize: number }) => (
+                              <AttachmentDisplay
+                                key={attachment.id}
+                                fileName={attachment.fileName}
+                                fileUrl={attachment.fileUrl}
+                                fileType={attachment.fileType}
+                                fileSize={attachment.fileSize}
+                              />
+                            ))}
                           </div>
-                          <Button size="sm" variant="ghost">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        {msg.content && msg.content !== msg.attachmentName && (
+                        )}
+                        {/* Legacy single attachment */}
+                        {msg.attachmentUrl && !msg.attachments?.length && (
+                          <div className="flex items-center gap-3 p-3 bg-background/80 rounded border border-border">
+                            {msg.attachmentType?.startsWith('image/') ? (
+                              <div className="relative">
+                                <ImageIcon className="h-10 w-10 text-blue-500" />
+                              </div>
+                            ) : (
+                              <File className="h-10 w-10 text-muted-foreground" />
+                            )}
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{msg.attachmentName || 'Attachment'}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {msg.attachmentSize ? formatFileSize(msg.attachmentSize) : 'Unknown size'}
+                              </p>
+                            </div>
+                            <Button size="sm" variant="ghost" asChild>
+                              <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer">
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </div>
+                        )}
+                        {msg.content && msg.content !== msg.attachmentName && msg.content !== "Sent files" && (
                           <p className="text-sm mt-2 whitespace-pre-wrap">{msg.content}</p>
                         )}
                       </div>
@@ -464,8 +498,33 @@ export default function TeamChatPage() {
             ))}
             <div ref={messagesEndRef} />
           </div>
-
           <div className="p-4 border-t border-border/50 space-y-3">
+            {/* Show pending Uploadthing attachments */}
+            {pendingAttachments.length > 0 && (
+              <div className="space-y-2">
+                {pendingAttachments.map((att, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg border border-border">
+                    {att.fileType.startsWith('image/') ? (
+                      <img src={att.fileUrl} alt={att.fileName} className="h-16 w-16 object-cover rounded" />
+                    ) : (
+                      <File className="h-12 w-12 text-muted-foreground" />
+                    )}
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{att.fileName}</p>
+                      <p className="text-xs text-muted-foreground">{formatFileSize(att.fileSize)}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPendingAttachments(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Legacy file upload preview */}
             {uploadedFile && (
               <div className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg border border-border">
                 {filePreviewUrl ? (
@@ -489,7 +548,6 @@ export default function TeamChatPage() {
                 </Button>
               </div>
             )}
-
             {isCodeMode && (
               <div className="flex items-center justify-between p-2 bg-blue-500/10 rounded border border-blue-500/20">
                 <div className="flex items-center gap-2 text-sm text-blue-600">
@@ -505,7 +563,6 @@ export default function TeamChatPage() {
                 </Button>
               </div>
             )}
-
             <div className="flex gap-2">
               <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
                 <DialogTrigger asChild>
@@ -568,7 +625,6 @@ export default function TeamChatPage() {
                   </div>
                 </DialogContent>
               </Dialog>
-
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="icon" title="Add emoji">
@@ -594,7 +650,6 @@ export default function TeamChatPage() {
                   </div>
                 </PopoverContent>
               </Popover>
-
               <input
                 ref={fileInputRef}
                 type="file"
@@ -610,7 +665,13 @@ export default function TeamChatPage() {
               >
                 <Paperclip className="h-4 w-4" />
               </Button>
-
+              {/* New Uploadthing file upload */}
+              <ChatFileUpload
+                onUploadComplete={(files) => {
+                  setPendingAttachments(prev => [...prev, ...files]);
+                }}
+                disabled={sendMessage.isPending}
+              />
               {isCodeMode ? (
                 <Textarea
                   value={message}
@@ -627,17 +688,15 @@ export default function TeamChatPage() {
                   className="flex-1"
                 />
               )}
-
               <Button
                 onClick={handleSendMessage}
-                disabled={(!message.trim() && !uploadedFile) || sendMessage.isPending}
+                disabled={(!message.trim() && !uploadedFile && pendingAttachments.length === 0) || sendMessage.isPending}
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </Card>
-
         <Card className="col-span-1">
           <Tabs defaultValue="annotations" className="h-full">
             <TabsList className="w-full">

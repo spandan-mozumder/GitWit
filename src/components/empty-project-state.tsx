@@ -1,5 +1,4 @@
 "use client"
-
 import Link from "next/link"
 import { 
   Plus, 
@@ -8,13 +7,10 @@ import {
   BarChart3,
   Code2,
   MessageSquare,
-  Bot,
-  Presentation,
-  Zap
+  Bot
 } from "lucide-react"
 import { Button } from "~/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
-
+import { Card, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 export function EmptyProjectState() {
   const features = [
     {
@@ -42,7 +38,6 @@ export function EmptyProjectState() {
       color: "orange"
     }
   ]
-
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 text-center animate-fade-in p-8">
       <div className="relative">
@@ -51,7 +46,6 @@ export function EmptyProjectState() {
           <Sparkles className="h-12 w-12 text-primary" />
         </div>
       </div>
-
       <div className="space-y-4 max-w-2xl">
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
           Welcome to GitWit
@@ -60,7 +54,6 @@ export function EmptyProjectState() {
           Create your first project to unlock powerful AI-driven insights for your codebase
         </p>
       </div>
-
       <div className="flex flex-col sm:flex-row gap-4">
         <Link href="/create">
           <Button size="lg" className="gap-2 shadow-lg shadow-primary/20 h-12 px-8">
@@ -75,7 +68,6 @@ export function EmptyProjectState() {
           </Button>
         </Link>
       </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-4xl pt-8">
         {features.map((feature) => {
           const Icon = feature.icon
@@ -94,7 +86,6 @@ export function EmptyProjectState() {
           )
         })}
       </div>
-
       <div className="flex flex-wrap justify-center gap-8 pt-8 border-t border-border/50">
         <div className="text-center">
           <div className="text-3xl font-bold text-primary">AI-Powered</div>

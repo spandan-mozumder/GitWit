@@ -6,19 +6,17 @@ import { Textarea } from '~/components/ui/textarea'
 import { Badge } from '~/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { Lightbulb, ThumbsUp, Clock, Code2, TrendingUp, AlertCircle, CheckCircle2, XCircle, Loader2, ExternalLink, GitBranch } from 'lucide-react'
+import { Lightbulb, ThumbsUp, Clock, Code2, Loader2, ExternalLink, GitBranch, XCircle } from 'lucide-react'
 import useProject from '~/hooks/use-project'
 import { api } from '~/trpc/react'
 import { toast } from 'sonner'
-import { Skeleton } from '~/components/ui/skeleton'
-
+import { Spinner } from '~/components/ui/spinner'
 const complexityColors = {
   EASY: 'bg-green-500/10 text-green-500 border-green-500/20',
   MEDIUM: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
   HARD: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
   VERY_HARD: 'bg-red-500/10 text-red-500 border-red-500/20',
 }
-
 const statusColors = {
   IDEA: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
   PLANNED: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
@@ -26,22 +24,22 @@ const statusColors = {
   DONE: 'bg-green-500/10 text-green-500 border-green-500/20',
   REJECTED: 'bg-red-500/10 text-red-500 border-red-500/20',
 }
-
 const BrainstormingPage = () => {
   const { project } = useProject()
   const [userInput, setUserInput] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-
+  
+  const queryInput = {
+    projectId: project?.id ?? '',
+    ...(selectedStatus !== 'all' && { status: selectedStatus as "IDEA" | "PLANNED" | "IN_PROGRESS" | "DONE" | "REJECTED" }),
+    ...(selectedCategory !== 'all' && { category: selectedCategory as "NEW_FEATURE" | "ENHANCEMENT" | "BUG_FIX" | "PERFORMANCE" | "SECURITY" | "UI_UX" | "REFACTOR" | "TESTING" | "DOCUMENTATION" }),
+  }
+  
   const { data: features, refetch, isLoading } = api.featureBrainstorming.getFeatureIdeas.useQuery(
-    { 
-      projectId: project?.id ?? '',
-      ...(selectedStatus !== 'all' && { status: selectedStatus as any }),
-      ...(selectedCategory !== 'all' && { category: selectedCategory as any }),
-    },
+    queryInput,
     { enabled: !!project }
   )
-
   const generateIdeas = api.featureBrainstorming.generateFeatureIdeas.useMutation({
     onSuccess: () => {
       toast.success('🎉 Feature ideas generated!')
@@ -52,26 +50,17 @@ const BrainstormingPage = () => {
       toast.error('Failed to generate ideas: ' + error.message)
     }
   })
-
   const voteFeature = api.featureBrainstorming.voteFeature.useMutation({
     onSuccess: () => {
       refetch()
     }
   })
-
   const updateStatus = api.featureBrainstorming.updateFeatureStatus.useMutation({
     onSuccess: () => {
       toast.success('Status updated')
       refetch()
     }
   })
-
-  const updatePriority = api.featureBrainstorming.updateFeaturePriority.useMutation({
-    onSuccess: () => {
-      refetch()
-    }
-  })
-
   const createIssue = api.featureBrainstorming.createGitHubIssue.useMutation({
     onSuccess: (data) => {
       toast.success('GitHub issue created!', {
@@ -86,14 +75,12 @@ const BrainstormingPage = () => {
       toast.error('Failed to create issue: ' + error.message)
     }
   })
-
   const deleteFeature = api.featureBrainstorming.deleteFeature.useMutation({
     onSuccess: () => {
       toast.success('Feature deleted')
       refetch()
     }
   })
-
   if (!project) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -101,7 +88,6 @@ const BrainstormingPage = () => {
       </div>
     )
   }
-
   return (
     <div className="space-y-8 animate-fade-in">
       <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/70 p-6 md:p-8">
@@ -123,7 +109,6 @@ const BrainstormingPage = () => {
           </div>
         </div>
       </section>
-
       <Card className="border-border/70">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -131,7 +116,7 @@ const BrainstormingPage = () => {
             Generate New Ideas
           </CardTitle>
           <CardDescription>
-            Tell us what kind of features you're thinking about, and we'll generate detailed suggestions
+            Tell us what kind of features you&apos;re thinking about, and we&apos;ll generate detailed suggestions
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -155,7 +140,6 @@ const BrainstormingPage = () => {
           </Button>
         </CardContent>
       </Card>
-
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <h2 className="text-xl font-semibold">Your Ideas</h2>
@@ -188,20 +172,9 @@ const BrainstormingPage = () => {
             </Select>
           </div>
         </div>
-
         {isLoading ? (
-          <div className="grid gap-6 md:grid-cols-2">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-20 w-full" />
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex justify-center py-12">
+            <Spinner className="size-8" />
           </div>
         ) : features && features.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2">
@@ -243,7 +216,6 @@ const BrainstormingPage = () => {
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
-
                   <Tabs defaultValue="overview" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
                       <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -277,13 +249,12 @@ const BrainstormingPage = () => {
                       ))}
                     </TabsContent>
                   </Tabs>
-
                   <div className="flex flex-wrap gap-2 pt-2">
                     <Select 
                       value={feature.status}
                       onValueChange={(value) => updateStatus.mutate({ 
                         featureId: feature.id, 
-                        status: value as any 
+                        status: value as "IDEA" | "PLANNED" | "IN_PROGRESS" | "DONE" | "REJECTED"
                       })}
                     >
                       <SelectTrigger className="w-[130px] h-8 text-xs">
@@ -297,7 +268,6 @@ const BrainstormingPage = () => {
                         <SelectItem value="REJECTED">Rejected</SelectItem>
                       </SelectContent>
                     </Select>
-
                     {!feature.githubIssueUrl && (
                       <Button
                         variant="outline"
@@ -310,7 +280,6 @@ const BrainstormingPage = () => {
                         Create Issue
                       </Button>
                     )}
-
                     {feature.githubIssueUrl && (
                       <Button
                         variant="outline"
@@ -324,7 +293,6 @@ const BrainstormingPage = () => {
                         </a>
                       </Button>
                     )}
-
                     <Button
                       variant="ghost"
                       size="sm"
@@ -352,5 +320,4 @@ const BrainstormingPage = () => {
     </div>
   )
 }
-
 export default BrainstormingPage

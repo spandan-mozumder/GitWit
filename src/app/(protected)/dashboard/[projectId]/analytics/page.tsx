@@ -1,19 +1,14 @@
 "use client";
-
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/trpc/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { QuickNav } from "@/components/quick-nav";
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
   AreaChart,
   Area,
   XAxis,
@@ -22,9 +17,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 import {
   TrendingUp,
@@ -33,58 +25,48 @@ import {
   GitPullRequest,
   Bug,
   Clock,
-  Users,
   Target,
   Zap,
   AlertTriangle,
   BarChart3,
   Sparkles,
 } from "lucide-react";
-
 export default function AnalyticsPage() {
   const params = useParams<{ projectId: string }>();
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("week");
-
   const { data: productivity, isLoading: loadingProductivity } =
     api.analytics.getProductivitySummary.useQuery({
       projectId: params.projectId,
       period,
     });
-
   const { data: velocityTrends, isLoading: loadingVelocity } =
     api.analytics.getVelocityTrends.useQuery({
       projectId: params.projectId,
       days: period === "week" ? 7 : period === "month" ? 30 : 90,
     });
-
   const { data: leaderboard, isLoading: loadingLeaderboard } =
     api.analytics.getDeveloperLeaderboard.useQuery({
       projectId: params.projectId,
       metric: "commitsCount",
       period: period === "quarter" ? "month" : period,
     });
-
   const { data: hotspots, isLoading: loadingHotspots } =
     api.analytics.getCodeHotspots.useQuery({
       projectId: params.projectId,
       limit: 10,
     });
-
   const { data: doraMetrics, isLoading: loadingDora } =
     api.analytics.getDoraMetrics.useQuery({
       projectId: params.projectId,
       period,
     });
-
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
-
+  
   return (
     <div className="container mx-auto p-6 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <ProjectBreadcrumb />
         <QuickNav />
       </div>
-      
       <div className="flex justify-between items-start">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -108,7 +90,6 @@ export default function AnalyticsPage() {
             <Badge variant="outline">DORA Metrics</Badge>
           </div>
         </div>
-
         <Tabs value={period} onValueChange={(v) => setPeriod(v as "week" | "month" | "quarter")} className="w-fit">
           <TabsList>
             <TabsTrigger value="week">Week</TabsTrigger>
@@ -117,7 +98,6 @@ export default function AnalyticsPage() {
           </TabsList>
         </Tabs>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total Commits"
@@ -148,7 +128,6 @@ export default function AnalyticsPage() {
           loading={loadingProductivity}
         />
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -200,7 +179,6 @@ export default function AnalyticsPage() {
             )}
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -252,7 +230,6 @@ export default function AnalyticsPage() {
             )}
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Top Contributors</CardTitle>
@@ -288,7 +265,6 @@ export default function AnalyticsPage() {
             )}
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Code Hotspots</CardTitle>
@@ -335,7 +311,6 @@ export default function AnalyticsPage() {
     </div>
   );
 }
-
 function MetricCard({
   title,
   value,
@@ -363,7 +338,6 @@ function MetricCard({
       </Card>
     );
   }
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -389,7 +363,6 @@ function MetricCard({
     </Card>
   );
 }
-
 function DORAMetricItem({
   label,
   value,

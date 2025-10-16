@@ -1,19 +1,16 @@
 "use client"
-import { Clipboard, CheckCircle2, UserPlus, Copy } from 'lucide-react'
+import { CheckCircle2, UserPlus, Copy } from 'lucide-react'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import useProject from '~/hooks/use-project'
-
 const InviteButton = () => {
     const {projectId} = useProject()
     const [open,setOpen] = useState(false)
     const [copied, setCopied] = useState(false)
-
     const inviteLink = typeof window !== 'undefined' ? `${window.location.origin}/join/${projectId}` : '';
-
     const handleCopy = async () => {
         try {
             if (typeof window !== 'undefined') {
@@ -32,7 +29,6 @@ const InviteButton = () => {
             });
         }
     }
-
   return (
     <>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -81,5 +77,4 @@ const InviteButton = () => {
     </>
   )
 }
-
 export default InviteButton

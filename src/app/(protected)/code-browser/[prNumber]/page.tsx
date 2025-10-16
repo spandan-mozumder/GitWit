@@ -1,12 +1,11 @@
 "use client"
-
 import { useParams, useRouter } from "next/navigation"
 import { api } from "~/trpc/react"
 import useProject from "~/hooks/use-project"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { Badge } from "~/components/ui/badge"
-import { Skeleton } from "~/components/ui/skeleton"
+import { Spinner } from "~/components/ui/spinner"
 import { 
   ArrowLeft, 
   GitBranch, 
@@ -45,18 +44,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { ScrollArea } from "~/components/ui/scroll-area"
-
 export default function PullRequestDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { project } = useProject()
   const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set())
   const [mergeMethod, setMergeMethod] = useState<'merge' | 'squash' | 'rebase'>('merge')
-  
   const prNumber = parseInt(params.prNumber as string)
-
   const { data: prData, isLoading, refetch } = api.codeBrowser.getPullRequestDetails.useQuery(
     {
       projectId: project?.id ?? '',
@@ -66,7 +61,6 @@ export default function PullRequestDetailPage() {
       enabled: !!project?.id,
     }
   )
-
   const mergePR = api.codeBrowser.mergePullRequest.useMutation({
     onSuccess: () => {
       toast.success('Pull request merged successfully!', {
@@ -81,7 +75,6 @@ export default function PullRequestDetailPage() {
       })
     }
   })
-
   const toggleFileExpand = (filename: string) => {
     const newExpanded = new Set(expandedFiles)
     if (newExpanded.has(filename)) {
@@ -91,27 +84,21 @@ export default function PullRequestDetailPage() {
     }
     setExpandedFiles(newExpanded)
   }
-
   const handleMerge = () => {
     if (!project?.id) return
-    
     mergePR.mutate({
       projectId: project.id,
       prNumber,
       mergeMethod,
     })
   }
-
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-96 w-full" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Spinner className="size-8" />
       </div>
     )
   }
-
   if (!prData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
@@ -123,11 +110,9 @@ export default function PullRequestDetailPage() {
       </div>
     )
   }
-
   const { github, files, analysis } = prData
   const isMerged = github.merged
   const isMergeable = github.mergeable && github.state === 'open'
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -139,7 +124,6 @@ export default function PullRequestDetailPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <GitPullRequest className="h-6 w-6" />
@@ -155,7 +139,6 @@ export default function PullRequestDetailPage() {
             </Badge>
           </div>
         </div>
-
         {isMergeable && !mergePR.isPending && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -171,7 +154,6 @@ export default function PullRequestDetailPage() {
                   <p>
                     This will merge <strong>{github.head.ref}</strong> into <strong>{github.base.ref}</strong>.
                   </p>
-                  
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground">Merge Method</label>
                     <Select value={mergeMethod} onValueChange={(v) => setMergeMethod(v as typeof mergeMethod)}>
@@ -211,7 +193,6 @@ export default function PullRequestDetailPage() {
             </AlertDialogContent>
           </AlertDialog>
         )}
-
         {mergePR.isPending && (
           <Button disabled className="gap-2">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-foreground" />
@@ -219,7 +200,6 @@ export default function PullRequestDetailPage() {
           </Button>
         )}
       </div>
-
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <Card>
@@ -236,7 +216,6 @@ export default function PullRequestDetailPage() {
               )}
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Changes</CardTitle>
@@ -261,7 +240,6 @@ export default function PullRequestDetailPage() {
               </div>
             </CardContent>
           </Card>
-
           {analysis && (
             <Card>
               <CardHeader>
@@ -290,7 +268,6 @@ export default function PullRequestDetailPage() {
                     </div>
                   )}
                 </div>
-                
                 {analysis.aiSummary && (
                   <div className="rounded-lg bg-muted p-4">
                     <p className="text-sm whitespace-pre-wrap">{analysis.aiSummary}</p>
@@ -299,7 +276,6 @@ export default function PullRequestDetailPage() {
               </CardContent>
             </Card>
           )}
-
           <Card>
             <CardHeader>
               <CardTitle>Files Changed ({files.length})</CardTitle>
@@ -335,7 +311,6 @@ export default function PullRequestDetailPage() {
                         </span>
                       </div>
                     </button>
-                    
                     {expandedFiles.has(file.filename) && file.patch && (
                       <div className="border-t bg-muted/30">
                         <pre className="p-4 overflow-x-auto text-xs font-mono">
@@ -361,7 +336,6 @@ export default function PullRequestDetailPage() {
             </CardContent>
           </Card>
         </div>
-
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -383,13 +357,11 @@ export default function PullRequestDetailPage() {
                     <span className="font-medium">{github.author}</span>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Created:</span>
                   <span>{new Date(github.createdAt).toLocaleDateString()}</span>
                 </div>
-
                 {github.mergedAt && (
                   <div className="flex items-center gap-2 text-sm">
                     <GitMerge className="h-4 w-4 text-muted-foreground" />
@@ -398,7 +370,6 @@ export default function PullRequestDetailPage() {
                   </div>
                 )}
               </div>
-
               <div className="border-t pt-4 space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <GitBranch className="h-4 w-4 text-muted-foreground" />
@@ -407,7 +378,6 @@ export default function PullRequestDetailPage() {
                     {github.head.ref}
                   </code>
                 </div>
-
                 <div className="flex items-center gap-2 text-sm">
                   <GitBranch className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Into:</span>
@@ -416,7 +386,6 @@ export default function PullRequestDetailPage() {
                   </code>
                 </div>
               </div>
-
               {!isMergeable && github.state === 'open' && (
                 <div className="border-t pt-4">
                   <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-500">
@@ -427,7 +396,6 @@ export default function PullRequestDetailPage() {
                   </div>
                 </div>
               )}
-
               <div className="border-t pt-4">
                 <Button
                   variant="outline"
@@ -447,7 +415,6 @@ export default function PullRequestDetailPage() {
               </div>
             </CardContent>
           </Card>
-
           {!isMerged && isMergeable && (
             <Card className="border-primary/50 bg-primary/5">
               <CardHeader>

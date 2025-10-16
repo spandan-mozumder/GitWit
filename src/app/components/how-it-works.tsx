@@ -1,5 +1,4 @@
 import { CalendarCheck2, ClipboardCheck, PlugZap, Sparkles } from "lucide-react"
-
 const steps = [
   {
     title: "Connect your reality",
@@ -26,7 +25,6 @@ const steps = [
     detail: "Expect measurable lift in velocity, predictability, and trust within the first sprint.",
   },
 ]
-
 export function HowItWorks() {
   return (
     <section id="how-it-works" className="relative w-full bg-sidebar px-4 py-20 md:px-6 md:py-28">
@@ -43,7 +41,6 @@ export function HowItWorks() {
             a clear cadence that your teams adopt immediately.
           </p>
         </header>
-
         <div className="relative border-l border-border/70 pl-8 md:pl-12">
           <div className="absolute left-0 top-2 bottom-2 w-px bg-gradient-to-b from-primary/40 via-border/70 to-transparent" aria-hidden />
           <div className="space-y-10">

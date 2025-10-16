@@ -1,32 +1,20 @@
 "use client"
-
 import Link from "next/link"
 import { 
   BarChart3, 
   Code2, 
-  MessageSquare, 
-  BookOpen, 
-  CheckSquare,
+  MessageSquare,
   Bot,
   Presentation,
   ArrowRight,
-  Sparkles,
-  Shield,
-  Zap,
-  Users,
-  GitBranch,
-  LineChart,
-  FileText,
-  Calendar
+  Sparkles
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import useProject from "~/hooks/use-project"
-
 export default function FeaturesPage() {
   const { projectId } = useProject()
-
   const coreFeatures = [
     {
       icon: Bot,
@@ -47,7 +35,6 @@ export default function FeaturesPage() {
       badges: ["Auto-Transcribe", "Action Items"]
     }
   ]
-
   const tier1Features = [
     {
       icon: BarChart3,
@@ -98,7 +85,6 @@ export default function FeaturesPage() {
       ]
     },
   ]
-
   const getColorClasses = (color: string) => {
     const colors = {
       blue: {
@@ -139,7 +125,6 @@ export default function FeaturesPage() {
     }
     return colors[color as keyof typeof colors] || colors.blue
   }
-
   return (
     <div className="container mx-auto p-6 space-y-12 animate-fade-in">
       <div className="text-center space-y-4">
@@ -153,7 +138,6 @@ export default function FeaturesPage() {
           Everything you need to build better software, faster. AI-powered tools for modern development teams.
         </p>
       </div>
-
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Core Features</h2>
@@ -161,12 +145,10 @@ export default function FeaturesPage() {
             Available Now
           </Badge>
         </div>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {coreFeatures.map((feature) => {
             const colors = getColorClasses(feature.color)
             const Icon = feature.icon
-            
             return (
               <Card 
                 key={feature.title} 
@@ -204,7 +186,6 @@ export default function FeaturesPage() {
           })}
         </div>
       </section>
-
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Advanced Features</h2>
@@ -213,13 +194,11 @@ export default function FeaturesPage() {
             Tier 1
           </Badge>
         </div>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tier1Features.map((feature) => {
             const colors = getColorClasses(feature.color)
             const Icon = feature.icon
             const isComingSoon = feature.badges.includes("Coming Soon")
-            
             return (
               <Card 
                 key={feature.title} 
@@ -255,7 +234,6 @@ export default function FeaturesPage() {
                       </li>
                     ))}
                   </ul>
-                  
                   {!isComingSoon ? (
                     <Link href={feature.href}>
                       <Button variant="ghost" className="w-full justify-between group/btn">
@@ -274,7 +252,6 @@ export default function FeaturesPage() {
           })}
         </div>
       </section>
-
       <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-primary/5 to-primary/0 p-12 text-center">
         <div className="absolute inset-0 bg-grid-white/5" />
         <div className="relative space-y-4">

@@ -1,13 +1,11 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { 
-  getRepoStats, 
   getCommitStats, 
   getPullRequestStats, 
   getContributorStats,
   getCodeHotspots 
 } from "@/lib/github-analytics";
-
 export const analyticsRouter = createTRPCRouter({
   getDeveloperMetrics: protectedProcedure
     .input(
@@ -20,7 +18,6 @@ export const analyticsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const userId = input.userId || ctx.user.userId!;
-
       const metrics = await ctx.db.developerMetric.findMany({
         where: {
           projectId: input.projectId,
@@ -34,10 +31,8 @@ export const analyticsRouter = createTRPCRouter({
           date: "asc",
         },
       });
-
       return metrics;
     }),
-
   getTeamMetrics: protectedProcedure
     .input(
       z.object({
@@ -59,10 +54,8 @@ export const analyticsRouter = createTRPCRouter({
           date: "asc",
         },
       });
-
       return metrics;
     }),
-
   getProductivitySummary: protectedProcedure
     .input(
       z.object({
@@ -71,37 +64,30 @@ export const analyticsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId },
         select: { repoUrl: true },
       });
-
       if (!project?.repoUrl) {
         throw new Error("Project has no repository URL");
       }
-
       const daysBack = input.period === "week" ? 7 : input.period === "month" ? 30 : 90;
-
       try {
         const [commitStats, prStats] = await Promise.all([
           getCommitStats(project.repoUrl, daysBack),
           getPullRequestStats(project.repoUrl, daysBack),
         ]);
-
         const totalCommits = commitStats.length;
         const totalLinesAdded = commitStats.reduce((sum, c) => sum + c.additions, 0);
         const totalLinesDeleted = commitStats.reduce((sum, c) => sum + c.deletions, 0);
         const totalPRs = prStats.length;
         const mergedPRs = prStats.filter(pr => pr.mergedAt).length;
-        
         const reviewTimes = prStats
           .filter(pr => pr.reviewTime !== undefined)
           .map(pr => pr.reviewTime!);
         const avgReviewTime = reviewTimes.length > 0
           ? reviewTimes.reduce((sum, time) => sum + time, 0) / reviewTimes.length
           : 0;
-
         return {
           developer: {
             _sum: {
@@ -128,7 +114,6 @@ export const analyticsRouter = createTRPCRouter({
         throw new Error("Failed to fetch repository analytics");
       }
     }),
-
   getCodeHotspots: protectedProcedure
     .input(
       z.object({
@@ -137,20 +122,15 @@ export const analyticsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId },
         select: { repoUrl: true },
       });
-
       if (!project?.repoUrl) {
         throw new Error("Project has no repository URL");
       }
-
       try {
-        
         const hotspots = await getCodeHotspots(project.repoUrl, 90);
-
         return hotspots.slice(0, input.limit).map(hotspot => ({
           id: `hotspot-${hotspot.path}`,
           projectId: input.projectId,
@@ -167,7 +147,6 @@ export const analyticsRouter = createTRPCRouter({
         return [];
       }
     }),
-
   getDeveloperLeaderboard: protectedProcedure
     .input(
       z.object({
@@ -185,20 +164,15 @@ export const analyticsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId },
         select: { repoUrl: true },
       });
-
       if (!project?.repoUrl) {
         throw new Error("Project has no repository URL");
       }
-
       try {
-        
         const contributors = await getContributorStats(project.repoUrl);
-
         return contributors.slice(0, 10).map((contributor, index) => ({
           userId: contributor.login,
           _sum: {
@@ -222,7 +196,6 @@ export const analyticsRouter = createTRPCRouter({
         return [];
       }
     }),
-
   getVelocityTrends: protectedProcedure
     .input(
       z.object({
@@ -231,26 +204,20 @@ export const analyticsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId },
         select: { repoUrl: true },
       });
-
       if (!project?.repoUrl) {
         throw new Error("Project has no repository URL");
       }
-
       try {
-        
         const commitStats = await getCommitStats(project.repoUrl, input.days);
-
         const dailyMetrics = new Map<string, {
           commits: number;
           additions: number;
           deletions: number;
         }>();
-
         commitStats.forEach(commit => {
           const date = new Date(commit.date).toISOString().split('T')[0]!;
           const existing = dailyMetrics.get(date) || {
@@ -258,14 +225,11 @@ export const analyticsRouter = createTRPCRouter({
             additions: 0,
             deletions: 0,
           };
-          
           existing.commits += 1;
           existing.additions += commit.additions;
           existing.deletions += commit.deletions;
-          
           dailyMetrics.set(date, existing);
         });
-
         return Array.from(dailyMetrics.entries())
           .map(([date, metrics]) => ({
             projectId: input.projectId,
@@ -282,7 +246,6 @@ export const analyticsRouter = createTRPCRouter({
         return [];
       }
     }),
-
   updateMetrics: protectedProcedure
     .input(
       z.object({
@@ -295,7 +258,6 @@ export const analyticsRouter = createTRPCRouter({
       await calculateAndSaveMetrics(input.projectId, date, ctx.db);
       return { success: true };
     }),
-
   getDoraMetrics: protectedProcedure
     .input(
       z.object({
@@ -304,28 +266,21 @@ export const analyticsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId },
         select: { repoUrl: true },
       });
-
       if (!project?.repoUrl) {
         throw new Error("Project has no repository URL");
       }
-
       const daysBack = input.period === "week" ? 7 : input.period === "month" ? 30 : 90;
-
       try {
-        
-        const [prStats, commitStats] = await Promise.all([
+        const [prStats] = await Promise.all([
           getPullRequestStats(project.repoUrl, daysBack),
           getCommitStats(project.repoUrl, daysBack),
         ]);
-
         const mergedPRs = prStats.filter(pr => pr.mergedAt).length;
         const deploymentFrequency = mergedPRs / daysBack;
-
         const leadTimes = prStats
           .filter(pr => pr.mergedAt)
           .map(pr => {
@@ -336,19 +291,16 @@ export const analyticsRouter = createTRPCRouter({
         const avgLeadTime = leadTimes.length > 0
           ? leadTimes.reduce((sum, time) => sum + time, 0) / leadTimes.length
           : 0;
-
         const reviewTimes = prStats
           .filter(pr => pr.reviewTime)
           .map(pr => pr.reviewTime!);
         const avgMTTR = reviewTimes.length > 0
           ? reviewTimes.reduce((sum, time) => sum + time, 0) / reviewTimes.length
           : 0;
-
         const closedWithoutMerge = prStats.filter(pr => pr.closedAt && !pr.mergedAt).length;
         const avgChangeFailureRate = prStats.length > 0
           ? (closedWithoutMerge / prStats.length) * 100
           : 0;
-
         return {
           deploymentFrequency: deploymentFrequency,
           leadTime: avgLeadTime,
@@ -369,32 +321,12 @@ export const analyticsRouter = createTRPCRouter({
       }
     }),
 });
-
-function getStartDate(period: string, now: Date): Date {
-  const date = new Date(now);
-  switch (period) {
-    case "week":
-      date.setDate(date.getDate() - 7);
-      break;
-    case "month":
-      date.setMonth(date.getMonth() - 1);
-      break;
-    case "quarter":
-      date.setMonth(date.getMonth() - 3);
-      break;
-  }
-  return date;
-}
-
 async function calculateAndSaveMetrics(
   projectId: string,
   date: Date,
-  
   db: typeof import("~/server/db").db
 ) {
-  
   const dateOnly = new Date(date.toDateString());
-
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
@@ -405,9 +337,7 @@ async function calculateAndSaveMetrics(
       },
     },
   });
-
   if (!project) return;
-
   for (const { user } of project.userToProjects) {
     await db.developerMetric.upsert({
       where: {
@@ -437,7 +367,6 @@ async function calculateAndSaveMetrics(
       update: {},
     });
   }
-
   await db.teamMetric.upsert({
     where: {
       projectId_date: {
@@ -463,40 +392,31 @@ async function calculateAndSaveMetrics(
     update: {},
   });
 }
-
 function calculateDORArating(metrics: {
   deploymentFrequency: number;
   leadTime: number;
   mttr: number;
   changeFailureRate: number;
 }): "Elite" | "High" | "Medium" | "Low" {
-  
   let score = 0;
-
   if (metrics.deploymentFrequency >= 1) score += 3;
   else if (metrics.deploymentFrequency >= 0.2) score += 2;
   else if (metrics.deploymentFrequency >= 0.03) score += 1;
-
   if (metrics.leadTime < 24) score += 3;
   else if (metrics.leadTime < 168) score += 2;
   else if (metrics.leadTime < 720) score += 1;
-
   if (metrics.mttr < 1) score += 3;
   else if (metrics.mttr < 24) score += 2;
   else if (metrics.mttr < 168) score += 1;
-
   if (metrics.changeFailureRate < 5) score += 3;
   else if (metrics.changeFailureRate < 10) score += 2;
   else if (metrics.changeFailureRate < 15) score += 1;
-
   if (score >= 10) return "Elite";
   if (score >= 7) return "High";
   if (score >= 4) return "Medium";
   return "Low";
 }
-
 function calculateRiskScore(changes: number, contributors: number): number {
-  
   const changeScore = Math.min(changes / 10, 100); 
   const contributorScore = contributors > 0 ? 100 / contributors : 100;
   return Math.min(Math.round((changeScore + contributorScore) / 2), 100);

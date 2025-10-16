@@ -1,5 +1,4 @@
 "use client";
-
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,15 +25,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
 export default function ReviewDetailPage() {
   const params = useParams<{ projectId: string; reviewId: string }>();
   const router = useRouter();
-
   const { data: review, isLoading } = api.codeReview.getReview.useQuery({
     reviewId: params.reviewId,
   });
-
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case "CRITICAL":
@@ -49,7 +45,6 @@ export default function ReviewDetailPage() {
         return <CheckCircle2 className="h-5 w-5 text-gray-500" />;
     }
   };
-
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "CRITICAL":
@@ -64,14 +59,12 @@ export default function ReviewDetailPage() {
         return "bg-gray-500/10 text-gray-600 border-gray-500/20";
     }
   };
-
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-600";
     if (score >= 70) return "text-yellow-600";
     if (score >= 50) return "text-orange-600";
     return "text-red-600";
   };
-
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
@@ -81,7 +74,6 @@ export default function ReviewDetailPage() {
       </div>
     );
   }
-
   if (!review) {
     return (
       <div className="container mx-auto p-6">
@@ -93,7 +85,6 @@ export default function ReviewDetailPage() {
       </div>
     );
   }
-
   const findingsBySeverity = {
     CRITICAL: review.findings?.filter((f) => f.severity === "CRITICAL") || [],
     HIGH: review.findings?.filter((f) => f.severity === "HIGH") || [],
@@ -101,14 +92,12 @@ export default function ReviewDetailPage() {
     LOW: review.findings?.filter((f) => f.severity === "LOW") || [],
     INFO: review.findings?.filter((f) => f.severity === "INFO") || [],
   };
-
   return (
     <div className="container mx-auto p-6 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <ProjectBreadcrumb />
         <QuickNav />
       </div>
-
       <Button
         variant="ghost"
         onClick={() => router.push(`/dashboard/${params.projectId}/code-review`)}
@@ -117,7 +106,6 @@ export default function ReviewDetailPage() {
         <ArrowLeft className="h-4 w-4" />
         Back to Reviews
       </Button>
-
       <Card className="border-border/70">
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -141,7 +129,6 @@ export default function ReviewDetailPage() {
           </div>
         </CardHeader>
       </Card>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-border/70">
           <CardHeader className="pb-3">
@@ -160,7 +147,6 @@ export default function ReviewDetailPage() {
             <Progress value={review.overallScore} className="mt-3" />
           </CardContent>
         </Card>
-
         <Card className="border-border/70">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -178,7 +164,6 @@ export default function ReviewDetailPage() {
             <Progress value={review.securityScore} className="mt-3" />
           </CardContent>
         </Card>
-
         <Card className="border-border/70">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -196,7 +181,6 @@ export default function ReviewDetailPage() {
             <Progress value={review.performanceScore} className="mt-3" />
           </CardContent>
         </Card>
-
         <Card className="border-border/70">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -215,7 +199,6 @@ export default function ReviewDetailPage() {
           </CardContent>
         </Card>
       </div>
-
       <Card className="border-border/70">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -230,7 +213,6 @@ export default function ReviewDetailPage() {
           <Accordion type="single" collapsible className="w-full">
             {Object.entries(findingsBySeverity).map(([severity, findings]) => {
               if (findings.length === 0) return null;
-
               return (
                 <AccordionItem key={severity} value={severity}>
                   <AccordionTrigger className="hover:no-underline">
@@ -283,7 +265,6 @@ export default function ReviewDetailPage() {
               );
             })}
           </Accordion>
-
           {review.findings?.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-500" />
@@ -292,7 +273,6 @@ export default function ReviewDetailPage() {
           )}
         </CardContent>
       </Card>
-
       {review.suggestions && review.suggestions.length > 0 && (
         <Card className="border-border/70">
           <CardHeader>

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
@@ -27,7 +26,6 @@ import {
   Code,
   AlertTriangle,
   CheckCircle2,
-  XCircle,
   ArrowRight,
   FileCode,
   TrendingUp,
@@ -39,8 +37,6 @@ import {
   Calendar,
   User,
 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-
 export default function CodeReviewPage() {
   const params = useParams<{ projectId: string }>();
   const router = useRouter();
@@ -48,25 +44,20 @@ export default function CodeReviewPage() {
   const [selectedBranch, setSelectedBranch] = useState<string>("");
   const [selectedCommit, setSelectedCommit] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
-
   const { data: reviews, isLoading, refetch } = api.codeReview.getProjectReviews.useQuery({
     projectId: params.projectId,
     limit: 20,
   });
-
   const { data: stats } = api.codeReview.getReviewStats.useQuery({
     projectId: params.projectId,
   });
-
   const { data: branches, isLoading: loadingBranches } = api.codeBrowser.getBranches.useQuery({
     projectId: params.projectId,
   }, { enabled: isCreateOpen });
-
   const { data: commits, isLoading: loadingCommits } = api.codeBrowser.getCommits.useQuery({
     projectId: params.projectId,
     branch: selectedBranch || undefined,
   }, { enabled: isCreateOpen && !!selectedBranch });
-
   useEffect(() => {
     if (branches && branches.length > 0 && !selectedBranch) {
       const defaultBranch = branches.find(b => b.name === 'main') || branches[0];
@@ -75,7 +66,6 @@ export default function CodeReviewPage() {
       }
     }
   }, [branches, selectedBranch]);
-
   const createReview = api.codeReview.createReview.useMutation({
     onSuccess: () => {
       refetch();
@@ -84,45 +74,40 @@ export default function CodeReviewPage() {
       setSelectedCommit("");
     },
   });
-
   const handleCreateReview = () => {
     if (!selectedBranch || !selectedCommit) return;
-
     createReview.mutate({
       projectId: params.projectId,
       branch: selectedBranch,
       commitHash: selectedCommit,
     });
   };
-
   const filteredCommits = commits?.filter(commit => 
     commit.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     commit.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     commit.sha.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "CRITICAL":
-        return "destructive";
-      case "HIGH":
-        return "destructive";
-      case "MEDIUM":
-        return "warning";
-      case "LOW":
-        return "default";
-      default:
-        return "default";
-    }
-  };
-
+  
+  if (!params.projectId) {
+    return null;
+  }
+  
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
+  
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-600";
     if (score >= 70) return "text-yellow-600";
     if (score >= 50) return "text-orange-600";
     return "text-red-600";
   };
-
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'Unknown';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -133,14 +118,12 @@ export default function CodeReviewPage() {
       minute: '2-digit'
     });
   };
-
   return (
     <div className="container mx-auto p-6 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <ProjectBreadcrumb />
         <QuickNav />
       </div>
-      
       <div className="flex justify-between items-start">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -164,7 +147,6 @@ export default function CodeReviewPage() {
             <Badge variant="outline">Security Scanning</Badge>
           </div>
         </div>
-
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button size="lg" className="gap-2 shadow-lg shadow-primary/20">
@@ -211,7 +193,6 @@ export default function CodeReviewPage() {
                   </Select>
                 )}
               </div>
-
               {selectedBranch && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -226,7 +207,6 @@ export default function CodeReviewPage() {
                       className="max-w-xs"
                     />
                   </div>
-                  
                   {loadingCommits ? (
                     <div className="space-y-2">
                       {[1, 2, 3].map((i) => (
@@ -282,7 +262,6 @@ export default function CodeReviewPage() {
                   )}
                 </div>
               )}
-
               <Button
                 onClick={handleCreateReview}
                 disabled={createReview.isPending || !selectedBranch || !selectedCommit}
@@ -295,7 +274,6 @@ export default function CodeReviewPage() {
           </DialogContent>
         </Dialog>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
           title="Total Reviews"
@@ -321,7 +299,6 @@ export default function CodeReviewPage() {
           valueClassName={getScoreColor(stats?.averageScores.performanceScore || 0)}
         />
       </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Recent Reviews</CardTitle>
@@ -381,7 +358,6 @@ export default function CodeReviewPage() {
                       </div>
                       <ArrowRight className="h-5 w-5 text-muted-foreground" />
                     </div>
-
                     {review.status === "COMPLETED" && (
                       <>
                         <div className="grid grid-cols-4 gap-4 mb-4">
@@ -402,7 +378,6 @@ export default function CodeReviewPage() {
                             score={review.maintainabilityScore}
                           />
                         </div>
-
                         <div className="flex gap-4 text-sm">
                           <div className="flex items-center gap-1">
                             <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -432,7 +407,6 @@ export default function CodeReviewPage() {
     </div>
   );
 }
-
 function StatCard({
   title,
   value,
@@ -456,7 +430,6 @@ function StatCard({
     </Card>
   );
 }
-
 function ScoreDisplay({ label, score }: { label: string; score: number }) {
   const getColor = (score: number) => {
     if (score >= 90) return "bg-green-500";
@@ -464,7 +437,6 @@ function ScoreDisplay({ label, score }: { label: string; score: number }) {
     if (score >= 50) return "bg-orange-500";
     return "bg-red-500";
   };
-
   return (
     <div>
       <div className="flex items-center justify-between mb-1">

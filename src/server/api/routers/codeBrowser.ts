@@ -2,9 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
-
 const geminiFlashModel = google("gemini-1.5-flash-latest");
-
 interface GitHubTreeItem {
   path?: string;
   mode?: string;
@@ -13,7 +11,6 @@ interface GitHubTreeItem {
   size?: number;
   url?: string;
 }
-
 interface GitHubPRFile {
   sha: string | null;
   filename: string;
@@ -23,9 +20,7 @@ interface GitHubPRFile {
   changes: number;
   patch?: string;
 }
-
 export const codeBrowserRouter = createTRPCRouter({
-  
   getRepoTree: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -35,36 +30,29 @@ export const codeBrowserRouter = createTRPCRouter({
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId }
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const [owner, repo] = project.repoUrl
         .replace('https://github.com/', '')
         .replace('.git', '')
         .split('/');
-
       const { Octokit } = await import('octokit');
       const octokit = new Octokit({ 
         auth: project.gitHubToken 
       });
-
       const { data: repoData } = await octokit.rest.repos.get({
         owner,
         repo,
       });
-
       const { data } = await octokit.rest.git.getTree({
         owner,
         repo,
         tree_sha: repoData.default_branch,
         recursive: '1',
       });
-
       return data.tree as GitHubTreeItem[];
     }),
-
   getFileContent: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -74,33 +62,26 @@ export const codeBrowserRouter = createTRPCRouter({
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId }
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const [owner, repo] = project.repoUrl
         .replace('https://github.com/', '')
         .replace('.git', '')
         .split('/');
-
       const { Octokit } = await import('octokit');
       const octokit = new Octokit({ 
         auth: project.gitHubToken 
       });
-
       const { data } = await octokit.rest.repos.getContent({
         owner,
         repo,
         path: input.filePath,
       });
-
       if (Array.isArray(data) || data.type !== 'file') {
         throw new Error("Path is not a file");
       }
-
       const content = Buffer.from(data.content, 'base64').toString('utf-8');
-      
       return {
         content,
         name: data.name,
@@ -109,7 +90,6 @@ export const codeBrowserRouter = createTRPCRouter({
         sha: data.sha,
       };
     }),
-
   syncPullRequests: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -119,21 +99,17 @@ export const codeBrowserRouter = createTRPCRouter({
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId }
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const [owner, repo] = project.repoUrl
         .replace('https://github.com/', '')
         .replace('.git', '')
         .split('/');
-
       const { Octokit } = await import('octokit');
       const octokit = new Octokit({ 
         auth: project.gitHubToken 
       });
-
       const { data: prs } = await octokit.rest.pulls.list({
         owner,
         repo,
@@ -142,7 +118,6 @@ export const codeBrowserRouter = createTRPCRouter({
         sort: 'updated',
         direction: 'desc',
       });
-
       const syncedPRs = await Promise.all(
         prs.map(async (pr) => {
           const existing = await ctx.db.pullRequest.findUnique({
@@ -153,7 +128,6 @@ export const codeBrowserRouter = createTRPCRouter({
               }
             }
           });
-
           const prData = {
             prNumber: pr.number,
             title: pr.title,
@@ -168,7 +142,6 @@ export const codeBrowserRouter = createTRPCRouter({
             closedAt: pr.closed_at ? new Date(pr.closed_at) : null,
             mergedAt: pr.merged_at ? new Date(pr.merged_at) : null,
           };
-
           if (existing) {
             return await ctx.db.pullRequest.update({
               where: { id: existing.id },
@@ -184,10 +157,8 @@ export const codeBrowserRouter = createTRPCRouter({
           }
         })
       );
-
       return syncedPRs;
     }),
-
   getPullRequests: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -207,7 +178,6 @@ export const codeBrowserRouter = createTRPCRouter({
         }
       });
     }),
-
   analyzePullRequest: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -217,54 +187,42 @@ export const codeBrowserRouter = createTRPCRouter({
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId }
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const [owner, repo] = project.repoUrl
         .replace('https://github.com/', '')
         .replace('.git', '')
         .split('/');
-
       const { Octokit } = await import('octokit');
       const octokit = new Octokit({ 
         auth: project.gitHubToken 
       });
-
       const { data: prFiles } = await octokit.rest.pulls.listFiles({
         owner,
         repo,
         pull_number: input.prNumber,
       });
-
       let totalAdditions = 0;
       let totalDeletions = 0;
-
       const fileAnalyses = await Promise.all(
         prFiles.slice(0, 20).map(async (file: GitHubPRFile) => {
           totalAdditions += file.additions;
           totalDeletions += file.deletions;
-
           if (!file.patch) {
             return null;
           }
-
           const { text: analysis } = await generateText({
             model: geminiFlashModel,
             prompt: `Analyze this code change in file: ${file.filename}
-
 Diff:
 ${file.patch}
-
 Provide:
 1. Summary of changes (2-3 sentences)
 2. Risk score (0-100) - consider breaking changes, security issues, performance impact
 3. Key concerns or recommendations
-
 Be concise and focused on impact.`,
           });
-
           return {
             filename: file.filename,
             status: file.status.toUpperCase(),
@@ -276,23 +234,17 @@ Be concise and focused on impact.`,
           };
         })
       );
-
       const validFiles = fileAnalyses.filter((f): f is NonNullable<typeof f> => f !== null);
-
       const allDiffs = validFiles
         .map((f) => `File: ${f.filename}\n${f.patch}`)
         .join('\n\n---\n\n');
-
       const { text: overallSummary } = await generateText({
         model: geminiFlashModel,
         prompt: `Analyze this Pull Request with ${prFiles.length} files changed.
-
 Total additions: ${totalAdditions}
 Total deletions: ${totalDeletions}
-
 Changes overview:
 ${allDiffs.slice(0, 10000)}
-
 Provide a comprehensive analysis:
 1. Overall summary (what does this PR achieve?)
 2. Quality score (0-100) based on code quality, tests, documentation
@@ -300,14 +252,11 @@ Provide a comprehensive analysis:
 4. Breaking changes (yes/no and description if yes)
 5. Test coverage impact
 6. Key recommendations
-
 Format as a structured analysis.`,
       });
-
       const qualityScore = Math.floor(Math.random() * 30) + 70;
       const riskLevel = totalAdditions + totalDeletions > 500 ? 'HIGH' : 
                        totalAdditions + totalDeletions > 200 ? 'MEDIUM' : 'LOW';
-
       const pr = await ctx.db.pullRequest.update({
         where: {
           projectId_prNumber: {
@@ -324,11 +273,9 @@ Format as a structured analysis.`,
           riskLevel,
         }
       });
-
       await ctx.db.pRFile.deleteMany({
         where: { pullRequestId: pr.id }
       });
-
       await ctx.db.pRFile.createMany({
         data: validFiles.map((file) => ({
           pullRequestId: pr.id,
@@ -341,10 +288,8 @@ Format as a structured analysis.`,
           aiSummary: file.aiSummary,
         }))
       });
-
       return pr;
     }),
-
   getBranches: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -353,34 +298,28 @@ Format as a structured analysis.`,
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId }
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const [owner, repo] = project.repoUrl
         .replace('https://github.com/', '')
         .replace('.git', '')
         .split('/');
-
       const { Octokit } = await import('octokit');
       const octokit = new Octokit({ 
         auth: project.gitHubToken 
       });
-
       const { data: branches } = await octokit.rest.repos.listBranches({
         owner,
         repo,
         per_page: 100,
       });
-
       return branches.map((branch) => ({
         name: branch.name,
         sha: branch.commit.sha,
         protected: branch.protected,
       }));
     }),
-
   getCommits: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -390,28 +329,23 @@ Format as a structured analysis.`,
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId }
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const [owner, repo] = project.repoUrl
         .replace('https://github.com/', '')
         .replace('.git', '')
         .split('/');
-
       const { Octokit } = await import('octokit');
       const octokit = new Octokit({ 
         auth: project.gitHubToken 
       });
-
       const { data: commits } = await octokit.rest.repos.listCommits({
         owner,
         repo,
         ...(input.branch && { sha: input.branch }),
         per_page: 50,
       });
-
       return commits.map((commit) => ({
         sha: commit.sha,
         message: commit.commit.message,
@@ -420,7 +354,6 @@ Format as a structured analysis.`,
         date: commit.commit.author?.date,
       }));
     }),
-
   getPullRequestDetails: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -430,35 +363,29 @@ Format as a structured analysis.`,
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId }
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const [owner, repo] = project.repoUrl
         .replace('https://github.com/', '')
         .replace('.git', '')
         .split('/');
-
       const { Octokit } = await import('octokit');
       const octokit = new Octokit({ 
         auth: project.gitHubToken 
       });
-
       // Get PR details from GitHub
       const { data: pr } = await octokit.rest.pulls.get({
         owner,
         repo,
         pull_number: input.prNumber,
       });
-
       // Get PR files/diff
       const { data: prFiles } = await octokit.rest.pulls.listFiles({
         owner,
         repo,
         pull_number: input.prNumber,
       });
-
       // Get from database if exists
       const dbPR = await ctx.db.pullRequest.findUnique({
         where: {
@@ -471,7 +398,6 @@ Format as a structured analysis.`,
           files: true,
         }
       });
-
       return {
         github: {
           number: pr.number,
@@ -515,7 +441,6 @@ Format as a structured analysis.`,
         } : null,
       };
     }),
-
   mergePullRequest: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -528,21 +453,17 @@ Format as a structured analysis.`,
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId }
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const [owner, repo] = project.repoUrl
         .replace('https://github.com/', '')
         .replace('.git', '')
         .split('/');
-
       const { Octokit } = await import('octokit');
       const octokit = new Octokit({ 
         auth: project.gitHubToken 
       });
-
       try {
         const { data: result } = await octokit.rest.pulls.merge({
           owner,
@@ -552,7 +473,6 @@ Format as a structured analysis.`,
           ...(input.commitTitle && { commit_title: input.commitTitle }),
           ...(input.commitMessage && { commit_message: input.commitMessage }),
         });
-
         // Update in database
         await ctx.db.pullRequest.updateMany({
           where: {
@@ -563,7 +483,6 @@ Format as a structured analysis.`,
             status: 'MERGED',
           }
         });
-
         return {
           success: true,
           merged: result.merged,

@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-
 export const documentationRouter = createTRPCRouter({
-  
   generateDocumentation: protectedProcedure
     .input(
       z.object({
@@ -18,7 +16,6 @@ export const documentationRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId },
         include: {
@@ -31,16 +28,13 @@ export const documentationRouter = createTRPCRouter({
           },
         },
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const docContent = await generateDocContent(
         project,
         input.docType
       );
-
       const documentation = await ctx.db.documentation.create({
         data: {
           projectId: input.projectId,
@@ -57,10 +51,8 @@ export const documentationRouter = createTRPCRouter({
           sections: true,
         },
       });
-
       return documentation;
     }),
-
   getDocumentation: protectedProcedure
     .input(
       z.object({
@@ -95,7 +87,6 @@ export const documentationRouter = createTRPCRouter({
         },
       });
     }),
-
   updateDocumentation: protectedProcedure
     .input(
       z.object({
@@ -112,7 +103,6 @@ export const documentationRouter = createTRPCRouter({
         data,
       });
     }),
-
   extractAPIEndpoints: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -122,13 +112,10 @@ export const documentationRouter = createTRPCRouter({
           sourceCodeEmbedding: true,
         },
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const endpoints = await extractEndpoints(project.sourceCodeEmbedding);
-
       await ctx.db.aPIEndpoint.createMany({
         data: endpoints.map((endpoint) => ({
           ...endpoint,
@@ -136,10 +123,8 @@ export const documentationRouter = createTRPCRouter({
         })),
         skipDuplicates: true,
       });
-
       return { count: endpoints.length };
     }),
-
   getAPIEndpoints: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -153,7 +138,6 @@ export const documentationRouter = createTRPCRouter({
         },
       });
     }),
-
   generateArchitectureDiagram: protectedProcedure
     .input(
       z.object({
@@ -175,16 +159,13 @@ export const documentationRouter = createTRPCRouter({
           sourceCodeEmbedding: true,
         },
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const diagramData = await generateDiagram(
         project,
         input.diagramType
       );
-
       const diagram = await ctx.db.architectureDiagram.create({
         data: {
           projectId: input.projectId,
@@ -194,10 +175,8 @@ export const documentationRouter = createTRPCRouter({
           diagramCode: diagramData.code,
         },
       });
-
       return diagram;
     }),
-
   getArchitectureDiagrams: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -210,7 +189,6 @@ export const documentationRouter = createTRPCRouter({
         },
       });
     }),
-
   generateChangelog: protectedProcedure
     .input(
       z.object({
@@ -232,9 +210,7 @@ export const documentationRouter = createTRPCRouter({
           commitDate: "desc",
         },
       });
-
       const changelog = categorizeCommits(commits);
-
       const documentation = await ctx.db.documentation.create({
         data: {
           projectId: input.projectId,
@@ -255,13 +231,10 @@ export const documentationRouter = createTRPCRouter({
           sections: true,
         },
       });
-
       return documentation;
     }),
 });
-
 async function generateDocContent(project: { name: string; githubUrl?: string }, docType: string) {
-  
   const templates: Record<string, { title: string; content: string; tags: string[]; sections: Array<{ heading: string; content: string; order: number }> }> = {
     API_REFERENCE: {
       title: `${project.name} API Reference`,
@@ -310,12 +283,9 @@ async function generateDocContent(project: { name: string; githubUrl?: string },
       ],
     },
   };
-
   return templates[docType] || templates.ONBOARDING;
 }
-
 async function extractEndpoints(_codeEmbeddings: unknown[]) {
-  
   return [
     {
       method: "GET" as const,
@@ -339,9 +309,7 @@ async function extractEndpoints(_codeEmbeddings: unknown[]) {
     },
   ];
 }
-
 async function generateDiagram(project: { name: string }, diagramType: string) {
-  
   const diagrams: Record<string, { title: string; description: string; code: string }> = {
     ARCHITECTURE: {
       title: "System Architecture",
@@ -351,7 +319,6 @@ async function generateDiagram(project: { name: string }, diagramType: string) {
     API[API Server]
     DB[(Database)]
     Cache[(Redis Cache)]
-    
     Client --> API
     API --> DB
     API --> Cache`,
@@ -364,7 +331,6 @@ async function generateDiagram(project: { name: string }, diagramType: string) {
     participant Client
     participant Server
     participant DB
-    
     User->>Client: Enter credentials
     Client->>Server: POST /login
     Server->>DB: Validate user
@@ -373,10 +339,8 @@ async function generateDiagram(project: { name: string }, diagramType: string) {
     Client-->>User: Login success`,
     },
   };
-
   return diagrams[diagramType] || diagrams.ARCHITECTURE;
 }
-
 function categorizeCommits(commits: Array<{ commitMessage: string }>) {
   const categories: Record<string, Array<{ commitMessage: string }>> = {
     Features: [],
@@ -385,7 +349,6 @@ function categorizeCommits(commits: Array<{ commitMessage: string }>) {
     Refactoring: [],
     Other: [],
   };
-
   commits.forEach((commit) => {
     const message = commit.commitMessage.toLowerCase();
     if (message.includes("feat") || message.includes("feature")) {
@@ -400,13 +363,10 @@ function categorizeCommits(commits: Array<{ commitMessage: string }>) {
       categories.Other.push(commit);
     }
   });
-
   return categories;
 }
-
 function formatChangelog(changelog: Record<string, Array<{ commitMessage: string }>>): string {
   let content = "# Changelog\n\n";
-
   Object.entries(changelog).forEach(([category, commits]) => {
     if (commits.length > 0) {
       content += `## ${category}\n\n`;
@@ -416,6 +376,5 @@ function formatChangelog(changelog: Record<string, Array<{ commitMessage: string
       content += "\n";
     }
   });
-
   return content;
 }

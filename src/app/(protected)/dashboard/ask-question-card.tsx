@@ -15,7 +15,6 @@ import { askQuestion } from './action'
 import CodeRefrence from './code-refrence'
 import { Compass, Send, Save, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Spinner } from '~/components/ui/spinner'
-
 const AskQuestionCard = () => {
   const {project} = useProject()
   const { theme } = useTheme()
@@ -25,43 +24,36 @@ const AskQuestionCard = () => {
   const [filesReferences, setFilesReferences] = useState<{fileName: string, sourceCode: string, summary: string}[]>([])
   const [answer, setAnswer] = useState('')
   const saveAnswer= api.project.saveAnswer.useMutation()
-  
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setAnswer('')
     setFilesReferences([])
     e.preventDefault()
-    
     if (!project?.id) {
       toast.error("No project selected", {
         description: "Please select or create a project first"
       });
       return;
     }
-
     if (!question.trim()) {
       toast.error("Question cannot be empty", {
         description: "Please enter a question to get insights"
       });
       return;
     }
-
     setLoading(true)
     const loadingToast = toast.loading("Analyzing codebase...", {
       description: "Searching for relevant context and patterns"
     });
-
     try {
       const {output, filesRefrences} = await askQuestion(question, project.id)
       toast.dismiss(loadingToast);
       setOpen(true)
       setFilesReferences(filesRefrences)
-
       for await (const delta of output){
         if(delta){
           setAnswer((ans) => ans + delta)
         }
       }
-      
       toast.success("Analysis complete", {
         description: "Your answer is ready",
         icon: <CheckCircle2 className="h-4 w-4" />
@@ -79,7 +71,6 @@ const AskQuestionCard = () => {
     }
   }
   const refetch = useRefetch();
-
   return (
     <>
     <Dialog open={open} onOpenChange={setOpen}>
@@ -97,7 +88,6 @@ const AskQuestionCard = () => {
                 </div>
               </div>
             </DialogTitle>
-
             <Button 
               variant="outline" 
               size="sm"
@@ -141,7 +131,6 @@ const AskQuestionCard = () => {
             </Button>
           </div>
         </DialogHeader>
-      
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
           <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
             {loading && !answer ? (
@@ -160,10 +149,8 @@ const AskQuestionCard = () => {
               />
             )}
           </div>
-          
           {filesReferences.length > 0 && <CodeRefrence filesRefrences={filesReferences} />}
         </div>
-
         <Button 
           onClick={() => setOpen(false)} 
           variant="outline"
@@ -173,7 +160,6 @@ const AskQuestionCard = () => {
         </Button>
       </DialogContent>
     </Dialog>
-      
     <Card className='relative col-span-3 overflow-hidden border border-border/70 bg-card/70 shadow-lg shadow-primary/5'>
       <div className="absolute inset-x-6 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       <CardHeader>
@@ -217,9 +203,7 @@ const AskQuestionCard = () => {
         </form>
       </CardContent>
     </Card>
-      
     </>
   )
 }
-
 export default AskQuestionCard

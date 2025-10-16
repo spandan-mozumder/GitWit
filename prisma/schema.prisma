@@ -5,820 +5,964 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
   extensions = [vector]
 }
 
-model User{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    imageUrl   String?
-    firstName  String?
-    lastName   String?
-    EmailAddress      String   @unique
-    userToProjects UserToProject[]
-    credits    Int @default(150)
-    QuestionsAsked Question[]
+  imageUrl       String?
+  firstName      String?
+  lastName       String?
+  EmailAddress   String          @unique
+  userToProjects UserToProject[]
+  credits        Int             @default(150)
+  QuestionsAsked Question[]
 
-    chatMessages ChatMessage[]
-    chatParticipants ChatParticipant[]
-    mentions UserMention[]
-    reactions MessageReaction[]
-    annotations CodeAnnotation[]
-    annotationReplies AnnotationReply[]
-    
-    // Tier 1: Analytics
-    developerMetrics DeveloperMetric[]
-    
-    // Tier 1: Meetings Enhanced
-    assignedActionItems ActionItem[] @relation("AssignedActionItems")
+  chatMessages      ChatMessage[]
+  chatParticipants  ChatParticipant[]
+  mentions          UserMention[]
+  reactions         MessageReaction[]
+  annotations       CodeAnnotation[]
+  annotationReplies AnnotationReply[]
+
+  // Tier 1: Analytics
+  developerMetrics DeveloperMetric[]
+
+  // Tier 1: Meetings Enhanced
+  assignedActionItems ActionItem[] @relation("AssignedActionItems")
 }
 
-model Project{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+model Project {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    name String
-    repoUrl String
-    gitHubToken String?
-    deletedAt DateTime?
-    userToProjects UserToProject[]
+  name           String
+  repoUrl        String
+  gitHubToken    String?
+  deletedAt      DateTime?
+  userToProjects UserToProject[]
 
-    Commit Commit[]
-    sourceCodeEmbedding SourceCodeEmbedding[]
-    SavedQuestion Question[]
-    Meetings Meeting[]
-    
-    codeReviews CodeReview[]
-    
-    teamChats TeamChat[]
-    codeAnnotations CodeAnnotation[]
-    
-    developerMetrics DeveloperMetric[]
-    teamMetrics TeamMetric[]
-    codeHotspots CodeHotspot[]
+  Commit              Commit[]
+  sourceCodeEmbedding SourceCodeEmbedding[]
+  SavedQuestion       Question[]
+  Meetings            Meeting[]
 
-    documentation Documentation[]
-    apiEndpoints APIEndpoint[]
-    architectureDiagrams ArchitectureDiagram[]
-    
-    featureIdeas FeatureIdea[]
-    pullRequests PullRequest[]
+  codeReviews CodeReview[]
+
+  teamChats       TeamChat[]
+  codeAnnotations CodeAnnotation[]
+
+  developerMetrics DeveloperMetric[]
+  teamMetrics      TeamMetric[]
+  codeHotspots     CodeHotspot[]
+
+  documentation        Documentation[]
+  apiEndpoints         APIEndpoint[]
+  architectureDiagrams ArchitectureDiagram[]
+
+  featureIdeas FeatureIdea[]
+  pullRequests PullRequest[]
 }
 
-model UserToProject{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+model UserToProject {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    userId String
-    projectId String
-    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    @@unique([userId, projectId])
+  userId    String
+  projectId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
 }
 
-model Commit{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+model Commit {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    commitMessage String
-    commitHash String   @unique
-    commitAuthorName String
-    commitAuthorAvatar String
-    commitDate DateTime
-    summary String
+  commitMessage      String
+  commitHash         String   @unique
+  commitAuthorName   String
+  commitAuthorAvatar String
+  commitDate         DateTime
+  summary            String
 
-    projectId  String
-    project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
-model Question{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+model Question {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  question String
+  answer   String
 
-    question String
-    answer String
+  filesRefrences Json?
 
-    filesRefrences Json?
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    userId String
-    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
-model Meeting{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+model Meeting {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    meetingUrl String
-    name String
-    status MeetingStatus @default(PROCESSING)
+  meetingUrl String
+  name       String
+  status     MeetingStatus @default(PROCESSING)
 
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    issues Issue[]
-    
-    actionItems ActionItem[]
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues    Issue[]
+
+  actionItems ActionItem[]
 }
 
-enum MeetingStatus{
-    PROCESSING
-    COMPLETED
-    
+enum MeetingStatus {
+  PROCESSING
+  COMPLETED
+  SCHEDULED
+  IN_PROGRESS
+  ENDED
+  SUMMARIZED
 }
 
-model Issue{
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model Issue {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    start String
-    end String
-    gist String
-    headline String
-    summary String
-    meetingId String
-    meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  start     String
+  end       String
+  gist      String
+  headline  String
+  summary   String
+  meetingId String
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 }
 
-model SourceCodeEmbedding{
-    id         String   @id @default(cuid())
+model SourceCodeEmbedding {
+  id String @id @default(cuid())
 
-    summaryEmbedding Unsupported("Vector(768)")?
-    sourceCode String
-    fileName String
-    summary String
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  summaryEmbedding Unsupported("Vector(768)")?
+  sourceCode       String
+  fileName         String
+  summary          String
+  projectId        String
+  project          Project                     @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
-model CodeReview{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+model CodeReview {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    prNumber Int?
-    prTitle String?
-    prUrl String?
-    branch String
-    commitHash String
-    
-    // AI Analysis Results
-    overallScore Int // 0-100
-    securityScore Int // 0-100
-    performanceScore Int // 0-100
-    maintainabilityScore Int // 0-100
-    
-    status ReviewStatus @default(PENDING)
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    
-    findings CodeReviewFinding[]
-    suggestions CodeReviewSuggestion[]
+  prNumber   Int?
+  prTitle    String?
+  prUrl      String?
+  branch     String
+  commitHash String
+
+  // AI Analysis Results
+  overallScore         Int // 0-100
+  securityScore        Int // 0-100
+  performanceScore     Int // 0-100
+  maintainabilityScore Int // 0-100
+
+  status ReviewStatus @default(PENDING)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  findings    CodeReviewFinding[]
+  suggestions CodeReviewSuggestion[]
 }
 
-model CodeReviewFinding{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    
-    severity FindingSeverity
-    category FindingCategory
-    title String
-    description String @db.Text
-    filePath String
-    lineNumber Int?
-    codeSnippet String? @db.Text
-    recommendation String @db.Text
-    
-    cveId String? // If it's a security vulnerability
-    estimatedImpact String? // e.g., "High - Potential SQL Injection"
-    
-    reviewId String
-    review CodeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+model CodeReviewFinding {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  severity       FindingSeverity
+  category       FindingCategory
+  title          String
+  description    String          @db.Text
+  filePath       String
+  lineNumber     Int?
+  codeSnippet    String?         @db.Text
+  recommendation String          @db.Text
+
+  cveId           String? // If it's a security vulnerability
+  estimatedImpact String? // e.g., "High - Potential SQL Injection"
+
+  reviewId String
+  review   CodeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 }
 
-model CodeReviewSuggestion{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    
-    title String
-    description String @db.Text
-    filePath String
-    lineNumber Int?
-    originalCode String? @db.Text
-    suggestedCode String @db.Text
-    reasoning String @db.Text
-    
-    applied Boolean @default(false)
-    appliedAt DateTime?
-    
-    reviewId String
-    review CodeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+model CodeReviewSuggestion {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  title         String
+  description   String  @db.Text
+  filePath      String
+  lineNumber    Int?
+  originalCode  String? @db.Text
+  suggestedCode String  @db.Text
+  reasoning     String  @db.Text
+
+  applied   Boolean   @default(false)
+  appliedAt DateTime?
+
+  reviewId String
+  review   CodeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 }
 
-enum ReviewStatus{
-    PENDING
-    IN_PROGRESS
-    COMPLETED
-    FAILED
+enum ReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
 }
 
-enum FindingSeverity{
-    CRITICAL
-    HIGH
-    MEDIUM
-    LOW
-    INFO
+enum FindingSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
 }
 
-enum FindingCategory{
-    SECURITY
-    PERFORMANCE
-    BUG
-    CODE_SMELL
-    BEST_PRACTICE
-    DOCUMENTATION
-    TESTING
-    ACCESSIBILITY
+enum FindingCategory {
+  SECURITY
+  PERFORMANCE
+  BUG
+  CODE_SMELL
+  BEST_PRACTICE
+  DOCUMENTATION
+  TESTING
+  ACCESSIBILITY
 }
 
 // ============================================
 // TIER 1: TEAM COLLABORATION SUITE
 // ============================================
 
-model TeamChat{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    
-    messages ChatMessage[]
-    participants ChatParticipant[]
+model TeamChat {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  messages     ChatMessage[]
+  participants ChatParticipant[]
 }
 
-model ChatMessage{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    content String @db.Text
-    messageType MessageType @default(TEXT)
-    
-    // Attachments
-    attachmentUrl String?
-    attachmentName String?
-    attachmentSize Int?
-    attachmentType String?
-    
-    // Code context
-    filePath String?
-    lineNumber Int?
-    codeSnippet String? @db.Text
-    codeLanguage String? // Language for syntax highlighting (e.g., typescript, python)
-    commitHash String?
-    
-    // AI context injection
-    aiContext String? @db.Text
-    
-    userId String
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    
-    chatId String
-    chat TeamChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
-    
-    mentions UserMention[]
-    reactions MessageReaction[]
-    threadMessages ChatMessage[] @relation("MessageThread")
-    parentMessageId String?
-    parentMessage ChatMessage? @relation("MessageThread", fields: [parentMessageId], references: [id], onDelete: Cascade)
+model ChatMessage {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  content     String      @db.Text
+  messageType MessageType @default(TEXT)
+
+  // Attachments
+  attachmentUrl  String?
+  attachmentName String?
+  attachmentSize Int?
+  attachmentType String?
+
+  // Code context
+  filePath     String?
+  lineNumber   Int?
+  codeSnippet  String? @db.Text
+  codeLanguage String? // Language for syntax highlighting (e.g., typescript, python)
+  commitHash   String?
+
+  // AI context injection
+  aiContext String? @db.Text
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  chatId String
+  chat   TeamChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  // Chat Room relation
+  roomId String?
+  room   ChatRoom? @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  mentions        UserMention[]
+  reactions       MessageReaction[]
+  attachments     ChatAttachment[]
+  threadMessages  ChatMessage[]     @relation("MessageThread")
+  parentMessageId String?
+  parentMessage   ChatMessage?      @relation("MessageThread", fields: [parentMessageId], references: [id], onDelete: Cascade)
 }
 
-model ChatParticipant{
-    id         String   @id @default(cuid())
-    joinedAt   DateTime @default(now())
-    lastReadAt DateTime?
-    
-    userId String
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    
-    chatId String
-    chat TeamChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
-    
-    @@unique([userId, chatId])
+model ChatParticipant {
+  id         String    @id @default(cuid())
+  joinedAt   DateTime  @default(now())
+  lastReadAt DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  chatId String
+  chat   TeamChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chatId])
 }
 
-model UserMention{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    read Boolean @default(false)
-    
-    userId String
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    
-    messageId String
-    message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+model UserMention {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  messageId String
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
 }
 
-model MessageReaction{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    
-    emoji String
-    
-    userId String
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    
-    messageId String
-    message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-    
-    @@unique([userId, messageId, emoji])
+model MessageReaction {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  emoji String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  messageId String
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, messageId, emoji])
 }
 
-model CodeAnnotation{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    filePath String
-    lineStart Int
-    lineEnd Int
-    content String @db.Text
-    resolved Boolean @default(false)
-    
-    userId String
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    
-    replies AnnotationReply[]
+model CodeAnnotation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  filePath  String
+  lineStart Int
+  lineEnd   Int
+  content   String  @db.Text
+  resolved  Boolean @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  replies AnnotationReply[]
 }
 
-model AnnotationReply{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    
-    content String @db.Text
-    
-    userId String
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    
-    annotationId String
-    annotation CodeAnnotation @relation(fields: [annotationId], references: [id], onDelete: Cascade)
+model AnnotationReply {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  content String @db.Text
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  annotationId String
+  annotation   CodeAnnotation @relation(fields: [annotationId], references: [id], onDelete: Cascade)
 }
 
-enum MessageType{
-    TEXT
-    CODE
-    FILE
-    SYSTEM
+enum MessageType {
+  TEXT
+  CODE
+  FILE
+  SYSTEM
 }
 
 // ============================================
 // TIER 1: ADVANCED ANALYTICS DASHBOARD
 // ============================================
 
-model DeveloperMetric{
-    id         String   @id @default(cuid())
-    date       DateTime @db.Date
-    
-    // Productivity metrics
-    commitsCount Int @default(0)
-    linesAdded Int @default(0)
-    linesDeleted Int @default(0)
-    prsCreated Int @default(0)
-    prsReviewed Int @default(0)
-    issuesClosed Int @default(0)
-    
-    // Code quality metrics
-    bugIntroduced Int @default(0)
-    codeChurn Int @default(0) // Lines changed that were recently changed
-    averageReviewTime Int @default(0) // in minutes
-    
-    // Activity metrics
-    activeHours Float @default(0)
-    focusTimeHours Float @default(0)
-    meetingHours Float @default(0)
-    
-    userId String
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    
-    @@unique([userId, projectId, date])
+model DeveloperMetric {
+  id   String   @id @default(cuid())
+  date DateTime @db.Date
+
+  // Productivity metrics
+  commitsCount Int @default(0)
+  linesAdded   Int @default(0)
+  linesDeleted Int @default(0)
+  prsCreated   Int @default(0)
+  prsReviewed  Int @default(0)
+  issuesClosed Int @default(0)
+
+  // Code quality metrics
+  bugIntroduced     Int @default(0)
+  codeChurn         Int @default(0) // Lines changed that were recently changed
+  averageReviewTime Int @default(0) // in minutes
+
+  // Activity metrics
+  activeHours    Float @default(0)
+  focusTimeHours Float @default(0)
+  meetingHours   Float @default(0)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId, date])
 }
 
-model TeamMetric{
-    id         String   @id @default(cuid())
-    date       DateTime @db.Date
-    
-    // Team velocity
-    totalCommits Int @default(0)
-    totalPRs Int @default(0)
-    averagePRSize Int @default(0)
-    deploymentFrequency Int @default(0)
-    
-    // Quality metrics
-    bugRate Float @default(0) // bugs per 1000 lines
-    technicalDebtScore Int @default(0) // 0-100
-    codeReviewCoverage Float @default(0) // percentage
-    testCoverage Float @default(0) // percentage
-    
-    // Performance metrics
-    mttr Int @default(0) // Mean Time To Recovery in minutes
-    leadTime Int @default(0) // Time from commit to deploy in minutes
-    changeFailureRate Float @default(0) // percentage
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    
-    @@unique([projectId, date])
+model TeamMetric {
+  id   String   @id @default(cuid())
+  date DateTime @db.Date
+
+  // Team velocity
+  totalCommits        Int @default(0)
+  totalPRs            Int @default(0)
+  averagePRSize       Int @default(0)
+  deploymentFrequency Int @default(0)
+
+  // Quality metrics
+  bugRate            Float @default(0) // bugs per 1000 lines
+  technicalDebtScore Int   @default(0) // 0-100
+  codeReviewCoverage Float @default(0) // percentage
+  testCoverage       Float @default(0) // percentage
+
+  // Performance metrics
+  mttr              Int   @default(0) // Mean Time To Recovery in minutes
+  leadTime          Int   @default(0) // Time from commit to deploy in minutes
+  changeFailureRate Float @default(0) // percentage
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, date])
 }
 
-model CodeHotspot{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    filePath String
-    changeFrequency Int // How often this file changes
-    bugCount Int // Bugs found in this file
-    complexity Int // Cyclomatic complexity
-    riskScore Int // 0-100, calculated risk
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    
-    @@unique([projectId, filePath])
+model CodeHotspot {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  filePath        String
+  changeFrequency Int // How often this file changes
+  bugCount        Int // Bugs found in this file
+  complexity      Int // Cyclomatic complexity
+  riskScore       Int // 0-100, calculated risk
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, filePath])
 }
 
 // ============================================
 // TIER 1: SMART DOCUMENTATION GENERATOR
 // ============================================
 
-model Documentation{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    title String
-    content String @db.Text
-    docType DocumentationType
-    filePath String? // Associated source file
-    
-    // Versioning
-    version String @default("1.0.0")
-    status DocStatus @default(DRAFT)
-    
-    // AI generated metadata
-    tags String[] // e.g., ["API", "Authentication", "REST"]
-    estimatedReadTime Int // in minutes
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    
-    sections DocumentationSection[]
+model Documentation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title    String
+  content  String            @db.Text
+  docType  DocumentationType
+  filePath String? // Associated source file
+
+  // Versioning
+  version String    @default("1.0.0")
+  status  DocStatus @default(DRAFT)
+
+  // AI generated metadata
+  tags              String[] // e.g., ["API", "Authentication", "REST"]
+  estimatedReadTime Int // in minutes
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  sections DocumentationSection[]
 }
 
-model DocumentationSection{
-    id         String   @id @default(cuid())
-    order Int
-    
-    heading String
-    content String @db.Text
-    codeExamples Json? // Array of {language, code, description}
-    
-    documentationId String
-    documentation Documentation @relation(fields: [documentationId], references: [id], onDelete: Cascade)
+model DocumentationSection {
+  id    String @id @default(cuid())
+  order Int
+
+  heading      String
+  content      String @db.Text
+  codeExamples Json? // Array of {language, code, description}
+
+  documentationId String
+  documentation   Documentation @relation(fields: [documentationId], references: [id], onDelete: Cascade)
 }
 
-model APIEndpoint{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    method HTTPMethod
-    path String
-    description String @db.Text
-    
-    // Auto-extracted from code
-    filePath String
-    lineNumber Int
-    
-    // Parameters
-    requestSchema Json? // JSON Schema
-    responseSchema Json? // JSON Schema
-    
-    // Examples
-    exampleRequest String? @db.Text
-    exampleResponse String? @db.Text
-    
-    // Metadata
-    authenticated Boolean @default(false)
-    rateLimit String?
-    deprecated Boolean @default(false)
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+model APIEndpoint {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  method      HTTPMethod
+  path        String
+  description String     @db.Text
+
+  // Auto-extracted from code
+  filePath   String
+  lineNumber Int
+
+  // Parameters
+  requestSchema  Json? // JSON Schema
+  responseSchema Json? // JSON Schema
+
+  // Examples
+  exampleRequest  String? @db.Text
+  exampleResponse String? @db.Text
+
+  // Metadata
+  authenticated Boolean @default(false)
+  rateLimit     String?
+  deprecated    Boolean @default(false)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
-model ArchitectureDiagram{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    title String
-    description String @db.Text
-    diagramType DiagramType
-    
-    // Mermaid or PlantUML syntax
-    diagramCode String @db.Text
-    
-    // SVG or PNG rendered output
-    renderedUrl String?
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+model ArchitectureDiagram {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title       String
+  description String      @db.Text
+  diagramType DiagramType
+
+  // Mermaid or PlantUML syntax
+  diagramCode String @db.Text
+
+  // SVG or PNG rendered output
+  renderedUrl String?
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
-enum DocumentationType{
-    API_REFERENCE
-    ARCHITECTURE
-    ONBOARDING
-    CHANGELOG
-    TECHNICAL_SPEC
-    USER_GUIDE
+enum DocumentationType {
+  API_REFERENCE
+  ARCHITECTURE
+  ONBOARDING
+  CHANGELOG
+  TECHNICAL_SPEC
+  USER_GUIDE
 }
 
-enum DocStatus{
-    DRAFT
-    REVIEW
-    PUBLISHED
-    ARCHIVED
+enum DocStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
 }
 
-enum HTTPMethod{
-    GET
-    POST
-    PUT
-    PATCH
-    DELETE
-    OPTIONS
-    HEAD
+enum HTTPMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+  OPTIONS
+  HEAD
 }
 
-enum DiagramType{
-    ARCHITECTURE
-    SEQUENCE
-    CLASS
-    ER_DIAGRAM
-    FLOW_CHART
-    COMPONENT
+enum DiagramType {
+  ARCHITECTURE
+  SEQUENCE
+  CLASS
+  ER_DIAGRAM
+  FLOW_CHART
+  COMPONENT
 }
 
 // ============================================
 // TIER 1: ENHANCED MEETING FEATURES
 // ============================================
 
-model ActionItem{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    title String
-    description String @db.Text
-    priority Priority @default(MEDIUM)
-    status TaskStatus @default(TODO)
-    
-    dueDate DateTime?
-    completedAt DateTime?
-    
-    // Linked to code
-    filePath String?
-    lineNumber Int?
-    
-    // External integration
-    jiraId String?
-    linearId String?
-    asanaId String?
-    
-    assigneeId String?
-    assignee User? @relation("AssignedActionItems", fields: [assigneeId], references: [id], onDelete: SetNull)
-    
-    meetingId String
-    meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-    
-    reminders Reminder[]
+model ActionItem {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title       String
+  description String     @db.Text
+  priority    Priority   @default(MEDIUM)
+  status      TaskStatus @default(TODO)
+
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  // Linked to code
+  filePath   String?
+  lineNumber Int?
+
+  // External integration
+  jiraId   String?
+  linearId String?
+  asanaId  String?
+
+  assigneeId String?
+  assignee   User?   @relation("AssignedActionItems", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  meetingId String
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  reminders Reminder[]
 }
 
-model Reminder{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    scheduledFor DateTime
-    sent Boolean @default(false)
-    sentAt DateTime?
-    
-    actionItemId String
-    actionItem ActionItem @relation(fields: [actionItemId], references: [id], onDelete: Cascade)
+model Reminder {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  scheduledFor DateTime
+  sent         Boolean   @default(false)
+  sentAt       DateTime?
+
+  actionItemId String
+  actionItem   ActionItem @relation(fields: [actionItemId], references: [id], onDelete: Cascade)
 }
 
-enum Priority{
-    CRITICAL
-    HIGH
-    MEDIUM
-    LOW
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
 }
 
-enum TaskStatus{
-    TODO
-    IN_PROGRESS
-    BLOCKED
-    DONE
-    CANCELLED
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  DONE
+  CANCELLED
 }
 
 // ============================================
 // TIER 2: FEATURE BRAINSTORMING & CODE BROWSER
 // ============================================
 
-model FeatureIdea{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    title String
-    description String @db.Text
-    
-    // AI generated details
-    implementation String? @db.Text // Implementation steps
-    complexity FeatureComplexity @default(MEDIUM)
-    estimatedHours Int? // Time estimate
-    techStack String[] // Suggested technologies
-    userStories String[] // User story format
-    
-    // Prioritization
-    priority Int @default(3) // 1-5 scale
-    voteCount Int @default(0)
-    status FeatureStatus @default(IDEA)
-    
-    // Categorization
-    category FeatureCategory?
-    tags String[] // e.g., ["Performance", "UX", "Security"]
-    
-    // Integration
-    githubIssueUrl String?
-    jiraTicketId String?
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    
-    votes FeatureVote[]
+model FeatureIdea {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title       String
+  description String @db.Text
+
+  // AI generated details
+  implementation String?           @db.Text // Implementation steps
+  complexity     FeatureComplexity @default(MEDIUM)
+  estimatedHours Int? // Time estimate
+  techStack      String[] // Suggested technologies
+  userStories    String[] // User story format
+
+  // Prioritization
+  priority  Int           @default(3) // 1-5 scale
+  voteCount Int           @default(0)
+  status    FeatureStatus @default(IDEA)
+
+  // Categorization
+  category FeatureCategory?
+  tags     String[] // e.g., ["Performance", "UX", "Security"]
+
+  // Integration
+  githubIssueUrl String?
+  jiraTicketId   String?
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  votes FeatureVote[]
 }
 
-model FeatureVote{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    
-    userId String
-    featureId String
-    feature FeatureIdea @relation(fields: [featureId], references: [id], onDelete: Cascade)
-    
-    @@unique([userId, featureId])
+model FeatureVote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  featureId String
+  feature   FeatureIdea @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, featureId])
 }
 
-model PullRequest{
-    id         String   @id @default(cuid())
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    
-    // GitHub PR data
-    prNumber Int
-    title String
-    description String? @db.Text
-    status PRStatus @default(OPEN)
-    
-    // Metadata
-    author String
-    authorAvatar String?
-    branch String
-    baseBranch String @default("main")
-    
-    // Statistics
-    filesChanged Int @default(0)
-    additions Int @default(0)
-    deletions Int @default(0)
-    commits Int @default(0)
-    
-    // AI Analysis
-    aiSummary String? @db.Text
-    qualityScore Int? // 0-100
-    riskLevel PRRiskLevel?
-    
-    // Breaking changes detection
-    hasBreakingChanges Boolean @default(false)
-    breakingChangesDesc String? @db.Text
-    
-    // Test coverage impact
-    testCoverageImpact String?
-    
-    // Timestamps
-    openedAt DateTime
-    closedAt DateTime?
-    mergedAt DateTime?
-    
-    projectId String
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    
-    files PRFile[]
-    
-    @@unique([projectId, prNumber])
+model PullRequest {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // GitHub PR data
+  prNumber    Int
+  title       String
+  description String?  @db.Text
+  status      PRStatus @default(OPEN)
+
+  // Metadata
+  author       String
+  authorAvatar String?
+  branch       String
+  baseBranch   String  @default("main")
+
+  // Statistics
+  filesChanged Int @default(0)
+  additions    Int @default(0)
+  deletions    Int @default(0)
+  commits      Int @default(0)
+
+  // AI Analysis
+  aiSummary    String?      @db.Text
+  qualityScore Int? // 0-100
+  riskLevel    PRRiskLevel?
+
+  // Breaking changes detection
+  hasBreakingChanges  Boolean @default(false)
+  breakingChangesDesc String? @db.Text
+
+  // Test coverage impact
+  testCoverageImpact String?
+
+  // Timestamps
+  openedAt DateTime
+  closedAt DateTime?
+  mergedAt DateTime?
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  files PRFile[]
+
+  @@unique([projectId, prNumber])
 }
 
-model PRFile{
-    id         String   @id @default(cuid())
-    
-    filename String
-    status FileChangeStatus // added, modified, deleted, renamed
-    additions Int @default(0)
-    deletions Int @default(0)
-    changes Int @default(0)
-    
-    // Diff content
-    patch String? @db.Text
-    
-    // AI analysis per file
-    aiSummary String? @db.Text
-    riskScore Int? // 0-100
-    
-    pullRequestId String
-    pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+model PRFile {
+  id String @id @default(cuid())
+
+  filename  String
+  status    FileChangeStatus // added, modified, deleted, renamed
+  additions Int              @default(0)
+  deletions Int              @default(0)
+  changes   Int              @default(0)
+
+  // Diff content
+  patch String? @db.Text
+
+  // AI analysis per file
+  aiSummary String? @db.Text
+  riskScore Int? // 0-100
+
+  pullRequestId String
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
 }
 
-enum FeatureComplexity{
-    EASY
-    MEDIUM
-    HARD
-    VERY_HARD
+// Role-Based Access Control Models
+model ProjectMember {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  projectId String
+  role      UserRole @default(COLLABORATOR)
+
+  invitedBy String?
+  joinedAt  DateTime @default(now())
+
+  @@unique([userId, projectId])
 }
 
-enum FeatureStatus{
-    IDEA
-    PLANNED
-    IN_PROGRESS
-    DONE
-    REJECTED
+// Chat Room Models
+model ChatRoom {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  description String?
+  projectId   String
+
+  createdBy String // userId of admin who created it
+  isActive  Boolean @default(true)
+
+  messages    ChatMessage[]
+  memberships RoomMembership[]
 }
 
-enum FeatureCategory{
-    NEW_FEATURE
-    ENHANCEMENT
-    BUG_FIX
-    PERFORMANCE
-    SECURITY
-    UI_UX
-    REFACTOR
-    TESTING
-    DOCUMENTATION
+model RoomMembership {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  roomId String
+  userId String
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  addedBy String // userId of admin who added them
+  addedAt DateTime @default(now())
+
+  @@unique([roomId, userId])
 }
 
-enum PRStatus{
-    OPEN
-    CLOSED
-    MERGED
-    DRAFT
+// File Attachment Models
+model ChatAttachment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  messageId String
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  fileName String
+  fileUrl  String
+  fileType String // mime type
+  fileSize Int // in bytes
+
+  uploadedBy String // userId
 }
 
-enum PRRiskLevel{
-    LOW
-    MEDIUM
-    HIGH
-    CRITICAL
+// Live Meeting Models
+model LiveMeeting {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectId   String
+  title       String
+  description String?
+
+  hostId String // userId
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  status MeetingStatus @default(PROCESSING)
+
+  // Recording
+  recordingUrl String?
+  audioFileUrl String?
+
+  // Transcription
+  transcriptId        String? // AssemblyAI transcript ID
+  transcript          String?             @db.Text
+  transcriptionStatus TranscriptionStatus @default(PENDING)
+
+  // Summarization
+  summaryRequested   Boolean   @default(false)
+  summaryRequestedBy String?
+  summaryRequestedAt DateTime?
+  summary            String?   @db.Text
+
+  // Link to Meeting if summarized
+  meetingId String?
+
+  participants LiveMeetingParticipant[]
 }
 
-enum FileChangeStatus{
-    ADDED
-    MODIFIED
-    DELETED
-    RENAMED
+model LiveMeetingParticipant {
+  id String @id @default(cuid())
+
+  meetingId String
+  meeting   LiveMeeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  userId String
+  role   ParticipantRole @default(PARTICIPANT)
+
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  @@unique([meetingId, userId])
+}
+
+enum UserRole {
+  ADMIN
+  COLLABORATOR
+  VIEWER
+}
+
+enum TranscriptionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ParticipantRole {
+  HOST
+  CO_HOST
+  PARTICIPANT
+}
+
+enum FeatureComplexity {
+  EASY
+  MEDIUM
+  HARD
+  VERY_HARD
+}
+
+enum FeatureStatus {
+  IDEA
+  PLANNED
+  IN_PROGRESS
+  DONE
+  REJECTED
+}
+
+enum FeatureCategory {
+  NEW_FEATURE
+  ENHANCEMENT
+  BUG_FIX
+  PERFORMANCE
+  SECURITY
+  UI_UX
+  REFACTOR
+  TESTING
+  DOCUMENTATION
+}
+
+enum PRStatus {
+  OPEN
+  CLOSED
+  MERGED
+  DRAFT
+}
+
+enum PRRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum FileChangeStatus {
+  ADDED
+  MODIFIED
+  DELETED
+  RENAMED
 }

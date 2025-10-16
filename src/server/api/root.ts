@@ -6,26 +6,22 @@ import { documentationRouter } from "@/server/api/routers/documentation";
 import { meetingsEnhancedRouter } from "@/server/api/routers/meetingsEnhanced";
 import { featureBrainstormingRouter } from "@/server/api/routers/featureBrainstorming";
 import { codeBrowserRouter } from "@/server/api/routers/codeBrowser";
+import { projectMembersRouter } from "@/server/api/routers/projectMembers";
+import { chatRoomsRouter } from "@/server/api/routers/chatRooms";
+import { liveMeetingsRouter } from "@/server/api/routers/liveMeetings";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
-
 export const appRouter = createTRPCRouter({
   project: projectRouter,
-  
   codeReview: codeReviewRouter,
-  
   teamChat: teamChatRouter,
-  
   analytics: analyticsRouter,
-  
   documentation: documentationRouter,
-  
   meetingsEnhanced: meetingsEnhancedRouter,
-  
   featureBrainstorming: featureBrainstormingRouter,
-  
   codeBrowser: codeBrowserRouter,
+  projectMembers: projectMembersRouter,
+  chatRooms: chatRoomsRouter,
+  liveMeetings: liveMeetingsRouter,
 });
-
 export type AppRouter = typeof appRouter;
-
 export const createCaller = createCallerFactory(appRouter);

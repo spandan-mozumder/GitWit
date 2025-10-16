@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import {
   Dialog,
@@ -13,11 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { Keyboard, Command } from "lucide-react";
 import { getShortcutText, type KeyboardShortcut } from "@/hooks/use-keyboard-shortcuts";
-
 interface ShortcutsModalProps {
   shortcuts?: KeyboardShortcut[];
 }
-
 const GLOBAL_SHORTCUTS: KeyboardShortcut[] = [
   {
     key: 'k',
@@ -42,7 +39,6 @@ const GLOBAL_SHORTCUTS: KeyboardShortcut[] = [
     action: () => {},
   },
 ];
-
 const PAGE_SHORTCUTS: Record<string, KeyboardShortcut[]> = {
   dashboard: [
     {
@@ -108,12 +104,9 @@ const PAGE_SHORTCUTS: Record<string, KeyboardShortcut[]> = {
     },
   ],
 };
-
 export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
   const [open, setOpen] = useState(false);
-
-  const allShortcuts = shortcuts || GLOBAL_SHORTCUTS;
-
+  const displayShortcuts = shortcuts || GLOBAL_SHORTCUTS;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -137,14 +130,13 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
             Speed up your workflow with these keyboard shortcuts
           </DialogDescription>
         </DialogHeader>
-
         <div className="space-y-6">
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
-              Global
+              {shortcuts ? 'Custom' : 'Global'}
             </h3>
             <div className="space-y-2">
-              {GLOBAL_SHORTCUTS.map((shortcut, index) => (
+              {displayShortcuts.map((shortcut, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors"
@@ -155,7 +147,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
               ))}
             </div>
           </div>
-
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Dashboard
@@ -172,7 +163,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
               ))}
             </div>
           </div>
-
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Analytics
@@ -189,7 +179,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
               ))}
             </div>
           </div>
-
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Code Review
@@ -206,7 +195,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
               ))}
             </div>
           </div>
-
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Team Chat
@@ -223,7 +211,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
               ))}
             </div>
           </div>
-
           {shortcuts && shortcuts.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
@@ -243,7 +230,6 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
             </div>
           )}
         </div>
-
         <div className="pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">
             Press <Kbd className="mx-1">?</Kbd> or <Kbd className="mx-1">⌘/</Kbd> to toggle this help

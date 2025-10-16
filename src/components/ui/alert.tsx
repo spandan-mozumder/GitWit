@@ -1,8 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-
 import { cn } from "@/lib/utils"
-
 const alertVariants = cva(
   "relative w-full rounded-xl border-2 px-5 py-4 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-1 items-start shadow-lg backdrop-blur-sm transition-all duration-300 [&>svg]:size-5 [&>svg]:translate-y-0.5 [&>svg]:text-current [&>svg]:drop-shadow-md",
   {
@@ -18,7 +16,6 @@ const alertVariants = cva(
     },
   }
 )
-
 function Alert({
   className,
   variant,
@@ -33,7 +30,6 @@ function Alert({
     />
   )
 }
-
 function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -46,7 +42,6 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
     />
   )
 }
-
 function AlertDescription({
   className,
   ...props
@@ -62,5 +57,4 @@ function AlertDescription({
     />
   )
 }
-
 export { Alert, AlertTitle, AlertDescription }

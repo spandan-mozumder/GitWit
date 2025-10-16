@@ -10,21 +10,18 @@ import { useTheme } from 'next-themes';
 import { Card, CardContent } from '~/components/ui/card';
 import { Badge } from '~/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import { Skeleton } from '~/components/ui/skeleton';
+import { Spinner } from '~/components/ui/spinner';
 import { Calendar, Archive, MessageSquare } from 'lucide-react';
-
 const QAPage = () => {
   const {projectId}=useProject();
   const {data: questions, isLoading}= api.project.getQuestions.useQuery({projectId}); 
   const { theme } = useTheme()
   const  [questionIndex, setQuestionIndex] = useState(0);
   const question = questions?.[questionIndex];
-
   return (
     <Sheet>
       <div className="space-y-8 animate-fade-in">
         <AskQuestionCard/>
-        
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -39,25 +36,11 @@ const QAPage = () => {
               </Badge>
             )}
           </div>
-
           {isLoading && (
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <Skeleton className="h-10 w-10 rounded-full animate-skeleton-pulse" />
-                      <div className="flex-1 space-y-3">
-                        <Skeleton className="h-5 w-3/4 animate-skeleton-pulse" />
-                        <Skeleton className="h-4 w-full animate-skeleton-pulse" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex justify-center py-12">
+              <Spinner className="size-8" />
             </div>
           )}
-
           {!isLoading && (!questions || questions.length === 0) && (
             <Card className="border-dashed border-border/70 bg-card/70">
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -71,7 +54,6 @@ const QAPage = () => {
               </CardContent>
             </Card>
           )}
-
           {!isLoading && questions && questions.length > 0 && (
             <div className="grid gap-4">
               {questions?.map((question: { id: string; question: string; answer: string; filesRefrences: unknown; user: { imageUrl?: string | null }; createdAt: Date }, index: number)=>{
@@ -108,7 +90,6 @@ const QAPage = () => {
           )}
         </div>
       </div>
-
       {question && (
         <SheetContent className='sm:max-w-[80vw]'>
           <SheetHeader>
@@ -135,5 +116,4 @@ const QAPage = () => {
     </Sheet>
   )
 }
-
 export default QAPage

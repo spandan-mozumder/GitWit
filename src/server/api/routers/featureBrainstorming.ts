@@ -2,11 +2,8 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { generateObject } from "ai";
 import { google } from "@ai-sdk/google";
-
 const geminiFlashModel = google("gemini-1.5-flash-latest");
-
 export const featureBrainstormingRouter = createTRPCRouter({
-  
   generateFeatureIdeas: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -26,17 +23,14 @@ export const featureBrainstormingRouter = createTRPCRouter({
           }
         }
       });
-
       if (!project) {
         throw new Error("Project not found");
       }
-
       const recentCommits = project.Commit.map(c => c.commitMessage).join('\n');
       const codeContext = project.sourceCodeEmbedding
         .map(e => `${e.fileName}: ${e.summary}`)
         .slice(0, 10)
         .join('\n');
-
       const { object: ideas } = await generateObject({
         model: geminiFlashModel,
         schema: z.object({
@@ -56,25 +50,19 @@ export const featureBrainstormingRouter = createTRPCRouter({
           }))
         }),
         prompt: `You are a senior product manager and software architect. Analyze this project and generate ${input.count} innovative, practical feature ideas.
-
 Project: ${project.name}
 Repository: ${project.repoUrl}
-
 User Request: "${input.userInput}"
-
 Recent Activity:
 ${recentCommits}
-
 Codebase Overview:
 ${codeContext}
-
 Generate ${input.count} feature ideas that:
 1. Align with the user's request
 2. Build upon the existing codebase
 3. Are technically feasible
 4. Provide clear user value
 5. Include implementation details
-
 For each feature, provide:
 - Clear, concise title
 - Detailed description (2-3 sentences)
@@ -85,10 +73,8 @@ For each feature, provide:
 - 2-3 user stories in "As a [user], I want [goal] so that [benefit]" format
 - Category classification
 - Relevant tags
-
 Make the ideas creative but grounded in reality.`,
       });
-
       const createdIdeas = await Promise.all(
         ideas.features.map(async (idea) => {
           return await ctx.db.featureIdea.create({
@@ -108,10 +94,8 @@ Make the ideas creative but grounded in reality.`,
           });
         })
       );
-
       return createdIdeas;
     }),
-
   getFeatureIdeas: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -138,7 +122,6 @@ Make the ideas creative but grounded in reality.`,
         ]
       });
     }),
-
   voteFeature: protectedProcedure
     .input(z.object({
       featureId: z.string(),
@@ -152,17 +135,14 @@ Make the ideas creative but grounded in reality.`,
           }
         }
       });
-
       if (existingVote) {
         await ctx.db.featureVote.delete({
           where: { id: existingVote.id }
         });
-        
         await ctx.db.featureIdea.update({
           where: { id: input.featureId },
           data: { voteCount: { decrement: 1 } }
         });
-
         return { voted: false };
       } else {
         await ctx.db.featureVote.create({
@@ -171,16 +151,13 @@ Make the ideas creative but grounded in reality.`,
             featureId: input.featureId,
           }
         });
-
         await ctx.db.featureIdea.update({
           where: { id: input.featureId },
           data: { voteCount: { increment: 1 } }
         });
-
         return { voted: true };
       }
     }),
-
   updateFeatureStatus: protectedProcedure
     .input(z.object({
       featureId: z.string(),
@@ -192,7 +169,6 @@ Make the ideas creative but grounded in reality.`,
         data: { status: input.status }
       });
     }),
-
   updateFeaturePriority: protectedProcedure
     .input(z.object({
       featureId: z.string(),
@@ -204,7 +180,6 @@ Make the ideas creative but grounded in reality.`,
         data: { priority: input.priority }
       });
     }),
-
   deleteFeature: protectedProcedure
     .input(z.object({
       featureId: z.string(),
@@ -214,7 +189,6 @@ Make the ideas creative but grounded in reality.`,
         where: { id: input.featureId }
       });
     }),
-
   createGitHubIssue: protectedProcedure
     .input(z.object({
       featureId: z.string(),
@@ -224,38 +198,29 @@ Make the ideas creative but grounded in reality.`,
         where: { id: input.featureId },
         include: { project: true }
       });
-
       if (!feature) {
         throw new Error("Feature not found");
       }
-
       const [owner, repo] = feature.project.repoUrl
         .replace('https://github.com/', '')
         .replace('.git', '')
         .split('/');
-
       const { Octokit } = await import('octokit');
       const octokit = new Octokit({ 
         auth: feature.project.gitHubToken 
       });
-
       const issueBody = `## Description
 ${feature.description}
-
 ## Implementation Steps
 ${feature.implementation}
-
 ## Technical Details
 - **Complexity:** ${feature.complexity}
 - **Estimated Hours:** ${feature.estimatedHours}
 - **Tech Stack:** ${feature.techStack.join(', ')}
-
 ## User Stories
 ${feature.userStories.map((story, idx) => `${idx + 1}. ${story}`).join('\n')}
-
 ---
 *Generated by GitWit Feature Brainstorming*`;
-
       const issue = await octokit.rest.issues.create({
         owner,
         repo,
@@ -263,7 +228,6 @@ ${feature.userStories.map((story, idx) => `${idx + 1}. ${story}`).join('\n')}
         body: issueBody,
         labels: feature.tags,
       });
-
       await ctx.db.featureIdea.update({
         where: { id: input.featureId },
         data: { 
@@ -271,7 +235,6 @@ ${feature.userStories.map((story, idx) => `${idx + 1}. ${story}`).join('\n')}
           status: 'PLANNED'
         }
       });
-
       return { issueUrl: issue.data.html_url };
     }),
 });

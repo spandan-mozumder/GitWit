@@ -1,5 +1,4 @@
 "use client"
-
 import { VideoIcon } from 'lucide-react'
 import Link from 'next/link'
 import React, { useState } from 'react'
@@ -7,11 +6,9 @@ import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { api, RouterOutputs } from '~/trpc/react'
-
 type Props = {
     meetingId: string
 }
-
 const IssuesList = ({meetingId}:Props) => {
     const {data:meeting,isLoading} = api.project.getMeetingById.useQuery({meetingId},{
         refetchInterval:4000,
@@ -51,9 +48,7 @@ const IssuesList = ({meetingId}:Props) => {
                     </Button>
                 </div>
             </div>
-
             <div className="h-4"></div>
-
             <div className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
                 {meeting.issues.map((issue: NonNullable<RouterOutputs['project']['getMeetingById']>['issues'][number]) =>(
                     <IssueCard key={issue.id} issue={issue} />
@@ -63,11 +58,8 @@ const IssuesList = ({meetingId}:Props) => {
     </>
   )
 }
-
 function IssueCard({issue}:{issue: NonNullable<RouterOutputs['project']['getMeetingById']>['issues'][number]}){
-
     const [open, setOpen] = useState(false);
-    
     return (
         <>
             <Dialog open={open} onOpenChange={setOpen}>
@@ -93,7 +85,6 @@ function IssueCard({issue}:{issue: NonNullable<RouterOutputs['project']['getMeet
                     </DialogHeader>
                 </DialogContent>
             </Dialog>
-        
             <Card className='relative'>
                 <CardHeader>
                     <CardTitle className='text-xl'>
@@ -113,5 +104,4 @@ function IssueCard({issue}:{issue: NonNullable<RouterOutputs['project']['getMeet
         </>
     )
 }
-
 export default IssuesList

@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { Github, Linkedin, Mail, ArrowUpRight } from "lucide-react"
 import { Logo } from "./logo"
-
 const footerLinks = [
   {
     heading: "Product",
@@ -28,7 +27,6 @@ const footerLinks = [
     ],
   },
 ]
-
 export function Footer() {
   return (
     <footer id="footer" className="relative w-full border-t border-border/60 bg-background">
@@ -57,7 +55,6 @@ export function Footer() {
               </Link>
             </div>
           </div>
-
           <div className="grid gap-8 sm:grid-cols-2">
             {footerLinks.map(({ heading, items }) => (
               <div key={heading} className="space-y-4">
@@ -101,7 +98,6 @@ export function Footer() {
             </div>
           </div>
         </div>
-
         <div className="mt-12 border-t border-border/60 pt-6">
           <div className="flex flex-col gap-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
             <p>&copy; {new Date().getFullYear()} GitWit Labs. All rights reserved.</p>

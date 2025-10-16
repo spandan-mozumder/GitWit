@@ -1,10 +1,7 @@
 "use client"
-
 import { Gift, ShieldCheck } from 'lucide-react'
 import React from 'react'
-
 const BillingPage = () => {
-    
   return (
     <div className='flex min-h-[60vh] flex-col items-center justify-center px-4'>
         <div className='max-w-2xl space-y-8 rounded-3xl border border-border/70 bg-card/70 p-10 text-center shadow-lg shadow-primary/5'>
@@ -29,5 +26,4 @@ const BillingPage = () => {
     </div>
   )
 }
-
 export default BillingPage

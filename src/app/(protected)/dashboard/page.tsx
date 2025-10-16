@@ -9,50 +9,25 @@ import CommitLog from './commit-log';
 import DeleteButton from './delete-button';
 import InviteButton from './invite-button';
 import TeamMembers from './team-members';
-import { Skeleton } from '~/components/ui/skeleton';
+import { Spinner } from '~/components/ui/spinner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
 import { EmptyProjectState } from '~/components/empty-project-state';
-
 const DashboardPage = () => {
   const { project, projects } = useProject();
-
   if (!projects) {
     return (
-      <div className="space-y-10 animate-fade-in">
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/70 p-6 md:p-8">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-6 flex-1">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-11 w-11 rounded-full animate-skeleton-pulse" />
-                <div className="space-y-2">
-                  <Skeleton className="h-3 w-32 animate-skeleton-pulse" />
-                  <Skeleton className="h-7 w-64 animate-skeleton-pulse" />
-                </div>
-              </div>
-              <Skeleton className="h-16 w-full max-w-xl animate-skeleton-pulse" />
-            </div>
-            <div className="w-full lg:w-80">
-              <Skeleton className="h-48 w-full rounded-2xl animate-skeleton-pulse" />
-            </div>
-          </div>
-        </section>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          <Skeleton className="h-96 col-span-3 rounded-3xl animate-skeleton-pulse" />
-          <Skeleton className="h-96 col-span-2 rounded-3xl animate-skeleton-pulse" />
-        </div>
-        <Skeleton className="h-96 w-full rounded-3xl animate-skeleton-pulse" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Spinner className="size-8" />
       </div>
     );
   }
-
   if (!project) {
     return <EmptyProjectState />
   }
-
   return (
-    <div className="space-y-10 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/70 p-6 md:p-8">
         <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-primary/30 via-border/60 to-transparent" />
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
@@ -71,7 +46,6 @@ const DashboardPage = () => {
               AI insights, and keep leadership informed without extra status pings.
             </p>
           </div>
-
           <aside className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-background/70 p-5 text-sm">
             <div className="flex items-center gap-3">
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -97,12 +71,10 @@ const DashboardPage = () => {
           </aside>
         </div>
       </section>
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <AskQuestionCard />
         <MeetingCard/>
       </div>
-
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -114,7 +86,6 @@ const DashboardPage = () => {
             AI-Powered
           </Badge>
         </div>
-        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -139,7 +110,6 @@ const DashboardPage = () => {
               </Link>
             </CardContent>
           </Card>
-
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -163,7 +133,6 @@ const DashboardPage = () => {
               </Link>
             </CardContent>
           </Card>
-
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-green-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -187,7 +156,6 @@ const DashboardPage = () => {
               </Link>
             </CardContent>
           </Card>
-
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-yellow-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -211,7 +179,6 @@ const DashboardPage = () => {
               </Link>
             </CardContent>
           </Card>
-
           <Card className="group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -237,10 +204,8 @@ const DashboardPage = () => {
           </Card>
         </div>
       </section>
-
       <CommitLog/>
     </div>
   )
 }
-
 export default DashboardPage

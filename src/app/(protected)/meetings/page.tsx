@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import useRefetch from '~/hooks/use-refetch'
 import { Card, CardContent } from '~/components/ui/card'
 import { Calendar, Clock, AlertCircle, Eye, Trash2, Loader2, CheckCircle2 } from 'lucide-react'
-import { Skeleton } from '~/components/ui/skeleton'
+import { Spinner } from '~/components/ui/spinner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +21,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog"
-
 const MeetingPage = () => {
     const {projectId}= useProject()
     const {data: meetings, isLoading} = api.project.getMeetings.useQuery({projectId},{
@@ -30,14 +29,11 @@ const MeetingPage = () => {
     const deleteMeeting = api.project.deleteMeeting.useMutation();
     const refetch = useRefetch()
     const [meetingToDelete, setMeetingToDelete] = useState<{id: string, name: string} | null>(null);
-
     const handleDelete = () => {
         if (!meetingToDelete) return;
-        
         const loadingToast = toast.loading("Deleting meeting...", {
             description: "Removing meeting and associated data"
         });
-
         deleteMeeting.mutate({meetingId: meetingToDelete.id},{
             onSuccess:()=>{
                 toast.dismiss(loadingToast);
@@ -59,7 +55,6 @@ const MeetingPage = () => {
             }
         });
     }
-
   return (
     <>
     <AlertDialog open={!!meetingToDelete} onOpenChange={(open) => !open && setMeetingToDelete(null)}>
@@ -81,10 +76,8 @@ const MeetingPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     <div className="space-y-8 animate-fade-in">
         <MeetingCard/>
-
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
@@ -99,28 +92,11 @@ const MeetingPage = () => {
                     </Badge>
                 )}
             </div>
-
             {isLoading && (
-                <div className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                        <Card key={i}>
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1 space-y-3">
-                                        <Skeleton className="h-5 w-2/3" />
-                                        <Skeleton className="h-4 w-1/3" />
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Skeleton className="h-9 w-20" />
-                                        <Skeleton className="h-9 w-20" />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                <div className="flex justify-center py-12">
+                    <Spinner className="size-8" />
                 </div>
             )}
-
             {!isLoading && meetings && meetings.length === 0 && (
                 <Card className="border-dashed border-border/70 bg-card/70">
                     <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -134,7 +110,6 @@ const MeetingPage = () => {
                     </CardContent>
                 </Card>
             )}
-
             {!isLoading && meetings && meetings.length > 0 && (
                 <div className="grid gap-4">
                     {meetings?.map((meeting: { id: string; name: string; status: string; createdAt: Date; issues: unknown[] })=>(
@@ -156,7 +131,6 @@ const MeetingPage = () => {
                                                 </Badge>
                                             )}
                                         </div>
-                                        
                                         <div className='flex flex-wrap items-center gap-4 text-sm text-muted-foreground'>
                                             <div className='flex items-center gap-1.5'>
                                                 <Clock className='h-4 w-4' />
@@ -172,7 +146,6 @@ const MeetingPage = () => {
                                             </div>
                                         </div>
                                     </div>
-
                                     <div className='flex items-center gap-3'>
                                         <Button 
                                             variant="outline" 
@@ -209,5 +182,4 @@ const MeetingPage = () => {
     </>
   )
 }
-
 export default MeetingPage

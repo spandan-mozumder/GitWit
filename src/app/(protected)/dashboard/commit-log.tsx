@@ -6,14 +6,12 @@ import useProject from '~/hooks/use-project'
 import { cn } from '~/lib/utils'
 import { api } from '~/trpc/react'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { Skeleton } from '~/components/ui/skeleton'
-
+import { Spinner } from '~/components/ui/spinner'
 const CommitLog = () => {
     const {projectId, project} = useProject()
     const {data: commits, error, isLoading} = api.project.getCommits.useQuery({projectId}, {
         enabled: !!project?.repoUrl
     })
-
     if (!project?.repoUrl) {
         return (
             <Card className="animate-fade-in">
@@ -23,7 +21,6 @@ const CommitLog = () => {
             </Card>
         )
     }
-
     if (error) {
         return (
             <Card className="animate-fade-in border-destructive/50">
@@ -33,7 +30,6 @@ const CommitLog = () => {
             </Card>
         )
     }
-
     if (isLoading) {
         return (
             <Card className="animate-fade-in">
@@ -43,22 +39,12 @@ const CommitLog = () => {
                         Recent Activity
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                        <div key={i} className="flex gap-4">
-                            <Skeleton className="h-10 w-10 rounded-full" />
-                            <div className="flex-1 space-y-2">
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-3 w-full" />
-                                <Skeleton className="h-3 w-5/6" />
-                            </div>
-                        </div>
-                    ))}
+                <CardContent className="flex justify-center py-12">
+                    <Spinner className="size-6" />
                 </CardContent>
             </Card>
         )
     }
-
     if (!commits?.length) {
         return (
             <Card className="animate-fade-in">
@@ -68,7 +54,6 @@ const CommitLog = () => {
             </Card>
         )
     }
-
     return (
         <Card className="animate-fade-in overflow-hidden border border-border/70 bg-card/70 shadow-lg shadow-primary/5">
             <CardHeader className="border-b border-border/60 bg-background/70">
@@ -93,7 +78,6 @@ const CommitLog = () => {
                                 >
                                     <div className='w-px bg-border'></div>
                                 </div>
-
                                 <div className="relative flex-shrink-0">
                                     <img
                                         src={commit.commitAuthorAvatar}
@@ -101,7 +85,6 @@ const CommitLog = () => {
                                         className='relative mt-3 size-10 rounded-full ring-2 ring-background border-2 border-border'
                                     />
                                 </div>
-
                                 <div className='flex-auto rounded-xl border border-border/60 bg-background/80 p-4 transition-all hover:border-primary/40'>
                                     <div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3'>
                                         <Link
@@ -123,7 +106,6 @@ const CommitLog = () => {
                                             })}
                                         </div>
                                     </div>
-
                                     <div className="space-y-2">
                                         <p className='font-medium text-foreground text-sm'>{commit.commitMessage}</p>
                                         <div 
@@ -143,5 +125,4 @@ const CommitLog = () => {
         </Card>
     )
 }
-
 export default CommitLog

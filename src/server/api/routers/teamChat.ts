@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-
 export const teamChatRouter = createTRPCRouter({
-  
   getOrCreateChat: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -23,7 +21,6 @@ export const teamChatRouter = createTRPCRouter({
           },
         },
       });
-
       if (!chat) {
         chat = await ctx.db.teamChat.create({
           data: {
@@ -50,10 +47,8 @@ export const teamChatRouter = createTRPCRouter({
           },
         });
       }
-
       return chat;
     }),
-
   sendMessage: protectedProcedure
     .input(
       z.object({
@@ -62,12 +57,17 @@ export const teamChatRouter = createTRPCRouter({
         messageType: z
           .enum(["TEXT", "CODE", "FILE", "SYSTEM"])
           .default("TEXT"),
-        
+        roomId: z.string().optional(), // For chat rooms
+        attachments: z.array(z.object({
+          fileName: z.string(),
+          fileUrl: z.string(),
+          fileType: z.string(),
+          fileSize: z.number()
+        })).optional(),
         attachmentUrl: z.string().optional(),
         attachmentName: z.string().optional(),
         attachmentSize: z.number().optional(),
         attachmentType: z.string().optional(),
-        
         filePath: z.string().optional(),
         lineNumber: z.number().optional(),
         codeSnippet: z.string().optional(),
@@ -78,12 +78,10 @@ export const teamChatRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { mentionedUserIds, ...messageData } = input;
-
+      const { mentionedUserIds, attachments, ...messageData } = input;
       const aiContext = input.messageType === "CODE" && input.codeSnippet
         ? await generateAIContext(input.codeSnippet)
         : null;
-
       const message = await ctx.db.chatMessage.create({
         data: {
           ...messageData,
@@ -92,6 +90,17 @@ export const teamChatRouter = createTRPCRouter({
           mentions: mentionedUserIds
             ? {
                 create: mentionedUserIds.map((userId) => ({ userId })),
+              }
+            : undefined,
+          attachments: attachments
+            ? {
+                create: attachments.map((att) => ({
+                  fileName: att.fileName,
+                  fileUrl: att.fileUrl,
+                  fileType: att.fileType,
+                  fileSize: att.fileSize,
+                  uploadedBy: ctx.user.userId!,
+                })),
               }
             : undefined,
         },
@@ -118,7 +127,6 @@ export const teamChatRouter = createTRPCRouter({
           reactions: true,
         },
       });
-
       await ctx.db.chatParticipant.updateMany({
         where: {
           chatId: input.chatId,
@@ -128,14 +136,13 @@ export const teamChatRouter = createTRPCRouter({
           lastReadAt: new Date(),
         },
       });
-
       return message;
     }),
-
   getMessages: protectedProcedure
     .input(
       z.object({
         chatId: z.string(),
+        roomId: z.string().optional(), // Filter by room
         limit: z.number().min(1).max(100).default(50),
         cursor: z.string().optional(),
       })
@@ -144,6 +151,7 @@ export const teamChatRouter = createTRPCRouter({
       const messages = await ctx.db.chatMessage.findMany({
         where: {
           chatId: input.chatId,
+          roomId: input.roomId, // Filter by room if provided
           parentMessageId: null, 
         },
         include: {
@@ -177,6 +185,7 @@ export const teamChatRouter = createTRPCRouter({
               },
             },
           },
+          attachments: true, // Include attachments
           threadMessages: {
             include: {
               user: {
@@ -187,6 +196,7 @@ export const teamChatRouter = createTRPCRouter({
                   imageUrl: true,
                 },
               },
+              attachments: true, // Include thread message attachments
             },
             orderBy: {
               createdAt: "asc",
@@ -197,19 +207,16 @@ export const teamChatRouter = createTRPCRouter({
         take: input.limit + 1,
         cursor: input.cursor ? { id: input.cursor } : undefined,
       });
-
       let nextCursor: string | undefined = undefined;
       if (messages.length > input.limit) {
         const nextItem = messages.pop();
         nextCursor = nextItem!.id;
       }
-
       return {
         messages: messages.reverse(),
         nextCursor,
       };
     }),
-
   addReaction: protectedProcedure
     .input(
       z.object({
@@ -226,7 +233,6 @@ export const teamChatRouter = createTRPCRouter({
         },
       });
     }),
-
   removeReaction: protectedProcedure
     .input(
       z.object({
@@ -243,7 +249,6 @@ export const teamChatRouter = createTRPCRouter({
         },
       });
     }),
-
   markAsRead: protectedProcedure
     .input(z.object({ chatId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -257,7 +262,6 @@ export const teamChatRouter = createTRPCRouter({
         },
       });
     }),
-
   getUnreadCount: protectedProcedure
     .input(z.object({ chatId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -267,9 +271,7 @@ export const teamChatRouter = createTRPCRouter({
           userId: ctx.user.userId!,
         },
       });
-
       if (!participant) return 0;
-
       const unreadCount = await ctx.db.chatMessage.count({
         where: {
           chatId: input.chatId,
@@ -281,10 +283,8 @@ export const teamChatRouter = createTRPCRouter({
           },
         },
       });
-
       return unreadCount;
     }),
-
   createAnnotation: protectedProcedure
     .input(
       z.object({
@@ -313,7 +313,6 @@ export const teamChatRouter = createTRPCRouter({
         },
       });
     }),
-
   getAnnotations: protectedProcedure
     .input(
       z.object({
@@ -358,7 +357,6 @@ export const teamChatRouter = createTRPCRouter({
         },
       });
     }),
-
   replyToAnnotation: protectedProcedure
     .input(
       z.object({
@@ -385,7 +383,6 @@ export const teamChatRouter = createTRPCRouter({
         },
       });
     }),
-
   resolveAnnotation: protectedProcedure
     .input(z.object({ annotationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -395,8 +392,6 @@ export const teamChatRouter = createTRPCRouter({
       });
     }),
 });
-
-async function generateAIContext(codeSnippet: string): Promise<string> {
-  
+async function generateAIContext(_codeSnippet: string): Promise<string> {
   return `This code snippet appears to be related to: [AI-generated context would go here]`;
 }

@@ -2,17 +2,13 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { pollCommits } from "@/lib/github";
 import { indexGithubRepo } from "@/lib/github-loader";
-
 export const projectRouter = createTRPCRouter({
-
     createProject: protectedProcedure.input(z.object({
         name: z.string(),
         repoUrl: z.string(),
         gitHubToken: z.string().optional(),
     })).mutation(async ({ctx, input}) => {
-
         const {name, repoUrl, gitHubToken}= input;
-
         const existingProjectWithName = await ctx.db.project.findFirst({
             where: {
                 name,
@@ -24,11 +20,9 @@ export const projectRouter = createTRPCRouter({
                 deletedAt: null,
             }
         });
-
         if (existingProjectWithName) {
             throw new Error(`A project with the name "${name}" already exists. Please choose a different name.`);
         }
-
         const existingProjectWithRepo = await ctx.db.project.findFirst({
             where: {
                 repoUrl,
@@ -40,11 +34,9 @@ export const projectRouter = createTRPCRouter({
                 deletedAt: null,
             }
         });
-
         if (existingProjectWithRepo) {
             throw new Error(`A project accessing this repository already exists. Repository: ${repoUrl}`);
         }
-
         const project = await ctx.db.project.create({
             data: {
                 name,
@@ -56,6 +48,15 @@ export const projectRouter = createTRPCRouter({
                     }
                 }
             },
+        });
+        // Auto-assign ADMIN role to project creator
+        await ctx.db.projectMember.create({
+            data: {
+                projectId: project.id,
+                userId: ctx.user.userId!,
+                role: 'ADMIN',
+                invitedBy: ctx.user.userId!,
+            }
         });
         await pollCommits(project.id);
         await indexGithubRepo(project.id, repoUrl, gitHubToken);
@@ -73,9 +74,7 @@ export const projectRouter = createTRPCRouter({
         projectId: z.string(),
     })).query(async ({ctx, input}) => {
         const {projectId} = input;
-
         console.log(`polling commits for project ${projectId}`);
-
         pollCommits(projectId)
             .then(() => {
                 console.log(`Successfully polled commits for project ${projectId}`);
@@ -83,12 +82,10 @@ export const projectRouter = createTRPCRouter({
             .catch((error) => {
                 console.error(`Error polling commits for project ${projectId}`, error);
             });
-
         return await ctx.db.commit.findMany({
             where: {projectId},
         });
     }),
-
     saveAnswer: protectedProcedure.input(z.object({
         projectId: z.string(),
         question: z.string(),
@@ -105,7 +102,6 @@ export const projectRouter = createTRPCRouter({
             }
         })
     }),
-    
     getQuestions: protectedProcedure.input(z.object({
         projectId: z.string(),
     })).query(async ({ctx, input}) => {
@@ -117,7 +113,6 @@ export const projectRouter = createTRPCRouter({
             orderBy: { createdAt: 'desc' },
         });
     }),
-
     uploadMeeting: protectedProcedure.input(z.object({
         projectId: z.string(),
         meetingUrl: z.string(),
@@ -133,7 +128,6 @@ export const projectRouter = createTRPCRouter({
         })
         return meeting
     }),
-
     getMeetings: protectedProcedure.input(z.object({
         projectId: z.string(),
     })).query(async ({ctx, input}) => {
@@ -144,7 +138,6 @@ export const projectRouter = createTRPCRouter({
             }
         });
     }),
-    
     deleteMeeting: protectedProcedure.input(z.object({
         meetingId: z.string(),
     })).mutation(async ({ctx, input}) => {
@@ -152,7 +145,6 @@ export const projectRouter = createTRPCRouter({
             where: {id: input.meetingId},
         });
     }),
-
     getMeetingById: protectedProcedure.input(z.object({
         meetingId: z.string(),
     })).query(async ({ctx, input}) => {
@@ -163,7 +155,6 @@ export const projectRouter = createTRPCRouter({
             }
         });
     }),
-
     deleteProject: protectedProcedure.input(z.object({
         projectId: z.string(),
     })).mutation(async ({ctx, input}) => {
@@ -171,7 +162,6 @@ export const projectRouter = createTRPCRouter({
             where: {id: input.projectId},
         });
     }),
-
     getTeamMembers: protectedProcedure.input(z.object({
         projectId: z.string(),
     })).query(async ({ctx, input}) => {
@@ -184,5 +174,4 @@ export const projectRouter = createTRPCRouter({
             }
         })
     }),
-
 });

@@ -1,7 +1,5 @@
 "use client"
-
 import * as React from "react"
-
 export type ToastProps = {
   id?: string
   title?: React.ReactNode
@@ -11,5 +9,4 @@ export type ToastProps = {
   onOpenChange?: (open: boolean) => void
   variant?: "default" | "destructive"
 }
-
 export type ToastActionElement = React.ReactElement

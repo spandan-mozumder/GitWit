@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { analyzeRepositoryCode } from "@/lib/code-analyzer";
-
 export const codeReviewRouter = createTRPCRouter({
   createReview: protectedProcedure
     .input(
@@ -19,11 +18,9 @@ export const codeReviewRouter = createTRPCRouter({
         where: { id: input.projectId },
         select: { repoUrl: true },
       });
-
       if (!project?.repoUrl) {
         throw new Error("Project has no repository URL");
       }
-
       const review = await ctx.db.codeReview.create({
         data: {
           projectId: input.projectId,
@@ -39,14 +36,12 @@ export const codeReviewRouter = createTRPCRouter({
           status: "IN_PROGRESS",
         },
       });
-
       try {
         const analysis = await analyzeRepositoryCode(
           project.repoUrl,
           input.branch,
           input.commitHash
         );
-
         await ctx.db.codeReview.update({
           where: { id: review.id },
           data: {
@@ -57,7 +52,6 @@ export const codeReviewRouter = createTRPCRouter({
             status: "COMPLETED",
           },
         });
-
         await ctx.db.codeReviewFinding.createMany({
           data: analysis.findings.map(finding => ({
             reviewId: review.id,
@@ -71,7 +65,6 @@ export const codeReviewRouter = createTRPCRouter({
             recommendation: finding.suggestion || "Review and fix this issue",
           })),
         });
-
         await ctx.db.codeReviewSuggestion.createMany({
           data: analysis.suggestions.map(suggestion => ({
             reviewId: review.id,
@@ -84,7 +77,6 @@ export const codeReviewRouter = createTRPCRouter({
             suggestedCode: suggestion.code || "",
           })),
         });
-
         return await ctx.db.codeReview.findUnique({
           where: { id: review.id },
           include: {
@@ -93,18 +85,15 @@ export const codeReviewRouter = createTRPCRouter({
           },
         });
       } catch (error) {
-        
         await ctx.db.codeReview.update({
           where: { id: review.id },
           data: {
             status: "FAILED",
           },
         });
-        
         throw new Error(`Code analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }),
-
   getReview: protectedProcedure
     .input(z.object({ reviewId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -130,7 +119,6 @@ export const codeReviewRouter = createTRPCRouter({
         },
       });
     }),
-
   getProjectReviews: protectedProcedure
     .input(
       z.object({
@@ -160,19 +148,16 @@ export const codeReviewRouter = createTRPCRouter({
         take: input.limit + 1,
         cursor: input.cursor ? { id: input.cursor } : undefined,
       });
-
       let nextCursor: string | undefined = undefined;
       if (reviews.length > input.limit) {
         const nextItem = reviews.pop();
         nextCursor = nextItem!.id;
       }
-
       return {
         reviews,
         nextCursor,
       };
     }),
-
   applySuggestion: protectedProcedure
     .input(z.object({ suggestionId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -184,7 +169,6 @@ export const codeReviewRouter = createTRPCRouter({
         },
       });
     }),
-
   getReviewStats: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -211,7 +195,6 @@ export const codeReviewRouter = createTRPCRouter({
           _count: true,
         }),
       ]);
-
       return {
         totalReviews,
         averageScores: avgScores._avg,
@@ -219,14 +202,12 @@ export const codeReviewRouter = createTRPCRouter({
       };
     }),
 });
-
 async function analyzeCode(reviewId: string, db: typeof import("~/server/db").db) {
   try {
     await db.codeReview.update({
       where: { id: reviewId },
       data: { status: "IN_PROGRESS" },
     });
-
     const review = await db.codeReview.findUnique({
       where: { id: reviewId },
       include: {
@@ -237,21 +218,16 @@ async function analyzeCode(reviewId: string, db: typeof import("~/server/db").db
         },
       },
     });
-
     if (!review) return;
-
     const findings = await generateFindings(review);
     const suggestions = await generateSuggestions(review);
     const scores = calculateScores(findings);
-
     await db.codeReviewFinding.createMany({
       data: findings.map((f) => ({ ...f, reviewId })),
     });
-
     await db.codeReviewSuggestion.createMany({
       data: suggestions.map((s) => ({ ...s, reviewId })),
     });
-
     await db.codeReview.update({
       where: { id: reviewId },
       data: {
@@ -267,10 +243,8 @@ async function analyzeCode(reviewId: string, db: typeof import("~/server/db").db
     });
   }
 }
-
 type FindingSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
 type FindingCategory = "SECURITY" | "PERFORMANCE" | "BUG" | "CODE_SMELL" | "BEST_PRACTICE" | "DOCUMENTATION" | "TESTING";
-
 interface Finding {
   severity: FindingSeverity;
   category: FindingCategory;
@@ -282,7 +256,6 @@ interface Finding {
   recommendation: string;
   estimatedImpact: string;
 }
-
 function generateFindings(_review: unknown): Promise<Finding[]> {
   return Promise.resolve([
     {
@@ -298,7 +271,6 @@ function generateFindings(_review: unknown): Promise<Finding[]> {
     },
   ]);
 }
-
 function generateSuggestions(_review: unknown) {
   return Promise.resolve([
     {
@@ -314,7 +286,6 @@ function generateSuggestions(_review: unknown) {
     },
   ]);
 }
-
 function calculateScores(findings: Finding[]) {
   const severityWeights: Record<string, number> = {
     CRITICAL: 25,
@@ -323,19 +294,16 @@ function calculateScores(findings: Finding[]) {
     LOW: 2,
     INFO: 0,
   };
-
   let totalDeduction = 0;
   findings.forEach((f) => {
     totalDeduction += severityWeights[f.severity as keyof typeof severityWeights] || 0;
   });
-
   const overallScore = Math.max(0, 100 - totalDeduction);
   const securityFindings = findings.filter((f) => f.category === "SECURITY");
   const securityDeduction = securityFindings.reduce(
     (acc, f) => acc + (severityWeights[f.severity as keyof typeof severityWeights] || 0),
     0
   );
-
   return {
     overallScore,
     securityScore: Math.max(0, 100 - securityDeduction),

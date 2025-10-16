@@ -7,26 +7,22 @@ import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
 import { useRouter } from 'next/navigation';
 import { Label } from '~/components/ui/label';
-import { Github, ArrowRight, Info, Layers, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Info, Layers, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Spinner } from '~/components/ui/spinner';
 import { useLocalStorage } from 'usehooks-ts';
-
 type FormInput= {
     repoUrl: string;
     projectName: string;
     gitHubToken?: string;
 }
-
 const Create = () => {
     const router = useRouter();
     const [isRedirecting, setIsRedirecting] = useState(false);
-    const {register, handleSubmit, formState: { errors }}= useForm<FormInput>()
+    const {register, handleSubmit}= useForm<FormInput>()
     const createProject= api.project.createProject.useMutation();
     const [, setProjectId] = useLocalStorage('gitwit-project-id', '');
-
     function onSubmit(data: FormInput){
         const {projectName, repoUrl, gitHubToken}= data;
-        
         const githubUrlPattern = /^https:\/\/github\.com\/[\w-]+\/[\w-]+\/?$/;
         if (!githubUrlPattern.test(repoUrl)) {
             toast.error("Invalid GitHub URL", {
@@ -34,11 +30,9 @@ const Create = () => {
             });
             return;
         }
-
         const loadingToast = toast.loading("Setting up workspace...", {
             description: "Analyzing repository and configuring environment"
         });
-
         createProject.mutate({name: projectName, repoUrl, gitHubToken},{
             onSuccess: (project) => {
                 toast.dismiss(loadingToast);
@@ -56,10 +50,8 @@ const Create = () => {
                 toast.dismiss(loadingToast);
                 console.error("Project creation error:", error);
                 const errorMessage = error.message || "Unable to create workspace";
-                
                 let errorTitle = "Workspace creation failed";
                 let errorDescription = "Please try again";
-                
                 if (errorMessage.includes("project with the name")) {
                     errorTitle = "Project name already exists";
                     errorDescription = errorMessage;
@@ -72,17 +64,14 @@ const Create = () => {
                 } else {
                     errorDescription = "Please check your repository URL and try again";
                 }
-                
                 toast.error(errorTitle, {
                     description: errorDescription,
                     duration: 6000
                 });
             }
         })
-        
         return true;
     }
-
   return (
     <div className='container mx-auto max-w-6xl px-4 py-12 animate-fade-in relative'>
         {(createProject.isPending || isRedirecting) && (
@@ -98,7 +87,6 @@ const Create = () => {
                 </div>
             </div>
         )}
-        
         <div className='grid items-start gap-10 lg:grid-cols-[minmax(0,0.95fr),minmax(0,1fr)]'>
             <div className="space-y-8">
                 <div className="space-y-4">
@@ -113,7 +101,6 @@ const Create = () => {
                         takes less than five minutes, and we guide you the whole way.
                     </p>
                 </div>
-
                 <div className="space-y-4">
                     <div className="flex items-start gap-3 rounded-3xl border border-border/70 bg-card/70 p-5">
                         <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary/12 text-primary">
@@ -125,7 +112,6 @@ const Create = () => {
                                 recommendation fits your reality.</p>
                         </div>
                     </div>
-
                     <div className="flex items-start gap-3 rounded-3xl border border-border/70 bg-card/70 p-5">
                         <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary/12 text-primary">
                             <ShieldCheck className="h-5 w-5" />
@@ -137,7 +123,6 @@ const Create = () => {
                     </div>
                 </div>
             </div>
-
             <div className="space-y-6 rounded-3xl border border-border/70 bg-card/70 p-6 shadow-lg shadow-primary/5">
                 <div className="space-y-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Project intake</p>
@@ -146,7 +131,6 @@ const Create = () => {
                         Share a GitHub URL and optional token so GitWit can ingest context and stay within rate limits.
                     </p>
                 </div>
-
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="projectName">Project name</Label>
@@ -158,7 +142,6 @@ const Create = () => {
                             required 
                         />
                     </div>
-
                     <div className="space-y-2">
                         <Label htmlFor="repoUrl">Repository URL</Label>
                         <Input 
@@ -170,7 +153,6 @@ const Create = () => {
                             required 
                         />
                     </div>
-
                     <div className="space-y-2">
                         <Label htmlFor="gitHubToken" className="flex items-center gap-2">
                             GitHub access token
@@ -188,7 +170,6 @@ const Create = () => {
                             Provide a token to analyze private repositories or to extend API limits during large imports.
                         </div>
                     </div>
-
                     <Button 
                         type='submit' 
                         className="w-full gap-2 rounded-full transition-all" 
@@ -218,5 +199,4 @@ const Create = () => {
     </div>
   )
 }
-
 export default Create

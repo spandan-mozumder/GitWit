@@ -1,12 +1,10 @@
 "use client"
-
 import React, { useState } from 'react'
 import { Button } from '~/components/ui/button';
 import { Tabs, TabsContent } from '~/components/ui/tabs';
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
 import {lucario} from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { cn } from '~/lib/utils';
-
 type Props ={
     filesRefrences:{
         fileName:string;
@@ -17,7 +15,6 @@ type Props ={
 const CodeRefrence = ({ filesRefrences }: Props) => {
     const [tab,setTab] = useState(filesRefrences[0]?.fileName);
     if (filesRefrences.length === 0) return null
-
   return (
     <div className='max-w-[70vw]'>
        <Tabs value={tab} onValueChange={setTab}>
@@ -44,5 +41,4 @@ const CodeRefrence = ({ filesRefrences }: Props) => {
     </div>
   )
 }
-
 export default CodeRefrence

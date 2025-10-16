@@ -1,5 +1,4 @@
 "use client"
-
 import { 
     Bot, 
     CreditCard, 
@@ -8,9 +7,7 @@ import {
     Presentation, 
     BarChart3, 
     Code2, 
-    MessageSquare, 
-    BookOpen, 
-    CheckSquare,
+    MessageSquare,
     Sparkles,
     Lightbulb,
     FolderTree
@@ -22,13 +19,11 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { cn } from "~/lib/utils"
 import useProject from "~/hooks/use-project"
 import { Badge } from "~/components/ui/badge"
-
 export function AppSidebar(){
     const router = useRouter();
     const pathname = usePathname();
     const {open} = useSidebar();
     const {projects, projectId, setProjectId}= useProject();
-    
     const mainItems = [{
         title:"Dashboard",
         url:"/dashboard",
@@ -55,7 +50,6 @@ export function AppSidebar(){
         icon:CreditCard,
         description: "Manage subscription"
     }];
-
     const projectFeatures = [{
         title:"Analytics",
         url:`/dashboard/${projectId}/analytics`,
@@ -87,7 +81,6 @@ export function AppSidebar(){
         badge: "New",
         description: "Browse code & PRs"
     }]
-
     return (
         <Sidebar collapsible="icon" variant="floating" >
             <SidebarHeader>
@@ -103,7 +96,6 @@ export function AppSidebar(){
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu> 
-
                             {mainItems.map((item)=>{
                                 return(
                                     <SidebarMenuItem key={item.title}>
@@ -118,11 +110,9 @@ export function AppSidebar(){
                                     </SidebarMenuItem>
                                 )
                             })}
-                            
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
-
                 {projectId && (
                     <SidebarGroup>
                         <SidebarGroupLabel>
@@ -156,14 +146,12 @@ export function AppSidebar(){
                         </SidebarGroupContent>
                     </SidebarGroup>
                 )}
-
                 <SidebarGroup>
                     <SidebarGroupLabel>
                         Your Projects
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu> 
-
                             {projects?.map((project: { id: string; name: string })=>{
                                 return(
                                     <SidebarMenuItem key={project.name}>
@@ -202,7 +190,6 @@ export function AppSidebar(){
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
-                
             </SidebarContent>
         </Sidebar>
     )

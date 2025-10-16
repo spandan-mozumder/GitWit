@@ -1,9 +1,7 @@
 "use client"
-
 import React from 'react'
 import useProject from '~/hooks/use-project'
 import { api } from '~/trpc/react'
-
 const TeamMembers = () => {
     const {projectId} =useProject()
     const {data:members} = api.project.getTeamMembers.useQuery({projectId})
@@ -22,5 +20,4 @@ const TeamMembers = () => {
     </div>
   )
 }
-
 export default TeamMembers

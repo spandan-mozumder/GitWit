@@ -7,7 +7,6 @@ import { ModeToggle } from '../components/ThemeToggle'
 import { usePathname } from 'next/navigation'
 import { KeyboardShortcutsModal } from '@/components/keyboard-shortcuts-modal'
 import { useGlobalKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
-
 type Props = {
     children: React.ReactNode
 }
@@ -15,21 +14,17 @@ const userButtonAppearance = {
     elements: {
       userButtonAvatarBox: "w-9 h-9", 
       userButtonPopoverCard: "w-auto", 
-    
     },
   };
 const SideBarLayout = ({children}:Props) => {
   const pathname = usePathname();
   const [isTransitioning, setIsTransitioning] = useState(false);
-
   useGlobalKeyboardShortcuts();
-
   useEffect(() => {
     setIsTransitioning(true);
     const timer = setTimeout(() => setIsTransitioning(false), 150);
     return () => clearTimeout(timer);
   }, [pathname]);
-
   return (
     <SidebarProvider>
         <AppSidebar/>
@@ -51,5 +46,4 @@ const SideBarLayout = ({children}:Props) => {
     </SidebarProvider>
   )
 }
-
 export default SideBarLayout

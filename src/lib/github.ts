@@ -2,11 +2,9 @@ import { Octokit } from "octokit";
 import { db } from "@/server/db";
 import axios from "axios";
 import { aiSummariseCommit } from "./gemini";
-
 export const octokit = new Octokit({
   auth: process.env.GITHUB_ACCESS_TOKEN,
 });
-
 type Response ={
     commitHash: string
     commitMessage: string
@@ -14,7 +12,6 @@ type Response ={
     commitAuthorAvatar: string
     commitDate: string
 }
-
 export const getCommitHashes = async (githubUrl: string): Promise<Response[]> => {
     const [owner, repo] = githubUrl.split("/").slice(-2);
     if (!owner || !repo) {
@@ -23,9 +20,7 @@ export const getCommitHashes = async (githubUrl: string): Promise<Response[]> =>
     const {data} = await octokit.rest.repos.listCommits({
         owner,
         repo,
-
     });
-    
     interface GitHubCommit {
       sha: string;
       commit: {
@@ -39,9 +34,7 @@ export const getCommitHashes = async (githubUrl: string): Promise<Response[]> =>
         avatar_url?: string;
       };
     }
-    
     const sortedCommits = (data as GitHubCommit[]).sort((a, b) => new Date(b.commit.author?.date ?? 0).getTime() - new Date(a.commit.author?.date ?? 0).getTime());
-    
     return sortedCommits.slice(0,10).map((commit) => ({
         commitHash: commit.sha as string,
         commitMessage: commit.commit.message ?? "",
@@ -50,16 +43,13 @@ export const getCommitHashes = async (githubUrl: string): Promise<Response[]> =>
         commitDate: commit.commit?.author?.date ?? "",
     }));
 };
-
 export const pollCommits = async (prjectId: string) => {
-    const {project, githubUrl} = await fetchProjectGithubUrl(prjectId);
+    const {githubUrl} = await fetchProjectGithubUrl(prjectId);
     const commitHashes = await getCommitHashes(githubUrl);
     const unprocessedCommits = await filterUnprocessedCommits(prjectId, commitHashes);
-
     const summaryResponse = await Promise.allSettled(unprocessedCommits.map(async (commit) => {
         return summariseCommit(githubUrl, commit.commitHash);
     }));
-
     const summaries = summaryResponse.map((response) =>{
         if(response.status === "fulfilled"){
             return response.value as string;
@@ -82,9 +72,7 @@ export const pollCommits = async (prjectId: string) => {
     });
     console.log(`commits created: ${commits.count}`);
     return commits;
-
 }; 
-
 async function summariseCommit(githubUrl: string, commitHash: string) {
     const {data} = await axios.get(`${githubUrl}/commit/${commitHash}.diff`,{
         headers: {
@@ -94,7 +82,6 @@ async function summariseCommit(githubUrl: string, commitHash: string) {
     const summary = await aiSummariseCommit(data);
     return summary ? summary : "No summary available";
 }
-
 async function fetchProjectGithubUrl(prjectId: string) {
     const project = await db.project.findUnique({
         where: {
@@ -112,7 +99,6 @@ async function fetchProjectGithubUrl(prjectId: string) {
         githubUrl: project.repoUrl,
     };
 }
-
 async function filterUnprocessedCommits(prjectId: string, commitHashes: Response[]) {
     const processedCommits = await db.commit.findMany({
         where: {

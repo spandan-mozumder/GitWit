@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-
 export const meetingsEnhancedRouter = createTRPCRouter({
-  
   createActionItem: protectedProcedure
     .input(
       z.object({
@@ -32,11 +30,9 @@ export const meetingsEnhancedRouter = createTRPCRouter({
           },
         },
       });
-
       if (input.dueDate) {
         const reminderDate = new Date(input.dueDate);
         reminderDate.setDate(reminderDate.getDate() - 1); 
-
         await ctx.db.reminder.create({
           data: {
             actionItemId: actionItem.id,
@@ -44,10 +40,8 @@ export const meetingsEnhancedRouter = createTRPCRouter({
           },
         });
       }
-
       return actionItem;
     }),
-
   getActionItems: protectedProcedure
     .input(
       z.object({
@@ -82,7 +76,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
         ],
       });
     }),
-
   getMyActionItems: protectedProcedure
     .input(
       z.object({
@@ -121,7 +114,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
         ],
       });
     }),
-
   updateActionItem: protectedProcedure
     .input(
       z.object({
@@ -134,18 +126,15 @@ export const meetingsEnhancedRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { actionItemId, ...data } = input;
-
       const updates: Record<string, unknown> = { ...data };
       if (data.status === "DONE") {
         updates.completedAt = new Date();
       }
-
       return await ctx.db.actionItem.update({
         where: { id: actionItemId },
         data: updates,
       });
     }),
-
   autoGenerateActionItems: protectedProcedure
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -155,13 +144,10 @@ export const meetingsEnhancedRouter = createTRPCRouter({
           issues: true,
         },
       });
-
       if (!meeting) {
         throw new Error("Meeting not found");
       }
-
       const actionItems = [];
-
       for (const issue of meeting.issues) {
         const actionItem = await ctx.db.actionItem.create({
           data: {
@@ -174,10 +160,8 @@ export const meetingsEnhancedRouter = createTRPCRouter({
         });
         actionItems.push(actionItem);
       }
-
       return { count: actionItems.length, items: actionItems };
     }),
-
   linkToExternalService: protectedProcedure
     .input(
       z.object({
@@ -195,18 +179,15 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       } else if (input.service === "asana") {
         updates.asanaId = input.externalId;
       }
-
       return await ctx.db.actionItem.update({
         where: { id: input.actionItemId },
         data: updates,
       });
     }),
-
   getOverdueActionItems: protectedProcedure
     .input(z.object({ projectId: z.string().optional() }))
     .query(async ({ ctx, input }) => {
       const now = new Date();
-
       return await ctx.db.actionItem.findMany({
         where: {
           status: {
@@ -243,7 +224,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
         },
       });
     }),
-
   sendReminder: protectedProcedure
     .input(z.object({ actionItemId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -253,11 +233,9 @@ export const meetingsEnhancedRouter = createTRPCRouter({
           assignee: true,
         },
       });
-
       if (!actionItem || !actionItem.assignee) {
         throw new Error("Action item or assignee not found");
       }
-
       await ctx.db.reminder.updateMany({
         where: {
           actionItemId: input.actionItemId,
@@ -268,10 +246,8 @@ export const meetingsEnhancedRouter = createTRPCRouter({
           sentAt: new Date(),
         },
       });
-
       return { success: true };
     }),
-
   getActionItemStats: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -315,7 +291,6 @@ export const meetingsEnhancedRouter = createTRPCRouter({
           },
         }),
       ]);
-
       return {
         total,
         byStatus,

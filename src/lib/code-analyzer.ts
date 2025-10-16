@@ -1,9 +1,7 @@
 import { Octokit } from "octokit";
-
 export const octokit = new Octokit({
   auth: process.env.GITHUB_ACCESS_TOKEN,
 });
-
 interface CodeReviewResult {
   overallScore: number;
   securityScore: number;
@@ -26,40 +24,31 @@ interface CodeReviewResult {
     code?: string;
   }>;
 }
-
 export async function analyzeRepositoryCode(
   githubUrl: string,
   branch = 'main',
   _commitHash?: string
 ): Promise<CodeReviewResult> {
   const [owner, repo] = parseGitHubUrl(githubUrl);
-
   try {
-    
     const { data: repoContent } = await octokit.rest.repos.getContent({
       owner,
       repo,
       path: '',
       ref: branch,
     });
-
     if (!Array.isArray(repoContent)) {
       throw new Error('Invalid repository content');
     }
-
     const codeFiles = await collectCodeFiles(owner, repo, branch, repoContent, 20);
-
     const allFindings: CodeReviewResult['findings'] = [];
     const allSuggestions: CodeReviewResult['suggestions'] = [];
-
     for (const file of codeFiles) {
       const analysis = await analyzeFile(file);
       allFindings.push(...analysis.findings);
       allSuggestions.push(...analysis.suggestions);
     }
-
     const scores = calculateScores(allFindings);
-
     return {
       ...scores,
       findings: allFindings.sort((a, b) => {
@@ -73,19 +62,16 @@ export async function analyzeRepositoryCode(
     throw error;
   }
 }
-
 interface GitHubTreeItem {
   path?: string;
   name?: string;
   type?: string;
   sha?: string;
 }
-
 async function collectCodeFiles(
   owner: string,
   repo: string,
   branch: string,
-  
   items: GitHubTreeItem[],
   limit: number,
   collected: { path: string; content: string }[] = []
@@ -93,10 +79,8 @@ async function collectCodeFiles(
   if (collected.length >= limit) {
     return collected;
   }
-
   for (const item of items) {
     if (collected.length >= limit) break;
-
     if (item.type === 'file' && item.name && item.path && isCodeFile(item.name)) {
       try {
         const { data: fileData } = await octokit.rest.repos.getContent({
@@ -105,7 +89,6 @@ async function collectCodeFiles(
           path: item.path,
           ref: branch,
         });
-
         if ('content' in fileData) {
           const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
           collected.push({
@@ -124,7 +107,6 @@ async function collectCodeFiles(
           path: item.path,
           ref: branch,
         });
-
         if (Array.isArray(dirContent)) {
           await collectCodeFiles(owner, repo, branch, dirContent, limit, collected);
         }
@@ -133,19 +115,15 @@ async function collectCodeFiles(
       }
     }
   }
-
   return collected;
 }
-
 async function analyzeFile(file: { path: string; content: string }): Promise<{
   findings: CodeReviewResult['findings'];
   suggestions: CodeReviewResult['suggestions'];
 }> {
   const findings: CodeReviewResult['findings'] = [];
   const suggestions: CodeReviewResult['suggestions'] = [];
-
   const lines = file.content.split('\n');
-
   if (file.content.includes('eval(') || file.content.includes('Function(')) {
     findings.push({
       severity: 'CRITICAL',
@@ -156,7 +134,6 @@ async function analyzeFile(file: { path: string; content: string }): Promise<{
       suggestion: 'Use safer alternatives like JSON.parse() or proper function calls',
     });
   }
-
   if (file.content.match(/password\s*=\s*["'][^"']+["']/i)) {
     findings.push({
       severity: 'CRITICAL',
@@ -167,7 +144,6 @@ async function analyzeFile(file: { path: string; content: string }): Promise<{
       suggestion: 'Move credentials to environment variables or secure vault',
     });
   }
-
   if (file.content.match(/api[_-]?key\s*=\s*["'][^"']+["']/i)) {
     findings.push({
       severity: 'HIGH',
@@ -178,7 +154,6 @@ async function analyzeFile(file: { path: string; content: string }): Promise<{
       suggestion: 'Move API keys to environment variables',
     });
   }
-
   const consoleLogCount = (file.content.match(/console\.log/g) || []).length;
   if (consoleLogCount > 0 && !file.path.includes('test')) {
     findings.push({
@@ -190,7 +165,6 @@ async function analyzeFile(file: { path: string; content: string }): Promise<{
       suggestion: 'Use a proper logging library or remove console statements',
     });
   }
-
   const todoCount = (file.content.match(/\/\/\s*(TODO|FIXME|HACK)/gi) || []).length;
   if (todoCount > 0) {
     findings.push({
@@ -202,10 +176,8 @@ async function analyzeFile(file: { path: string; content: string }): Promise<{
       suggestion: 'Address or track these comments in your issue tracker',
     });
   }
-
   const functionMatches = file.content.match(/function\s+\w+\s*\([^)]*\)\s*{/g) || [];
   if (functionMatches.length > 0) {
-    
     const avgFunctionLength = lines.length / functionMatches.length;
     if (avgFunctionLength > 50) {
       findings.push({
@@ -218,7 +190,6 @@ async function analyzeFile(file: { path: string; content: string }): Promise<{
       });
     }
   }
-
   if (file.content.includes('async ') && !file.content.includes('try') && !file.content.includes('catch')) {
     findings.push({
       severity: 'MEDIUM',
@@ -229,7 +200,6 @@ async function analyzeFile(file: { path: string; content: string }): Promise<{
       suggestion: 'Wrap async code in try-catch blocks or use .catch()',
     });
   }
-
   if (file.path.endsWith('.ts') || file.path.endsWith('.tsx')) {
     if (!file.content.includes('interface') && !file.content.includes('type ')) {
       suggestions.push({
@@ -240,10 +210,8 @@ async function analyzeFile(file: { path: string; content: string }): Promise<{
       });
     }
   }
-
   return { findings, suggestions };
 }
-
 function calculateScores(findings: CodeReviewResult['findings']): {
   overallScore: number;
   securityScore: number;
@@ -257,14 +225,11 @@ function calculateScores(findings: CodeReviewResult['findings']): {
     LOW: 2,
     INFO: 1,
   };
-
   let securityDeductions = 0;
   let performanceDeductions = 0;
   let maintainabilityDeductions = 0;
-
   findings.forEach(finding => {
     const deduction = severityWeights[finding.severity];
-    
     switch (finding.category) {
       case 'SECURITY':
         securityDeductions += deduction;
@@ -282,12 +247,10 @@ function calculateScores(findings: CodeReviewResult['findings']): {
         break;
     }
   });
-
   const securityScore = Math.max(0, 100 - securityDeductions);
   const performanceScore = Math.max(0, 100 - performanceDeductions);
   const maintainabilityScore = Math.max(0, 100 - maintainabilityDeductions);
   const overallScore = Math.round((securityScore + performanceScore + maintainabilityScore) / 3);
-
   return {
     overallScore,
     securityScore,
@@ -295,18 +258,14 @@ function calculateScores(findings: CodeReviewResult['findings']): {
     maintainabilityScore,
   };
 }
-
 function parseGitHubUrl(githubUrl: string): [string, string] {
   const url = githubUrl.replace('https://github.com/', '').replace('.git', '');
   const [owner, repo] = url.split('/');
-  
   if (!owner || !repo) {
     throw new Error('Invalid GitHub URL');
   }
-  
   return [owner, repo];
 }
-
 function isCodeFile(filename: string): boolean {
   const codeExtensions = [
     '.js', '.jsx', '.ts', '.tsx',
@@ -315,10 +274,8 @@ function isCodeFile(filename: string): boolean {
     '.rb', '.php', '.swift', '.kt',
     '.vue', '.svelte',
   ];
-  
   return codeExtensions.some(ext => filename.endsWith(ext));
 }
-
 function isIgnoredDir(dirname: string): boolean {
   const ignoredDirs = [
     'node_modules',
@@ -331,6 +288,5 @@ function isIgnoredDir(dirname: string): boolean {
     'vendor',
     '__pycache__',
   ];
-  
   return ignoredDirs.includes(dirname);
 }

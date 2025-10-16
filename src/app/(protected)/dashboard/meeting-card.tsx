@@ -12,13 +12,11 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { Spinner } from '~/components/ui/spinner';
-
 const MeetingCard = () => {
     const project= useProject()
     const router = useRouter();
     const processMeeting= useMutation({
         mutationFn: async ( data:{meetingUrl: string, meetingId: string, projectId: string}) =>{
-
             const {meetingUrl, meetingId, projectId} = data;
             console.log("Processing meeting", data)
             const response =  await axios.post('/api/process-meeting',{
@@ -29,14 +27,10 @@ const MeetingCard = () => {
             return response.data
         }
     })
-
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<string>('');
     const uploadMeeting = api.project.uploadMeeting.useMutation()
-    
-    const SUPPORTED_FORMATS = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/m4a', 'audio/x-m4a'];
     const MAX_FILE_SIZE = 50 * 1024 * 1024; 
-
     const {getInputProps, getRootProps, isDragActive}= useDropzone({
         accept:{
             'audio/*':[],
@@ -44,7 +38,6 @@ const MeetingCard = () => {
         multiple: false,
         maxSize: MAX_FILE_SIZE,
         onDrop: async(acceptedFiles, rejectedFiles)=> {
-            
             if (rejectedFiles.length > 0) {
                 const rejection = rejectedFiles[0];
                 if (rejection?.errors[0]?.code === 'file-too-large') {
@@ -60,27 +53,22 @@ const MeetingCard = () => {
                 }
                 return;
             }
-
             const file = acceptedFiles[0];
             console.log("File drop:",file)
-
             if (!file) {
                 toast.error("No file selected", {
                     description: "Please select an audio file to upload"
                 });
                 return
             }
-
             setIsUploading(true)
             setUploadProgress('Uploading file...');
             const uploadToast = toast.loading("Uploading meeting recording...", {
                 description: "Please wait while we process your file"
             });
-
             try {
                 const {  url } = await uploadFile(file as File)
                 setUploadProgress('Creating meeting record...');
-                
                 uploadMeeting.mutate({
                     projectId: project.projectId,
                     meetingUrl: url as string,
@@ -130,7 +118,6 @@ const MeetingCard = () => {
             }
         },
     })
-
   return (
         <Card 
             className={`col-span-2 relative overflow-hidden border border-border/70 bg-card/70 transition-colors ${
@@ -145,7 +132,6 @@ const MeetingCard = () => {
                         <div className="rounded-full border border-primary/40 bg-primary/15 p-5">
                             <Presentation className='h-10 w-10 text-primary' />
                         </div>
-                        
                         <div className="space-y-2">
                             <h3 className='flex items-center justify-center gap-2 text-lg font-semibold'>
                                 <Sparkles className="h-4 w-4 text-primary" />
@@ -160,7 +146,6 @@ const MeetingCard = () => {
                                 <span>Max 50MB • MP3, WAV, M4A</span>
                             </div>
                         </div>
-
                         <Button 
                             disabled={isUploading}
                             size="lg"
@@ -170,14 +155,12 @@ const MeetingCard = () => {
                             Choose File
                             <input className='hidden' {...getInputProps()}/>
                         </Button>
-
                         <div className="flex items-center gap-2 pt-2 text-xs font-medium text-primary">
                             <Sparkles className="h-3 w-3" />
                             <span>Summaries, sentiment, accountability</span>
                         </div>
                     </div>
                 )}
-
                 {isUploading && (
                     <div className='flex flex-col items-center justify-center space-y-4 animate-fade-in'>
                         <div className="relative">
@@ -186,7 +169,6 @@ const MeetingCard = () => {
                             </div>
                             <Presentation className='relative h-16 w-16 text-primary animate-pulse'/>
                         </div>
-                        
                         <div className="space-y-2 text-center">
                             <p className='text-sm font-medium flex items-center gap-2 justify-center'>
                                 <Spinner className="h-4 w-4 animate-spin-slow" />
@@ -202,5 +184,4 @@ const MeetingCard = () => {
         </Card>
   )
 }
-
 export default MeetingCard

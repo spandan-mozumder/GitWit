@@ -1,18 +1,14 @@
 "use server"
-
 import { streamText } from "ai"
 import {createGoogleGenerativeAI} from "@ai-sdk/google"
 import { generateEmbedding } from "~/lib/gemini"
 import { db } from "~/server/db"
-
 const google = createGoogleGenerativeAI({
     apiKey: process.env.GEMINI_API_KEY,
 })
-
 export async function askQuestion(question: string, projectId: string) {
     const queryVector = await generateEmbedding(question)
     const vectorQuery = `[${queryVector.join(",")}]`
-
     const result = await db.$queryRaw`
     SELECT "fileName", "sourceCode", "summary",
     1-("summaryEmbedding" <=> ${vectorQuery}::vector) AS "similarity"
@@ -26,13 +22,10 @@ export async function askQuestion(question: string, projectId: string) {
         sourceCode: string
         summary: string
     }[]
-
     let context = ""
-    
     for (const doc of result){
         context += `source: ${doc.fileName}\n code content: ${doc.sourceCode}\n summary of file: ${doc.summary} \n\n `
     }
-    
     const {textStream} = await streamText({
         model:google("gemini-2.5-flash-lite"),
         prompt: `
@@ -46,7 +39,6 @@ export async function askQuestion(question: string, projectId: string) {
   START CONTEXT BLOCK
   ${context}
   END OF CONTEXT BLOCK
-
   START QUESTION
   ${question}
   END OF QUESTION
@@ -56,9 +48,7 @@ export async function askQuestion(question: string, projectId: string) {
   AI assistant will not invent anything that is not drawn directly from the context.
   Answer in markdown syntax, with code snippets if needed. Be as detailed as possible. when answering , make sure there is no code block in the response.
   `,
-  
 })
-
     return {
         output: textStream,
         filesRefrences: result

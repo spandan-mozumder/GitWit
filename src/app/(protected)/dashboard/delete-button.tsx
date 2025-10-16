@@ -19,19 +19,19 @@ import {
 import { Trash2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Spinner } from '~/components/ui/spinner'
 import { useRouter } from 'next/navigation'
-
 const DeleteButton = () => {
     const deleteProject = api.project.deleteProject.useMutation()
     const {projectId, project} = useProject()
     const refetch = useRefetch();
     const router = useRouter();
     const [open, setOpen] = useState(false);
-
+    // Check if user is admin
+    const { data: myRole } = api.projectMembers.getMyRole.useQuery({ projectId });
+    const isAdmin = myRole === 'ADMIN';
     const handleDelete = () => {
         const loadingToast = toast.loading("Deleting project...", {
             description: "Removing all project data and configurations"
         });
-
         deleteProject.mutate({projectId: projectId},{
             onSuccess:()=>{
                 toast.dismiss(loadingToast);
@@ -40,10 +40,8 @@ const DeleteButton = () => {
                     icon: <CheckCircle2 className="h-4 w-4" />
                 });
                 setOpen(false);
-                
                 localStorage.removeItem('gitwit-project-id');
                 refetch();
-                
                 router.push('/dashboard');
             },
             onError:(error)=>{
@@ -57,7 +55,10 @@ const DeleteButton = () => {
             }
         })
     }
-
+    // Don't show button if not admin
+    if (!isAdmin) {
+        return null;
+    }
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
@@ -111,5 +112,4 @@ const DeleteButton = () => {
     </AlertDialog>
   )
 }
-
 export default DeleteButton

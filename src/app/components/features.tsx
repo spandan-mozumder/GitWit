@@ -1,5 +1,4 @@
 import { BarChart3, Briefcase, Castle, Cog, Github, MessageSquare } from "lucide-react"
-
 const capabilities = [
   {
     title: "Context Engine",
@@ -62,7 +61,6 @@ const capabilities = [
     ],
   },
 ]
-
 export function Features() {
   return (
     <section id="features" className="relative w-full px-4 py-20 md:px-6 md:py-28">
@@ -82,7 +80,6 @@ export function Features() {
             executives attuned to the same outcome.
           </p>
         </div>
-
         <div className="grid gap-6 md:grid-cols-2">
           {capabilities.map(({ title, subtitle, icon: Icon, highlights }) => (
             <article key={title} className="card-hover relative flex h-full flex-col justify-between rounded-3xl bg-card/80 p-6 shadow-primary/5 transition-colors hover:bg-card/90">
