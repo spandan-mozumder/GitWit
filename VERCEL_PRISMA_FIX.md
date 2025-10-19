@@ -40,12 +40,24 @@ import { PrismaClient } from "@/generated/prisma";
 import { PrismaClient } from "@prisma/client";
 ```
 
-### 3. Added Postinstall Script (`package.json`)
+### 3. Added Prisma CLI as Dev Dependency (`package.json`)
+**Added:**
+```json
+{
+  "devDependencies": {
+    "prisma": "^6.17.1"
+  }
+}
+```
+
+This ensures the Prisma CLI is available during the build process on Vercel.
+
+### 4. Added Postinstall Script (`package.json`)
 **Added:**
 ```json
 {
   "scripts": {
-    "postinstall": "prisma generate"
+    "postinstall": "npx prisma generate"
   }
 }
 ```
@@ -55,8 +67,9 @@ This ensures Prisma Client is generated automatically after `npm install` on Ver
 ## Why This Works
 
 1. **Standard Location**: Using `@prisma/client` is the standard import path that works consistently across all environments
-2. **Automatic Generation**: The `postinstall` script ensures the Prisma client is generated before the build step
-3. **No Custom Paths**: Removes complexity and potential path resolution issues in different environments
+2. **Prisma CLI Available**: Installing `prisma` as a devDependency ensures the CLI is available during build
+3. **Automatic Generation**: The `postinstall` script with `npx` ensures the Prisma client is generated before the build step
+4. **No Custom Paths**: Removes complexity and potential path resolution issues in different environments
 
 ## Verification Steps
 
@@ -74,8 +87,8 @@ npm run build
 ## What Changed on Vercel
 
 During deployment, Vercel now:
-1. Runs `npm install` (installs dependencies including `@prisma/client`)
-2. Runs `postinstall` script (generates Prisma client to `node_modules/@prisma/client`)
+1. Runs `npm install --legacy-peer-deps` (installs dependencies including `@prisma/client` AND `prisma` CLI)
+2. Runs `postinstall` script → `npx prisma generate` (generates Prisma client to `node_modules/@prisma/client`)
 3. Runs `npm run build` (Next.js build finds Prisma client at standard location)
 4. ✅ Build succeeds!
 
