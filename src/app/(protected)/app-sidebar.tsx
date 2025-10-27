@@ -85,7 +85,7 @@ export function AppSidebar(){
         <Sidebar collapsible="icon" variant="floating" >
             <SidebarHeader>
                 <div className="flex items-center gap-2">
-                    <img src={'/icon.png'} alt="logo" className="size-8" />
+                    <img src={'/favicon.ico'} alt="logo" className="size-8" />
                     {open && <img src="/text.png" alt="GitWit" className="h-7 w-auto" />}
                 </div>
             </SidebarHeader>

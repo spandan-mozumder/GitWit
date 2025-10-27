@@ -80,7 +80,7 @@ const AskQuestionCard = () => {
             <DialogTitle>
               <div className='flex items-center gap-3'>
                 <div className="rounded-lg border border-border/60 bg-background p-2">
-                  <Image src='/icon.png' alt='logo' width={24} height={24}/>
+                  <Image src='/favicon.ico' alt='logo' width={24} height={24}/>
                 </div>
                 <div>
                   <h2 className='text-xl font-semibold'>Strategist answer</h2>
