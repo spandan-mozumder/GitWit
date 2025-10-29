@@ -143,7 +143,15 @@ const CodeBrowserPage = () => {
       })
     })
     const convertToArray = (obj: Record<string, TreeNodeInternal>): TreeNode[] => {
-      return Object.values(obj).map((node) => ({
+      const entries = Object.entries(obj)
+      // Sort: folders first (alphabetically), then files (alphabetically)
+      entries.sort(([nameA, nodeA], [nameB, nodeB]) => {
+        if (nodeA.type === nodeB.type) {
+          return nameA.localeCompare(nameB)
+        }
+        return nodeA.type === 'folder' ? -1 : 1
+      })
+      return entries.map(([, node]) => ({
         path: node.path,
         name: node.name,
         type: node.type,

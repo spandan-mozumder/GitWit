@@ -23,7 +23,7 @@ const Create = () => {
     const [, setProjectId] = useLocalStorage('gitwit-project-id', '');
     function onSubmit(data: FormInput){
         const {projectName, repoUrl, gitHubToken}= data;
-        const githubUrlPattern = /^https:\/\/github\.com\/[\w-]+\/[\w-]+\/?$/;
+        const githubUrlPattern = /^https:\/\/github\.com\/[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+\/?$|^https:\/\/github\.com\/[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+\.git$|^git@github\.com:[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+(?:\.git)?$/;
         if (!githubUrlPattern.test(repoUrl)) {
             toast.error("Invalid GitHub URL", {
                 description: "Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo)"
