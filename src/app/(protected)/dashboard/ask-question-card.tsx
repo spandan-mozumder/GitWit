@@ -74,9 +74,9 @@ const AskQuestionCard = () => {
   return (
     <>
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[80vw] max-h-[90vh]"> 
-        <DialogHeader>
-          <div className="flex items-center justify-between">
+      <DialogContent className="sm:max-w-[85vw] h-[95vh] flex flex-col p-0"> 
+        <div className="flex-shrink-0 border-b border-border/60 px-6 py-4">
+          <div className="flex items-center justify-between gap-4">
             <DialogTitle>
               <div className='flex items-center gap-3'>
                 <div className="rounded-lg border border-border/60 bg-background p-2">
@@ -115,7 +115,7 @@ const AskQuestionCard = () => {
                   }
                 })
               }}
-              className="gap-2"
+              className="gap-2 flex-shrink-0"
             >
               {saveAnswer.isPending ? (
                 <>
@@ -130,8 +130,9 @@ const AskQuestionCard = () => {
               )}
             </Button>
           </div>
-        </DialogHeader>
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+        </div>
+        
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
           <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
             {loading && !answer ? (
               <div className="flex items-center gap-3 py-8 text-muted-foreground">
@@ -151,13 +152,16 @@ const AskQuestionCard = () => {
           </div>
           {filesReferences.length > 0 && <CodeRefrence filesRefrences={filesReferences} />}
         </div>
-        <Button 
-          onClick={() => setOpen(false)} 
-          variant="outline"
-          className="w-full"
-        >
-          Close
-        </Button>
+        
+        <div className="flex-shrink-0 border-t border-border/60 px-6 py-4">
+          <Button 
+            onClick={() => setOpen(false)} 
+            variant="outline"
+            className="w-full"
+          >
+            Close
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
     <Card className='relative col-span-3 overflow-hidden border border-border/70 bg-card/70 shadow-lg shadow-primary/5'>

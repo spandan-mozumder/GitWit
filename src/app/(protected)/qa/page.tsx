@@ -91,14 +91,16 @@ const QAPage = () => {
         </div>
       </div>
       {question && (
-        <SheetContent className='sm:max-w-[80vw]'>
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2 text-xl">
-              <Archive className="h-5 w-5 text-primary" />
-              {question.question}
-            </SheetTitle>
-          </SheetHeader>
-          <div className="mt-6 space-y-6 max-h-[80vh] overflow-y-auto">
+        <SheetContent className='sm:max-w-[85vw] flex flex-col p-0'>
+          <div className='flex-shrink-0 border-b border-border/60 px-6 py-4'>
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2 text-xl">
+                <Archive className="h-5 w-5 text-primary" />
+                {question.question}
+              </SheetTitle>
+            </SheetHeader>
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
             <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
               <MarkdownPreview 
                 source={question.answer} 
