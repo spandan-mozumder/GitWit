@@ -195,7 +195,7 @@ export default function PullRequestDetailPage() {
         )}
         {mergePR.isPending && (
           <Button disabled className="gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-foreground" />
+            <Spinner className="h-4 w-4" />
             Merging...
           </Button>
         )}

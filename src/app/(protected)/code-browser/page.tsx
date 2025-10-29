@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import { Badge } from '~/components/ui/badge'
 import { Input } from '~/components/ui/input'
-import { Code2, FileCode, GitPullRequest, FolderTree, Search, ChevronRight, ChevronDown, File, Folder, Loader2, CheckCircle2, Plus, Minus, ExternalLink, TrendingUp } from 'lucide-react'
+import { Code2, FileCode, GitPullRequest, FolderTree, Search, ChevronRight, ChevronDown, File, Folder, CheckCircle2, Plus, Minus, ExternalLink, TrendingUp } from 'lucide-react'
 import useProject from '~/hooks/use-project'
 import { api } from '~/trpc/react'
 import { toast } from 'sonner'
@@ -315,7 +315,7 @@ const CodeBrowserPage = () => {
                 onClick={() => syncPRs.mutate({ projectId: project.id, state: 'all' })}
                 disabled={syncPRs.isPending}
               >
-                {syncPRs.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {syncPRs.isPending && <Spinner className="mr-2 h-4 w-4" />}
                 Sync Pull Requests
               </Button>
             </div>
@@ -382,7 +382,7 @@ const CodeBrowserPage = () => {
                               disabled={analyzePR.isPending}
                             >
                               {analyzePR.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Spinner className="h-4 w-4" />
                               ) : (
                                 <>AI Analyze</>
                               )}

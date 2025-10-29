@@ -10,7 +10,6 @@ import {
   Sparkles, 
   Download, 
   RefreshCw,
-  Loader2,
   CheckCircle2,
   AlertCircle
 } from "lucide-react";
@@ -26,6 +25,7 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import { Spinner } from "~/components/ui/spinner";
 export default function MeetingSummaryPage() {
   const params = useParams<{ meetingId: string }>();
   const router = useRouter();
@@ -147,7 +147,7 @@ export default function MeetingSummaryPage() {
             )}
             {meeting?.transcriptionStatus === "PROCESSING" && (
               <div className="flex items-center gap-2">
-                <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                <Spinner className="h-5 w-5 text-blue-500" />
                 <span className="text-sm">Processing...</span>
               </div>
             )}
@@ -177,7 +177,7 @@ export default function MeetingSummaryPage() {
               </div>
             ) : meeting?.summaryRequested ? (
               <div className="flex items-center gap-2">
-                <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                <Spinner className="h-5 w-5 text-blue-500" />
                 <span className="text-sm">Requested</span>
               </div>
             ) : (
@@ -266,7 +266,7 @@ export default function MeetingSummaryPage() {
             ) : (
               <>
                 <div className="flex items-center gap-2 text-blue-600">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Spinner className="h-4 w-4" />
                   <span className="text-sm">Summary requested, generating...</span>
                 </div>
                 <Button
@@ -277,7 +277,7 @@ export default function MeetingSummaryPage() {
                 >
                   {generateSummary.isPending ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Spinner className="h-4 w-4" />
                       Generating...
                     </>
                   ) : (

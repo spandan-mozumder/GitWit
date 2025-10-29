@@ -9,7 +9,7 @@ import { Button } from '~/components/ui/button'
 import { toast } from 'sonner'
 import useRefetch from '~/hooks/use-refetch'
 import { Card, CardContent } from '~/components/ui/card'
-import { Calendar, Clock, AlertCircle, Eye, Trash2, Loader2, CheckCircle2 } from 'lucide-react'
+import { Calendar, Clock, AlertCircle, Eye, Trash2, CheckCircle2 } from 'lucide-react'
 import { Spinner } from '~/components/ui/spinner'
 import {
   AlertDialog,
@@ -126,7 +126,7 @@ const MeetingPage = () => {
                                             </Link>
                                             {meeting.status === 'PROCESSING' && (
                                                 <Badge variant="secondary" className='gap-1.5 rounded-full animate-pulse'>
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                                    <Spinner className="h-3 w-3" />
                                                     Processing
                                                 </Badge>
                                             )}
@@ -165,7 +165,7 @@ const MeetingPage = () => {
                                             onClick={()=> setMeetingToDelete({id: meeting.id, name: meeting.name})}
                                         >
                                             {deleteMeeting.isPending ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                <Spinner className="h-4 w-4" />
                                             ) : (
                                                 <Trash2 className="h-4 w-4" />
                                             )}

@@ -6,7 +6,7 @@ import { Textarea } from '~/components/ui/textarea'
 import { Badge } from '~/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { Lightbulb, ThumbsUp, Clock, Code2, Loader2, ExternalLink, GitBranch, XCircle } from 'lucide-react'
+import { Lightbulb, ThumbsUp, Clock, Code2, ExternalLink, GitBranch, XCircle } from 'lucide-react'
 import useProject from '~/hooks/use-project'
 import { api } from '~/trpc/react'
 import { toast } from 'sonner'
@@ -135,7 +135,7 @@ const BrainstormingPage = () => {
             disabled={!userInput.trim() || generateIdeas.isPending}
             className="w-full sm:w-auto"
           >
-            {generateIdeas.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {generateIdeas.isPending && <Spinner className="mr-2 h-4 w-4" />}
             Generate Ideas
           </Button>
         </CardContent>

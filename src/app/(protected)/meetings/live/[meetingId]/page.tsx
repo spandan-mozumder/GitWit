@@ -13,9 +13,9 @@ import {
   Upload, 
   StopCircle,
   PlayCircle,
-  Loader2
 } from "lucide-react";
 import { UploadButton } from "@/lib/uploadthing";
+import { Spinner } from "~/components/ui/spinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -264,7 +264,7 @@ export default function LiveMeetingPage() {
                   )}
                   {meeting.transcriptionStatus === "PROCESSING" && (
                     <Badge className="bg-blue-500">
-                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      <Spinner className="h-3 w-3 mr-1" />
                       Processing
                     </Badge>
                   )}

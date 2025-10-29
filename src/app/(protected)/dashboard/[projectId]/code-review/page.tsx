@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { QuickNav } from "@/components/quick-nav";
 import {
@@ -96,7 +97,7 @@ export default function CodeReviewPage() {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <Spinner className="h-8 w-8" />
         </div>
       </div>
     );
