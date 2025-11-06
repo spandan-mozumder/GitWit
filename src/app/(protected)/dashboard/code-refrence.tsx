@@ -23,10 +23,10 @@ const CodeRefrence = ({ filesRefrences }: Props) => {
         <ScrollArea className='w-full'>
           <div className='flex gap-2 pb-2'>
               {filesRefrences.map((file )=>(
-                  <Button 
-                    variant={tab === file.fileName ? 'default' : 'outline'} 
-                    onClick={()=>setTab(file.fileName)} 
-                    key={file.fileName} 
+                  <Button
+                    variant={tab === file.fileName ? 'default' : 'outline'}
+                    onClick={()=>setTab(file.fileName)}
+                    key={file.fileName}
                     className='rounded-full px-3 py-1.5 text-xs font-medium uppercase tracking-[0.25em] flex-shrink-0'
                   >
                       {file.fileName}

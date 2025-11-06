@@ -25,7 +25,7 @@ const DeleteButton = () => {
     const refetch = useRefetch();
     const router = useRouter();
     const [open, setOpen] = useState(false);
-    // Check if user is admin
+
     const { data: myRole } = api.projectMembers.getMyRole.useQuery({ projectId });
     const isAdmin = myRole === 'ADMIN';
     const handleDelete = () => {
@@ -46,7 +46,6 @@ const DeleteButton = () => {
             },
             onError:(error)=>{
                 toast.dismiss(loadingToast);
-                console.error("Delete project error:", error);
                 toast.error("Unable to delete project", {
                     description: error.message || "Please try again or contact support",
                     icon: <AlertCircle className="h-4 w-4" />,
@@ -55,16 +54,16 @@ const DeleteButton = () => {
             }
         })
     }
-    // Don't show button if not admin
+
     if (!isAdmin) {
         return null;
     }
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button 
-          disabled={deleteProject.isPending} 
-          size={'sm'} 
+        <Button
+          disabled={deleteProject.isPending}
+          size={'sm'}
           variant={'destructive'}
           className="gap-2"
         >

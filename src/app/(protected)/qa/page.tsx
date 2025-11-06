@@ -14,7 +14,7 @@ import { Spinner } from '~/components/ui/spinner';
 import { Calendar, Archive, MessageSquare } from 'lucide-react';
 const QAPage = () => {
   const {projectId}=useProject();
-  const {data: questions, isLoading}= api.project.getQuestions.useQuery({projectId}); 
+  const {data: questions, isLoading}= api.project.getQuestions.useQuery({projectId});
   const { theme } = useTheme()
   const  [questionIndex, setQuestionIndex] = useState(0);
   const question = questions?.[questionIndex];
@@ -102,10 +102,10 @@ const QAPage = () => {
           </div>
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
             <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
-              <MarkdownPreview 
-                source={question.answer} 
+              <MarkdownPreview
+                source={question.answer}
                 className='prose prose-sm dark:prose-invert max-w-none'
-                style={{ padding: '0', background: 'transparent' }} 
+                style={{ padding: '0', background: 'transparent' }}
                 wrapperElement={{
                   "data-color-mode": theme === 'dark' ? 'dark' : 'light',
                 }}

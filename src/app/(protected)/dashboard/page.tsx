@@ -53,9 +53,9 @@ const DashboardPage = () => {
               </span>
               <div className="min-w-0">
                 <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Connected repository</p>
-                <Link 
-                  href={project?.repoUrl ?? "#"} 
-                  target='_blank' 
+                <Link
+                  href={project?.repoUrl ?? "#"}
+                  target='_blank'
                   className='inline-flex items-center gap-1 truncate text-sm text-foreground transition-colors hover:text-primary'
                 >
                   <span className="truncate">{project?.repoUrl || 'Link a repository to unlock insights'}</span>

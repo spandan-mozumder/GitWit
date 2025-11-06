@@ -7,7 +7,7 @@ export type KeyboardShortcut = {
   altKey?: boolean;
   description: string;
   action: () => void;
-  global?: boolean; 
+  global?: boolean;
 };
 export function useKeyboardShortcuts(
   shortcuts: KeyboardShortcut[],

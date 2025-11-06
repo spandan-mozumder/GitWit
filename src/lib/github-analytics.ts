@@ -41,7 +41,7 @@ interface GitHubPullRequest {
   additions: number;
   deletions: number;
   changedFiles: number;
-  reviewTime?: number; 
+  reviewTime?: number;
 }
 interface GitHubContributor {
   login: string;
@@ -110,7 +110,6 @@ export async function getCommitStats(githubUrl: string, daysBack = 30): Promise<
         filesChanged: commitDetail.files?.length || 0,
       });
     } catch (error) {
-      console.error(`Error fetching commit ${commit.sha}:`, error);
     }
   }
   return commitStats;
@@ -127,12 +126,12 @@ export async function getPullRequestStats(githubUrl: string, daysBack = 30): Pro
   });
   const since = new Date();
   since.setDate(since.getDate() - daysBack);
-  const recentPRs = prs.filter(pr => 
+  const recentPRs = prs.filter(pr =>
     new Date(pr.created_at) >= since
   );
   const prStats: GitHubPullRequest[] = [];
   for (const pr of recentPRs) {
-    const reviewTime = pr.merged_at 
+    const reviewTime = pr.merged_at
       ? Math.abs(new Date(pr.merged_at).getTime() - new Date(pr.created_at).getTime()) / (1000 * 60 * 60)
       : pr.closed_at
       ? Math.abs(new Date(pr.closed_at).getTime() - new Date(pr.created_at).getTime()) / (1000 * 60 * 60)
@@ -145,7 +144,7 @@ export async function getPullRequestStats(githubUrl: string, daysBack = 30): Pro
       createdAt: pr.created_at,
       closedAt: pr.closed_at,
       mergedAt: pr.merged_at,
-      additions: 0, 
+      additions: 0,
       deletions: 0,
       changedFiles: 0,
       reviewTime,
@@ -166,7 +165,6 @@ export async function getPullRequestStats(githubUrl: string, daysBack = 30): Pro
           changedFiles: prDetail.changed_files,
         };
       } catch (error) {
-        console.error(`Error fetching PR ${prStat.number}:`, error);
       }
     })
   );
@@ -180,7 +178,7 @@ export async function getContributorStats(githubUrl: string): Promise<GitHubCont
     per_page: 100,
   });
   const contributorStats: GitHubContributor[] = [];
-  for (const contributor of contributors.slice(0, 20)) { 
+  for (const contributor of contributors.slice(0, 20)) {
     try {
       const { data: userCommits } = await octokit.rest.repos.listCommits({
         owner,
@@ -200,7 +198,6 @@ export async function getContributorStats(githubUrl: string): Promise<GitHubCont
           totalAdditions += commitDetail.stats?.additions || 0;
           totalDeletions += commitDetail.stats?.deletions || 0;
         } catch (error) {
-          console.error(`Error fetching commit details:`, error);
         }
       }
       contributorStats.push({
@@ -213,7 +210,6 @@ export async function getContributorStats(githubUrl: string): Promise<GitHubCont
         deletions: totalDeletions,
       });
     } catch (error) {
-      console.error(`Error fetching stats for ${contributor.login}:`, error);
     }
   }
   return contributorStats.sort((a, b) => b.contributions - a.contributions);
@@ -261,7 +257,6 @@ export async function getCodeHotspots(githubUrl: string, daysBack = 90): Promise
         fileStats.set(file.filename, existing);
       }
     } catch (error) {
-      console.error(`Error processing commit ${commit.sha}:`, error);
     }
   }
   return Array.from(fileStats.entries())
@@ -270,7 +265,7 @@ export async function getCodeHotspots(githubUrl: string, daysBack = 90): Promise
       ...stats,
     }))
     .sort((a, b) => b.changes - a.changes)
-    .slice(0, 20); 
+    .slice(0, 20);
 }
 export async function getRepoFiles(githubUrl: string, path = ''): Promise<Array<{
   name: string;
@@ -303,7 +298,6 @@ export async function getRepoFiles(githubUrl: string, path = ''): Promise<Array<
       }];
     }
   } catch (error) {
-    console.error('Error fetching repo files:', error);
     return [];
   }
 }

@@ -46,7 +46,6 @@ const MeetingPage = () => {
             },
             onError:(error)=>{
                 toast.dismiss(loadingToast);
-                console.error("Delete meeting error:", error);
                 toast.error('Unable to delete meeting', {
                     description: error.message || "Please try again or contact support",
                     icon: <AlertCircle className="h-4 w-4" />,
@@ -118,8 +117,8 @@ const MeetingPage = () => {
                                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                     <div className="flex-1 space-y-3">
                                         <div className="flex items-center gap-3 flex-wrap">
-                                            <Link 
-                                                href={`/meetings/${meeting.id}`} 
+                                            <Link
+                                                href={`/meetings/${meeting.id}`}
                                                 className='text-lg font-semibold text-foreground transition-colors hover:text-primary'
                                             >
                                                 {meeting.name}
@@ -147,8 +146,8 @@ const MeetingPage = () => {
                                         </div>
                                     </div>
                                     <div className='flex items-center gap-3'>
-                                        <Button 
-                                            variant="outline" 
+                                        <Button
+                                            variant="outline"
                                             asChild
                                             className="gap-2"
                                         >
@@ -157,10 +156,10 @@ const MeetingPage = () => {
                                                 View Details
                                             </Link>
                                         </Button>
-                                        <Button 
+                                        <Button
                                             size='icon'
                                             variant='ghost'
-                                            disabled={deleteMeeting.isPending} 
+                                            disabled={deleteMeeting.isPending}
                                             className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                                             onClick={()=> setMeetingToDelete({id: meeting.id, name: meeting.name})}
                                         >

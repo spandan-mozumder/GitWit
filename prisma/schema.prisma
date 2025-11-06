@@ -49,7 +49,6 @@ model Project {
 
   name           String
   repoUrl        String
-  gitHubToken    String?
   deletedAt      DateTime?
   userToProjects UserToProject[]
 

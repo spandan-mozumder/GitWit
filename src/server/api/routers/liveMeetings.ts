@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 export const liveMeetingsRouter = createTRPCRouter({
-  // Start a new live meeting (Admin or Collaborator)
+
   startMeeting: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -9,7 +9,7 @@ export const liveMeetingsRouter = createTRPCRouter({
       description: z.string().optional()
     }))
     .mutation(async ({ ctx, input }) => {
-      // Check COLLABORATOR or ADMIN permission
+
       const member = await ctx.db.projectMember.findUnique({
         where: {
           userId_projectId: {
@@ -21,7 +21,7 @@ export const liveMeetingsRouter = createTRPCRouter({
       if (!member || !['ADMIN', 'COLLABORATOR'].includes(member.role)) {
         throw new Error('Only admins or collaborators can host meetings');
       }
-      // Create meeting
+
       const meeting = await ctx.db.liveMeeting.create({
         data: {
           projectId: input.projectId,
@@ -33,7 +33,7 @@ export const liveMeetingsRouter = createTRPCRouter({
           transcriptionStatus: 'PENDING'
         }
       });
-      // Add host as participant
+
       await ctx.db.liveMeetingParticipant.create({
         data: {
           meetingId: meeting.id,
@@ -44,7 +44,7 @@ export const liveMeetingsRouter = createTRPCRouter({
       });
       return meeting;
     }),
-  // End meeting (Host only)
+
   endMeeting: protectedProcedure
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -63,7 +63,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         }
       });
     }),
-  // Join meeting (Any project member)
+
   joinMeeting: protectedProcedure
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -71,7 +71,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         where: { id: input.meetingId }
       });
       if (!meeting) throw new Error('Meeting not found');
-      // Check if user is project member
+
       const member = await ctx.db.projectMember.findUnique({
         where: {
           userId_projectId: {
@@ -83,7 +83,7 @@ export const liveMeetingsRouter = createTRPCRouter({
       if (!member) {
         throw new Error('Only project members can join meetings');
       }
-      // Check if already joined
+
       const existing = await ctx.db.liveMeetingParticipant.findUnique({
         where: {
           meetingId_userId: {
@@ -93,7 +93,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         }
       });
       if (existing) {
-        return existing; // Already joined
+        return existing;
       }
       return await ctx.db.liveMeetingParticipant.create({
         data: {
@@ -104,7 +104,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         }
       });
     }),
-  // Leave meeting
+
   leaveMeeting: protectedProcedure
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -118,7 +118,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         data: { leftAt: new Date() }
       });
     }),
-  // Upload recording and trigger transcription
+
   uploadRecording: protectedProcedure
     .input(z.object({
       meetingId: z.string(),
@@ -132,7 +132,7 @@ export const liveMeetingsRouter = createTRPCRouter({
       if (meeting.hostId !== ctx.user.userId!) {
         throw new Error('Only the host can upload recordings');
       }
-      // Update meeting with audio file
+
       await ctx.db.liveMeeting.update({
         where: { id: input.meetingId },
         data: {
@@ -140,7 +140,7 @@ export const liveMeetingsRouter = createTRPCRouter({
           transcriptionStatus: 'PROCESSING'
         }
       });
-      // Trigger AssemblyAI transcription
+
       try {
         const assemblyAiKey = process.env.ASSEMBLY_API_KEY;
         if (!assemblyAiKey) throw new Error('AssemblyAI API key not configured');
@@ -155,7 +155,7 @@ export const liveMeetingsRouter = createTRPCRouter({
           })
         });
         const data = await response.json() as { id: string };
-        // Store transcription ID
+
         await ctx.db.liveMeeting.update({
           where: { id: input.meetingId },
           data: { transcriptId: data.id }
@@ -169,7 +169,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         throw error;
       }
     }),
-  // Check transcription status
+
   checkTranscription: protectedProcedure
     .input(z.object({ meetingId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -189,12 +189,12 @@ export const liveMeetingsRouter = createTRPCRouter({
           }
         }
       );
-      const data = await response.json() as { 
-        status: string; 
+      const data = await response.json() as {
+        status: string;
         text?: string;
         error?: string;
       };
-      // Update status based on AssemblyAI response
+
       if (data.status === 'completed' && data.text) {
         await ctx.db.liveMeeting.update({
           where: { id: input.meetingId },
@@ -215,7 +215,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         error: data.error
       };
     }),
-  // Request summary (Admin only)
+
   requestSummary: protectedProcedure
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -223,7 +223,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         where: { id: input.meetingId }
       });
       if (!meeting) throw new Error('Meeting not found');
-      // Check ADMIN permission
+
       const member = await ctx.db.projectMember.findUnique({
         where: {
           userId_projectId: {
@@ -246,7 +246,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         }
       });
     }),
-  // Generate summary using Gemini
+
   generateSummary: protectedProcedure
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -260,7 +260,7 @@ export const liveMeetingsRouter = createTRPCRouter({
       if (!meeting.transcript) {
         throw new Error('No transcript available');
       }
-      // Generate summary using Gemini
+
       const geminiKey = process.env.GEMINI_API_KEY;
       if (!geminiKey) throw new Error('Gemini API key not configured');
       const response = await fetch(
@@ -287,7 +287,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         }>;
       };
       const summary = data.candidates?.[0]?.content?.parts?.[0]?.text ?? 'Failed to generate summary';
-      // Update meeting with summary
+
       const updated = await ctx.db.liveMeeting.update({
         where: { id: input.meetingId },
         data: {
@@ -297,7 +297,7 @@ export const liveMeetingsRouter = createTRPCRouter({
       });
       return { summary: updated.summary };
     }),
-  // Get meeting details
+
   getMeeting: protectedProcedure
     .input(z.object({ meetingId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -308,7 +308,7 @@ export const liveMeetingsRouter = createTRPCRouter({
         }
       });
     }),
-  // Get all meetings for a project
+
   getProjectMeetings: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {

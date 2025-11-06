@@ -32,7 +32,7 @@ export const meetingsEnhancedRouter = createTRPCRouter({
       });
       if (input.dueDate) {
         const reminderDate = new Date(input.dueDate);
-        reminderDate.setDate(reminderDate.getDate() - 1); 
+        reminderDate.setDate(reminderDate.getDate() - 1);
         await ctx.db.reminder.create({
           data: {
             actionItemId: actionItem.id,

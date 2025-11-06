@@ -46,25 +46,23 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   }
   const result = await next();
   const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
   return result;
 });
 
 const rateLimitMiddleware = t.middleware(async ({ next, ctx, path }) => {
   const user = await auth();
   const identifier = user?.userId || ctx.headers.get("x-forwarded-for") || "anonymous";
-  
+
   const { success, remaining, reset } = await checkRateLimit(identifier);
-  
+
   if (!success) {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message: `Rate limit exceeded. Try again in ${Math.ceil((reset - Date.now()) / 1000)} seconds.`,
     });
   }
-  
-  console.log(`[RATE LIMIT] ${identifier} - ${path} - ${remaining} requests remaining`);
-  
+
+
   return next();
 });
 

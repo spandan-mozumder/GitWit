@@ -29,13 +29,13 @@ const BrainstormingPage = () => {
   const [userInput, setUserInput] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  
+
   const queryInput = {
     projectId: project?.id ?? '',
     ...(selectedStatus !== 'all' && { status: selectedStatus as "IDEA" | "PLANNED" | "IN_PROGRESS" | "DONE" | "REJECTED" }),
     ...(selectedCategory !== 'all' && { category: selectedCategory as "NEW_FEATURE" | "ENHANCEMENT" | "BUG_FIX" | "PERFORMANCE" | "SECURITY" | "UI_UX" | "REFACTOR" | "TESTING" | "DOCUMENTATION" }),
   }
-  
+
   const { data: features, refetch, isLoading } = api.featureBrainstorming.getFeatureIdeas.useQuery(
     queryInput,
     { enabled: !!project }
@@ -126,11 +126,11 @@ const BrainstormingPage = () => {
             onChange={(e) => setUserInput(e.target.value)}
             className="min-h-[100px] resize-none"
           />
-          <Button 
-            onClick={() => generateIdeas.mutate({ 
-              projectId: project.id, 
+          <Button
+            onClick={() => generateIdeas.mutate({
+              projectId: project.id,
               userInput,
-              count: 5 
+              count: 5
             })}
             disabled={!userInput.trim() || generateIdeas.isPending}
             className="w-full sm:w-auto"
@@ -250,10 +250,10 @@ const BrainstormingPage = () => {
                     </TabsContent>
                   </Tabs>
                   <div className="flex flex-wrap gap-2 pt-2">
-                    <Select 
+                    <Select
                       value={feature.status}
-                      onValueChange={(value) => updateStatus.mutate({ 
-                        featureId: feature.id, 
+                      onValueChange={(value) => updateStatus.mutate({
+                        featureId: feature.id,
                         status: value as "IDEA" | "PLANNED" | "IN_PROGRESS" | "DONE" | "REJECTED"
                       })}
                     >

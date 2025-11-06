@@ -13,7 +13,6 @@ import { useLocalStorage } from 'usehooks-ts';
 type FormInput= {
     repoUrl: string;
     projectName: string;
-    gitHubToken?: string;
 }
 const Create = () => {
     const router = useRouter();
@@ -22,7 +21,7 @@ const Create = () => {
     const createProject= api.project.createProject.useMutation();
     const [, setProjectId] = useLocalStorage('gitwit-project-id', '');
     function onSubmit(data: FormInput){
-        const {projectName, repoUrl, gitHubToken}= data;
+        const {projectName, repoUrl}= data;
         const githubUrlPattern = /^https:\/\/github\.com\/[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+\/?$|^https:\/\/github\.com\/[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+\.git$|^git@github\.com:[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+(?:\.git)?$/;
         if (!githubUrlPattern.test(repoUrl)) {
             toast.error("Invalid GitHub URL", {
@@ -33,8 +32,8 @@ const Create = () => {
         const loadingToast = toast.loading("Setting up workspace...", {
             description: "Analyzing repository and configuring environment"
         });
-        createProject.mutate({name: projectName, repoUrl, gitHubToken},{
-            onSuccess: (project) => {
+        createProject.mutate({name: projectName, repoUrl},{
+            onSuccess: (project: { id: string }) => {
                 toast.dismiss(loadingToast);
                 setProjectId(project.id);
                 toast.success("Workspace launched successfully!", {
@@ -46,9 +45,8 @@ const Create = () => {
                     router.push('/dashboard');
                 }, 1000);
             },
-            onError: (error) => {
+            onError: (error: { message?: string }) => {
                 toast.dismiss(loadingToast);
-                console.error("Project creation error:", error);
                 const errorMessage = error.message || "Unable to create workspace";
                 let errorTitle = "Workspace creation failed";
                 let errorDescription = "Please try again";
@@ -152,23 +150,6 @@ const Create = () => {
                             className="rounded-full border border-border/70 bg-background/80 px-4 py-2 text-sm focus:border-primary focus:shadow-[0_0_0_2px_rgba(240,182,112,0.35)]"
                             required 
                         />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="gitHubToken" className="flex items-center gap-2">
-                            GitHub access token
-                            <span className="text-xs text-muted-foreground">Optional</span>
-                        </Label>
-                        <Input 
-                            id="gitHubToken"
-                            {...register('gitHubToken')} 
-                            type="password"
-                            placeholder='ghp_xxxxxxxxxxxx' 
-                            className="rounded-full border border-border/70 bg-background/80 px-4 py-2 text-sm focus:border-primary focus:shadow-[0_0_0_2px_rgba(240,182,112,0.35)]"
-                        />
-                        <div className="flex items-start gap-2 rounded-2xl border border-border/60 bg-background/70 p-3 text-xs text-muted-foreground">
-                            <Info className="mt-0.5 h-4 w-4 text-primary" />
-                            Provide a token to analyze private repositories or to extend API limits during large imports.
-                        </div>
                     </div>
                     <Button 
                         type='submit' 

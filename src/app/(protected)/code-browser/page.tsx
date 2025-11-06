@@ -32,10 +32,10 @@ interface TreeNode {
   type: 'file' | 'folder'
   children?: TreeNode[]
 }
-const FileTreeItem = ({ node, onSelect, selectedPath }: { 
+const FileTreeItem = ({ node, onSelect, selectedPath }: {
   node: TreeNode
   onSelect: (path: string) => void
-  selectedPath: string | null 
+  selectedPath: string | null
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const isSelected = selectedPath === node.path
@@ -109,19 +109,19 @@ const CodeBrowserPage = () => {
       toast.error('Failed to analyze: ' + error.message)
     }
   })
-  
+
   interface FileItem {
     path?: string
     type?: string
   }
-  
+
   interface TreeNodeInternal {
     path: string
     name: string
     type: 'file' | 'folder'
     children?: Record<string, TreeNodeInternal>
   }
-  
+
   const buildFileTree = (items: FileItem[]): TreeNode[] => {
     const root: Record<string, TreeNodeInternal> = {}
     items.forEach((item) => {
@@ -144,7 +144,7 @@ const CodeBrowserPage = () => {
     })
     const convertToArray = (obj: Record<string, TreeNodeInternal>): TreeNode[] => {
       const entries = Object.entries(obj)
-      // Sort: folders first (alphabetically), then files (alphabetically)
+
       entries.sort(([nameA, nodeA], [nameB, nodeB]) => {
         if (nodeA.type === nodeB.type) {
           return nameA.localeCompare(nameB)
@@ -155,8 +155,8 @@ const CodeBrowserPage = () => {
         path: node.path,
         name: node.name,
         type: node.type,
-        children: node.children && Object.keys(node.children).length > 0 
-          ? convertToArray(node.children) 
+        children: node.children && Object.keys(node.children).length > 0
+          ? convertToArray(node.children)
           : undefined
       }))
     }
@@ -187,7 +187,7 @@ const CodeBrowserPage = () => {
     }
     return langMap[ext ?? ''] ?? 'text'
   }
-  
+
   if (!project) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -251,9 +251,9 @@ const CodeBrowserPage = () => {
                   ) : (
                     <div className="space-y-1">
                       {fileTree.map((node) => (
-                        <FileTreeItem 
-                          key={node.path} 
-                          node={node} 
+                        <FileTreeItem
+                          key={node.path}
+                          node={node}
                           onSelect={setSelectedFile}
                           selectedPath={selectedFile}
                         />
@@ -326,8 +326,8 @@ const CodeBrowserPage = () => {
             ) : pullRequests && pullRequests.length > 0 ? (
               <div className="space-y-4">
                 {pullRequests.map((pr) => (
-                  <Card 
-                    key={pr.id} 
+                  <Card
+                    key={pr.id}
                     className="cursor-pointer transition-all hover:border-primary/50"
                     onClick={() => router.push(`/code-browser/${pr.prNumber}`)}
                   >

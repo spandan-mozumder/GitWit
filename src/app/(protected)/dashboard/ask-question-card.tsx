@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import useProject from '~/hooks/use-project'
 import { Card, CardHeader, CardTitle, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
@@ -23,53 +23,108 @@ const AskQuestionCard = () => {
   const [loading, setLoading] = useState(false)
   const [filesReferences, setFilesReferences] = useState<{fileName: string, sourceCode: string, summary: string}[]>([])
   const [answer, setAnswer] = useState('')
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  const filesAnchorRef = useRef<HTMLDivElement | null>(null)
   const saveAnswer= api.project.saveAnswer.useMutation()
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setAnswer('')
     setFilesReferences([])
     e.preventDefault()
+    
     if (!project?.id) {
       toast.error("No project selected", {
         description: "Please select or create a project first"
       });
       return;
     }
+    
     if (!question.trim()) {
       toast.error("Question cannot be empty", {
         description: "Please enter a question to get insights"
       });
       return;
     }
+    
     setLoading(true)
+    setOpen(true) // Open dialog immediately
+    
     const loadingToast = toast.loading("Analyzing codebase...", {
       description: "Searching for relevant context and patterns"
     });
+    
     try {
+      
       const {output, filesRefrences} = await askQuestion(question, project.id)
+      
       toast.dismiss(loadingToast);
-      setOpen(true)
+      
+      // Set file references immediately
       setFilesReferences(filesRefrences)
+      
+      if (filesRefrences.length > 0) {
+        toast.info(`Found ${filesRefrences.length} relevant files`, {
+          description: "Generating answer based on your codebase",
+          duration: 3000
+        });
+      }
+      
+      // Stream the answer
+      let streamedContent = '';
       for await (const delta of output){
         if(delta){
-          setAnswer((ans) => ans + delta)
+          streamedContent += delta;
+          setAnswer(streamedContent);
         }
       }
+      
+      
       toast.success("Analysis complete", {
-        description: "Your answer is ready",
+        description: `Answer generated with ${filesRefrences.length} file references`,
         icon: <CheckCircle2 className="h-4 w-4" />
       });
+      
     } catch (error) {
       toast.dismiss(loadingToast);
-      console.error("Question analysis error:", error);
+      
+      const errorMessage = error instanceof Error ? error.message : "Please try again or rephrase your question"
+      
       toast.error("Unable to analyze question", {
-        description: error instanceof Error ? error.message : "Please try again or rephrase your question",
+        description: errorMessage,
         icon: <AlertCircle className="h-4 w-4" />,
         duration: 5000
       });
+      
+      // Set an error message for the user with helpful instructions
+      setAnswer(`# Error Occurred\n\nSorry, I encountered an error while analyzing your question.\n\n**Error:** ${errorMessage}\n\n**Please try:**\n\n1. **Rephrasing your question** - Be more specific or use different keywords\n2. **Checking if the repository is indexed** - New projects need a few minutes to index\n3. **Verifying the project setup** - Ensure the repository URL is correct\n\n**Debug Information:**\n- Project ID: ${project.id}\n- Question length: ${question.length} characters\n- Time: ${new Date().toISOString()}`);
+      
     } finally {
       setLoading(false);
     }
   }
+  
+  // When the dialog opens, reset scroll to top so the user sees the header + answer start
+  useEffect(() => {
+    if (open) {
+      contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [open])
+
+  // When files references arrive, scroll them into view so the user can inspect fetched files
+  useEffect(() => {
+    if (filesReferences.length > 0) {
+      // Give DOM a tick to render the files section, then scroll to it
+      setTimeout(() => {
+        filesAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 120)
+    }
+  }, [filesReferences])
+
+  // When an answer completes streaming, ensure the top of the answer is visible
+  useEffect(() => {
+    if (answer && !loading) {
+      contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [answer, loading])
   const refetch = useRefetch();
   return (
     <>
@@ -106,8 +161,7 @@ const AskQuestionCard = () => {
                     });
                     refetch();
                   },
-                  onError: (error) => {
-                    console.error("Save answer error:", error);
+                  onError: (error: { message?: string }) => {
                     toast.error("Unable to archive answer", {
                       description: error.message || "Please try again",
                       icon: <AlertCircle className="h-4 w-4" />
@@ -132,7 +186,7 @@ const AskQuestionCard = () => {
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+        <div ref={contentRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
           <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
             {loading && !answer ? (
               <div className="flex items-center gap-3 py-8 text-muted-foreground">
@@ -150,7 +204,11 @@ const AskQuestionCard = () => {
               />
             )}
           </div>
-          {filesReferences.length > 0 && <CodeRefrence filesRefrences={filesReferences} />}
+          {filesReferences.length > 0 && (
+            <div ref={filesAnchorRef}>
+              <CodeRefrence filesRefrences={filesReferences} />
+            </div>
+          )}
         </div>
         
         <div className="flex-shrink-0 border-t border-border/60 px-6 py-4">
@@ -182,9 +240,9 @@ const AskQuestionCard = () => {
             </p>
             <Textarea 
               className='min-h-[140px] resize-none border border-border/70 bg-background/80 px-4 py-3 text-sm leading-relaxed transition-shadow focus:border-primary focus:shadow-[0_0_0_2px_rgba(240,182,112,0.35)]' 
-              placeholder='Example: “Compare the auth middleware with the new policy service.” or “What breaks if we sunset the CLI client?”' 
+              placeholder='Example: "Compare the auth middleware with the new policy service." or "What breaks if we sunset the CLI client?"' 
               value={question} 
-              onChange={(e) => setQuestion(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setQuestion(e.target.value)}
             />
           </div>
           <Button 

@@ -79,11 +79,19 @@ const CommitLog = () => {
                                     <div className='w-px bg-border'></div>
                                 </div>
                                 <div className="relative flex-shrink-0">
-                                    <img
-                                        src={commit.commitAuthorAvatar}
-                                        alt={commit.commitAuthorName}
-                                        className='relative mt-3 size-10 rounded-full ring-2 ring-background border-2 border-border'
-                                    />
+                                    {commit.commitAuthorAvatar ? (
+                                        <img
+                                            src={commit.commitAuthorAvatar}
+                                            alt={commit.commitAuthorName}
+                                            className='relative mt-3 size-10 rounded-full ring-2 ring-background border-2 border-border'
+                                        />
+                                    ) : (
+                                        <div className='relative mt-3 size-10 rounded-full ring-2 ring-background border-2 border-border bg-gradient-to-br from-primary/40 to-primary/20 flex items-center justify-center'>
+                                            <span className='text-xs font-semibold text-primary/80'>
+                                                {commit.commitAuthorName?.charAt(0)?.toUpperCase() || 'U'}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className='flex-auto rounded-xl border border-border/60 bg-background/80 p-4 transition-all hover:border-primary/40'>
                                     <div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3'>

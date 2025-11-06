@@ -83,16 +83,16 @@ export default function CodeReviewPage() {
       commitHash: selectedCommit,
     });
   };
-  const filteredCommits = commits?.filter(commit => 
+  const filteredCommits = commits?.filter(commit =>
     commit.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     commit.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     commit.sha.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
+
   if (!params.projectId) {
     return null;
   }
-  
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
@@ -102,7 +102,7 @@ export default function CodeReviewPage() {
       </div>
     );
   }
-  
+
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-600";
     if (score >= 70) return "text-yellow-600";

@@ -53,17 +53,24 @@ export const aiSummariseCommit = async (diff: string) => {
 
 export async function summariseCode(doc: Document) {
     const code = doc.pageContent.slice(0, 10000);
-    console.log("summarise code ----------------------")
-    console.log("source code:", code);
     try {
       const generatePromise = model.generateContent([
         `You are an intelligent senior software engineer who specializes in onboarding junior software engineers onto projects. 
         You are onboarding a junior software engineer and explaining to them the purpose of the ${doc.metadata.source} file.
+        
+        Analyze the code and provide a clear, concise summary that includes:
+        1. What this file does at a high level
+        2. Key functions or classes and their purposes
+        3. Important dependencies or imports
+        4. How it fits into the larger system
+        5. Any important patterns or best practices used
+        
         Here is the code:
         ---
         ${code}
         ---
-        Please provide a summary of the code above in no more than 100 words.`
+        
+        Please provide a summary of the code above in 100-150 words. Be specific and informative.`
       ]);
       
       const response = await withTimeout(
@@ -72,25 +79,42 @@ export async function summariseCode(doc: Document) {
         'Gemini AI code summary timeout'
       );
       
-      return response.response.text();
-    } catch {
+      const summary = response.response.text();
+      return summary;
+    } catch (error) {
       return "";
     }
 }
 
 export async function generateEmbedding(summary: string) {
-  const embeddingModel = genAI.getGenerativeModel({
-      model: "text-embedding-004",  
-  });
-  
-  const embedPromise = embeddingModel.embedContent(summary);
-  
-  const result = await withTimeout(
-    embedPromise,
-    15000,
-    'Gemini embedding generation timeout'
-  );
-  
-  const embedding = result.embedding;
-  return embedding.values;
+  try {
+    if (!summary || summary.trim() === "") {
+      throw new Error("Cannot generate embedding for empty summary");
+    }
+    
+    const embeddingModel = genAI.getGenerativeModel({
+        model: "text-embedding-004",  
+    });
+    
+    // Limit summary length for embedding generation
+    const limitedSummary = summary.slice(0, 3000);
+    
+    const embedPromise = embeddingModel.embedContent(limitedSummary);
+    
+    const result = await withTimeout(
+      embedPromise,
+      15000,
+      'Gemini embedding generation timeout'
+    );
+    
+    const embedding = result.embedding;
+    
+    if (!embedding || !embedding.values || embedding.values.length === 0) {
+      throw new Error("Invalid embedding received from API");
+    }
+    
+    return embedding.values;
+  } catch (error) {
+    throw error;
+  }
 }

@@ -1,8 +1,8 @@
 "use client"
 import Link from "next/link"
-import { 
-  Plus, 
-  Sparkles, 
+import {
+  Plus,
+  Sparkles,
   ArrowRight,
   BarChart3,
   Code2,

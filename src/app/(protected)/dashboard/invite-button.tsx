@@ -23,7 +23,6 @@ const InviteButton = () => {
                 setTimeout(() => setCopied(false), 2000);
             }
         } catch (error) {
-            console.error("Copy to clipboard error:", error);
             toast.error("Unable to copy link", {
                 description: "Please try selecting and copying manually"
             });
@@ -44,12 +43,12 @@ const InviteButton = () => {
                         Share this link with team members to grant them access to this workspace. They&apos;ll be able to view meetings, ask questions, and collaborate on insights.
                     </p>
                     <div className="flex items-center gap-2">
-                        <Input 
-                            readOnly 
-                            className='flex-1 text-sm bg-background/80' 
+                        <Input
+                            readOnly
+                            className='flex-1 text-sm bg-background/80'
                             value={inviteLink}
                         />
-                        <Button 
+                        <Button
                             size="sm"
                             onClick={handleCopy}
                             className="gap-2 shrink-0"

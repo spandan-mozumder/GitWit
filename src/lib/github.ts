@@ -58,7 +58,6 @@ export const pollCommits = async (prjectId: string) => {
     });
     const commits = await db.commit.createMany({
         data: summaries.map((summary, index) => {
-            console.log(`Processing commit ${index}`);
             return {
                 projectId: prjectId,
                 commitHash: unprocessedCommits[index]!.commitHash,
@@ -70,9 +69,8 @@ export const pollCommits = async (prjectId: string) => {
             }
         }),
     });
-    console.log(`commits created: ${commits.count}`);
     return commits;
-}; 
+};
 async function summariseCommit(githubUrl: string, commitHash: string) {
     const {data} = await axios.get(`${githubUrl}/commit/${commitHash}.diff`,{
         headers: {
@@ -89,7 +87,7 @@ async function fetchProjectGithubUrl(prjectId: string) {
         },
         select: {
             repoUrl: true,
-        }, 
+        },
     });
     if (!project?.repoUrl) {
         throw new Error("Project has no repo url");

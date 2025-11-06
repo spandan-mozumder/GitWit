@@ -5,10 +5,10 @@ import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { toast } from "sonner";
-import { 
-  FileText, 
-  Sparkles, 
-  Download, 
+import {
+  FileText,
+  Sparkles,
+  Download,
   RefreshCw,
   CheckCircle2,
   AlertCircle
@@ -41,14 +41,14 @@ export default function MeetingSummaryPage() {
   const requestSummary = api.liveMeetings.requestSummary.useMutation();
   const generateSummary = api.liveMeetings.generateSummary.useMutation();
   const isAdmin = myRole === "ADMIN";
-  // Auto-poll transcription status if processing
+
   useEffect(() => {
     if (meeting?.transcriptionStatus === "PROCESSING" && !isPolling) {
       setIsPolling(true);
       const interval = setInterval(async () => {
         try {
           await refetch();
-          // Check if status changed
+
           if (meeting?.transcriptionStatus === "COMPLETED") {
             setIsPolling(false);
             clearInterval(interval);
@@ -59,9 +59,8 @@ export default function MeetingSummaryPage() {
             toast.error("Transcription failed");
           }
         } catch (error) {
-          console.error("Failed to check transcription:", error);
         }
-      }, 5000); // Poll every 5 seconds
+      }, 5000);
       return () => clearInterval(interval);
     }
   }, [meeting?.transcriptionStatus, params.meetingId, refetch, isPolling]);
@@ -114,7 +113,8 @@ export default function MeetingSummaryPage() {
           Back to Meeting
         </Button>
       </div>
-      {/* Status Overview */}
+      {
+}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader>
@@ -189,7 +189,8 @@ export default function MeetingSummaryPage() {
           </CardContent>
         </Card>
       </div>
-      {/* Transcript */}
+      {
+}
       {meeting?.transcript && (
         <Card>
           <CardHeader>
@@ -218,7 +219,8 @@ export default function MeetingSummaryPage() {
           </CardContent>
         </Card>
       )}
-      {/* Summary Controls */}
+      {
+}
       {meeting?.transcriptionStatus === "COMPLETED" && !meeting?.summary && (
         <Card>
           <CardHeader>
@@ -292,7 +294,8 @@ export default function MeetingSummaryPage() {
           </CardContent>
         </Card>
       )}
-      {/* AI Summary */}
+      {
+}
       {meeting?.summary && (
         <Card className="border-2 border-primary/20">
           <CardHeader>
@@ -323,7 +326,8 @@ export default function MeetingSummaryPage() {
           </CardContent>
         </Card>
       )}
-      {/* No data state */}
+      {
+}
       {!meeting?.audioFileUrl && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">

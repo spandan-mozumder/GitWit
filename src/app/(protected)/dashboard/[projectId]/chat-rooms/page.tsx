@@ -250,7 +250,8 @@ export default function ChatRoomsPage() {
           </Card>
         )}
       </div>
-      {/* Participants Management Dialog */}
+      {
+}
       <Dialog open={participantsDialogOpen} onOpenChange={setParticipantsDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

@@ -236,7 +236,6 @@ async function analyzeCode(reviewId: string, db: typeof import("~/server/db").db
       },
     });
   } catch (error) {
-    console.error("Error analyzing code:", error);
     await db.codeReview.update({
       where: { id: reviewId },
       data: { status: "FAILED" },

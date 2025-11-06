@@ -57,7 +57,7 @@ export const teamChatRouter = createTRPCRouter({
         messageType: z
           .enum(["TEXT", "CODE", "FILE", "SYSTEM"])
           .default("TEXT"),
-        roomId: z.string().optional(), // For chat rooms
+        roomId: z.string().optional(),
         attachments: z.array(z.object({
           fileName: z.string(),
           fileUrl: z.string(),
@@ -142,7 +142,7 @@ export const teamChatRouter = createTRPCRouter({
     .input(
       z.object({
         chatId: z.string(),
-        roomId: z.string().optional(), // Filter by room
+        roomId: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
         cursor: z.string().optional(),
       })
@@ -151,8 +151,8 @@ export const teamChatRouter = createTRPCRouter({
       const messages = await ctx.db.chatMessage.findMany({
         where: {
           chatId: input.chatId,
-          roomId: input.roomId, // Filter by room if provided
-          parentMessageId: null, 
+          roomId: input.roomId,
+          parentMessageId: null,
         },
         include: {
           user: {
@@ -185,7 +185,7 @@ export const teamChatRouter = createTRPCRouter({
               },
             },
           },
-          attachments: true, // Include attachments
+          attachments: true,
           threadMessages: {
             include: {
               user: {
@@ -196,7 +196,7 @@ export const teamChatRouter = createTRPCRouter({
                   imageUrl: true,
                 },
               },
-              attachments: true, // Include thread message attachments
+              attachments: true,
             },
             orderBy: {
               createdAt: "asc",

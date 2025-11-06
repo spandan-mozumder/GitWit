@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 export const chatRoomsRouter = createTRPCRouter({
-  // Create a new chat room (Admin only)
+
   createRoom: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -9,7 +9,7 @@ export const chatRoomsRouter = createTRPCRouter({
       description: z.string().optional()
     }))
     .mutation(async ({ ctx, input }) => {
-      // Check ADMIN permission
+
       const member = await ctx.db.projectMember.findUnique({
         where: {
           userId_projectId: {
@@ -30,14 +30,14 @@ export const chatRoomsRouter = createTRPCRouter({
         }
       });
     }),
-  // Get all rooms for a project
+
   getRooms: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
       return await ctx.db.chatRoom.findMany({
-        where: { 
+        where: {
           projectId: input.projectId,
-          isActive: true 
+          isActive: true
         },
         include: {
           memberships: true,
@@ -48,7 +48,7 @@ export const chatRoomsRouter = createTRPCRouter({
         orderBy: { createdAt: 'asc' }
       });
     }),
-  // Get rooms where user is a member
+
   getMyRooms: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -70,14 +70,14 @@ export const chatRoomsRouter = createTRPCRouter({
         orderBy: { createdAt: 'asc' }
       });
     }),
-  // Add participants to a room (Admin only)
+
   addParticipants: protectedProcedure
     .input(z.object({
       roomId: z.string(),
       userIds: z.array(z.string())
     }))
     .mutation(async ({ ctx, input }) => {
-      // Check ADMIN permission for the room's project
+
       const room = await ctx.db.chatRoom.findUnique({
         where: { id: input.roomId },
         select: { projectId: true }
@@ -103,14 +103,14 @@ export const chatRoomsRouter = createTRPCRouter({
         skipDuplicates: true
       });
     }),
-  // Remove participant from room (Admin only)
+
   removeParticipant: protectedProcedure
     .input(z.object({
       roomId: z.string(),
       userId: z.string()
     }))
     .mutation(async ({ ctx, input }) => {
-      // Check ADMIN permission
+
       const room = await ctx.db.chatRoom.findUnique({
         where: { id: input.roomId },
         select: { projectId: true }
@@ -136,7 +136,7 @@ export const chatRoomsRouter = createTRPCRouter({
         }
       });
     }),
-  // Delete room (Admin only)
+
   deleteRoom: protectedProcedure
     .input(z.object({ roomId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -156,13 +156,13 @@ export const chatRoomsRouter = createTRPCRouter({
       if (member?.role !== 'ADMIN') {
         throw new Error('Only admins can delete rooms');
       }
-      // Soft delete
+
       await ctx.db.chatRoom.update({
         where: { id: input.roomId },
         data: { isActive: false }
       });
     }),
-  // Get room participants
+
   getRoomParticipants: protectedProcedure
     .input(z.object({ roomId: z.string() }))
     .query(async ({ ctx, input }) => {

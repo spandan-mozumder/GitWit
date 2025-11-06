@@ -26,13 +26,13 @@ export function getRateLimiter() {
 
 export async function checkRateLimit(identifier: string): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
   const limiter = getRateLimiter();
-  
+
   if (!limiter) {
     return { success: true, limit: 100, remaining: 100, reset: Date.now() + 60000 };
   }
 
   const { success, limit, remaining, reset } = await limiter.limit(identifier);
-  
+
   return { success, limit, remaining, reset };
 }
 
@@ -42,14 +42,14 @@ export async function checkRateLimitForEndpoint(
   customLimit?: number
 ): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
   const limiter = getRateLimiter();
-  
+
   if (!limiter) {
     return { success: true, limit: customLimit || 100, remaining: customLimit || 100, reset: Date.now() + 60000 };
   }
 
   const key = `${identifier}:${endpoint}`;
   const { success, limit, remaining, reset } = await limiter.limit(key);
-  
+
   return { success, limit, remaining, reset };
 }
 

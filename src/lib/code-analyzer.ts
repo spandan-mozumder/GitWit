@@ -55,10 +55,9 @@ export async function analyzeRepositoryCode(
         const severityOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 };
         return severityOrder[a.severity] - severityOrder[b.severity];
       }),
-      suggestions: allSuggestions.slice(0, 10), 
+      suggestions: allSuggestions.slice(0, 10),
     };
   } catch (error) {
-    console.error('Error analyzing repository:', error);
     throw error;
   }
 }
@@ -97,7 +96,6 @@ async function collectCodeFiles(
           });
         }
       } catch (error) {
-        console.error(`Error fetching file ${item.path}:`, error);
       }
     } else if (item.type === 'dir' && item.name && item.path && !isIgnoredDir(item.name)) {
       try {
@@ -111,7 +109,6 @@ async function collectCodeFiles(
           await collectCodeFiles(owner, repo, branch, dirContent, limit, collected);
         }
       } catch (error) {
-        console.error(`Error fetching directory ${item.path}:`, error);
       }
     }
   }

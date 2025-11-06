@@ -1,8 +1,8 @@
 "use client"
 import Link from "next/link"
-import { 
-  BarChart3, 
-  Code2, 
+import {
+  BarChart3,
+  Code2,
   MessageSquare,
   Bot,
   Presentation,
@@ -150,8 +150,8 @@ export default function FeaturesPage() {
             const colors = getColorClasses(feature.color)
             const Icon = feature.icon
             return (
-              <Card 
-                key={feature.title} 
+              <Card
+                key={feature.title}
                 className={`group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all hover:shadow-lg ${colors.shadow} hover:-translate-y-1`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
@@ -200,8 +200,8 @@ export default function FeaturesPage() {
             const Icon = feature.icon
             const isComingSoon = feature.badges.includes("Coming Soon")
             return (
-              <Card 
-                key={feature.title} 
+              <Card
+                key={feature.title}
                 className={`group relative overflow-hidden border-border/70 bg-gradient-to-br from-card/70 to-card/40 transition-all ${!isComingSoon && `hover:shadow-lg ${colors.shadow} hover:-translate-y-1`} ${isComingSoon && 'opacity-75'}`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 ${!isComingSoon && 'group-hover:opacity-100'} transition-opacity`} />

@@ -10,9 +10,9 @@ export const uploadFile = async (file: File) => {
     const existingFileNames = existingFiles?.map(file => file.name);
     while (existingFileNames?.includes(safeFileName)) {
         const nameParts = safeFileName.split('.');
-        const extension = nameParts.pop(); 
-        const baseName = nameParts.join('.'); 
-        safeFileName = `${baseName}-${counter}.${extension}`; 
+        const extension = nameParts.pop();
+        const baseName = nameParts.join('.');
+        safeFileName = `${baseName}-${counter}.${extension}`;
         filePath = `uploads/${safeFileName}`;
         counter++;
     }
@@ -22,16 +22,13 @@ export const uploadFile = async (file: File) => {
             contentType: 'audio/*',
         });
     if (error) {
-        console.error('Error uploading file:', error);
-        return { success: false}; 
+        return { success: false};
     }
     const { data: { publicUrl: publicURL } } = await supabase.storage
         .from('audio-files')
         .getPublicUrl(filePath);
     if (!publicURL) {
-        console.error('Error getting public URL:', publicURL);
-        return { success: false, message: 'Error getting public URL' }; 
+        return { success: false, message: 'Error getting public URL' };
     }
-    console.log('File uploaded successfully:', publicURL);
-    return { success: true, url: publicURL,data }; 
+    return { success: true, url: publicURL,data };
 };

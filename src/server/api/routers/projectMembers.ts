@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 export const projectMembersRouter = createTRPCRouter({
-  // Check if user has required permission level
+
   checkPermission: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -20,7 +20,7 @@ export const projectMembersRouter = createTRPCRouter({
       const roleHierarchy = { ADMIN: 3, COLLABORATOR: 2, VIEWER: 1 };
       return roleHierarchy[member.role] >= roleHierarchy[input.requiredRole];
     }),
-  // Get user's role in a project
+
   getMyRole: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -34,7 +34,7 @@ export const projectMembersRouter = createTRPCRouter({
       });
       return member?.role || null;
     }),
-  // Assign role to user (ADMIN only)
+
   assignRole: protectedProcedure
     .input(z.object({
       projectId: z.string(),
@@ -42,7 +42,7 @@ export const projectMembersRouter = createTRPCRouter({
       role: z.enum(['ADMIN', 'COLLABORATOR', 'VIEWER'])
     }))
     .mutation(async ({ ctx, input }) => {
-      // Check if requester is ADMIN
+
       const requester = await ctx.db.projectMember.findUnique({
         where: {
           userId_projectId: {
@@ -72,7 +72,7 @@ export const projectMembersRouter = createTRPCRouter({
         }
       });
     }),
-  // List all project members
+
   getProjectMembers: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -81,14 +81,14 @@ export const projectMembersRouter = createTRPCRouter({
         orderBy: { createdAt: 'asc' }
       });
     }),
-  // Remove member (ADMIN only)
+
   removeMember: protectedProcedure
     .input(z.object({
       projectId: z.string(),
       userId: z.string()
     }))
     .mutation(async ({ ctx, input }) => {
-      // Check if requester is ADMIN
+
       const requester = await ctx.db.projectMember.findUnique({
         where: {
           userId_projectId: {
@@ -100,7 +100,7 @@ export const projectMembersRouter = createTRPCRouter({
       if (requester?.role !== 'ADMIN') {
         throw new Error('Only admins can remove members');
       }
-      // Don't allow removing the last admin
+
       const adminCount = await ctx.db.projectMember.count({
         where: {
           projectId: input.projectId,

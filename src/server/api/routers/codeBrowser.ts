@@ -38,8 +38,8 @@ export const codeBrowserRouter = createTRPCRouter({
         .replace('.git', '')
         .split('/');
       const { Octokit } = await import('octokit');
-      const octokit = new Octokit({ 
-        auth: project.gitHubToken 
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_ACCESS_TOKEN
       });
       const { data: repoData } = await octokit.rest.repos.get({
         owner,
@@ -70,8 +70,8 @@ export const codeBrowserRouter = createTRPCRouter({
         .replace('.git', '')
         .split('/');
       const { Octokit } = await import('octokit');
-      const octokit = new Octokit({ 
-        auth: project.gitHubToken 
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_ACCESS_TOKEN
       });
       const { data } = await octokit.rest.repos.getContent({
         owner,
@@ -107,8 +107,8 @@ export const codeBrowserRouter = createTRPCRouter({
         .replace('.git', '')
         .split('/');
       const { Octokit } = await import('octokit');
-      const octokit = new Octokit({ 
-        auth: project.gitHubToken 
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_ACCESS_TOKEN
       });
       const { data: prs } = await octokit.rest.pulls.list({
         owner,
@@ -132,7 +132,7 @@ export const codeBrowserRouter = createTRPCRouter({
             prNumber: pr.number,
             title: pr.title,
             description: pr.body,
-            status: pr.state === 'open' ? 'OPEN' as const : 
+            status: pr.state === 'open' ? 'OPEN' as const :
                     pr.merged_at ? 'MERGED' as const : 'CLOSED' as const,
             author: pr.user?.login ?? 'unknown',
             authorAvatar: pr.user?.avatar_url,
@@ -195,8 +195,8 @@ export const codeBrowserRouter = createTRPCRouter({
         .replace('.git', '')
         .split('/');
       const { Octokit } = await import('octokit');
-      const octokit = new Octokit({ 
-        auth: project.gitHubToken 
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_ACCESS_TOKEN
       });
       const { data: prFiles } = await octokit.rest.pulls.listFiles({
         owner,
@@ -255,7 +255,7 @@ Provide a comprehensive analysis:
 Format as a structured analysis.`,
       });
       const qualityScore = Math.floor(Math.random() * 30) + 70;
-      const riskLevel = totalAdditions + totalDeletions > 500 ? 'HIGH' : 
+      const riskLevel = totalAdditions + totalDeletions > 500 ? 'HIGH' :
                        totalAdditions + totalDeletions > 200 ? 'MEDIUM' : 'LOW';
       const pr = await ctx.db.pullRequest.update({
         where: {
@@ -306,8 +306,8 @@ Format as a structured analysis.`,
         .replace('.git', '')
         .split('/');
       const { Octokit } = await import('octokit');
-      const octokit = new Octokit({ 
-        auth: project.gitHubToken 
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_ACCESS_TOKEN
       });
       const { data: branches } = await octokit.rest.repos.listBranches({
         owner,
@@ -337,8 +337,8 @@ Format as a structured analysis.`,
         .replace('.git', '')
         .split('/');
       const { Octokit } = await import('octokit');
-      const octokit = new Octokit({ 
-        auth: project.gitHubToken 
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_ACCESS_TOKEN
       });
       const { data: commits } = await octokit.rest.repos.listCommits({
         owner,
@@ -371,22 +371,22 @@ Format as a structured analysis.`,
         .replace('.git', '')
         .split('/');
       const { Octokit } = await import('octokit');
-      const octokit = new Octokit({ 
-        auth: project.gitHubToken 
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_ACCESS_TOKEN
       });
-      // Get PR details from GitHub
+
       const { data: pr } = await octokit.rest.pulls.get({
         owner,
         repo,
         pull_number: input.prNumber,
       });
-      // Get PR files/diff
+
       const { data: prFiles } = await octokit.rest.pulls.listFiles({
         owner,
         repo,
         pull_number: input.prNumber,
       });
-      // Get from database if exists
+
       const dbPR = await ctx.db.pullRequest.findUnique({
         where: {
           projectId_prNumber: {
@@ -461,8 +461,8 @@ Format as a structured analysis.`,
         .replace('.git', '')
         .split('/');
       const { Octokit } = await import('octokit');
-      const octokit = new Octokit({ 
-        auth: project.gitHubToken 
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_ACCESS_TOKEN
       });
       try {
         const { data: result } = await octokit.rest.pulls.merge({
@@ -473,7 +473,7 @@ Format as a structured analysis.`,
           ...(input.commitTitle && { commit_title: input.commitTitle }),
           ...(input.commitMessage && { commit_message: input.commitMessage }),
         });
-        // Update in database
+
         await ctx.db.pullRequest.updateMany({
           where: {
             projectId: input.projectId,

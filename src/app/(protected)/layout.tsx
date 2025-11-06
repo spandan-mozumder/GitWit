@@ -12,8 +12,8 @@ type Props = {
 }
 const userButtonAppearance = {
     elements: {
-      userButtonAvatarBox: "w-9 h-9", 
-      userButtonPopoverCard: "w-auto", 
+      userButtonAvatarBox: "w-9 h-9",
+      userButtonPopoverCard: "w-auto",
     },
   };
 const SideBarLayout = ({children}:Props) => {

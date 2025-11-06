@@ -1,14 +1,13 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { pollCommits } from "@/lib/github";
-import { indexGithubRepo } from "@/lib/github-loader";
+import { pollCommits } from "~/lib/github";
+import { indexGithubRepo } from "~/lib/github-loader";
 export const projectRouter = createTRPCRouter({
     createProject: protectedProcedure.input(z.object({
         name: z.string(),
         repoUrl: z.string(),
-        gitHubToken: z.string().optional(),
     })).mutation(async ({ctx, input}) => {
-        const {name, repoUrl, gitHubToken}= input;
+        const {name, repoUrl}= input;
         const existingProjectWithName = await ctx.db.project.findFirst({
             where: {
                 name,
@@ -41,7 +40,6 @@ export const projectRouter = createTRPCRouter({
             data: {
                 name,
                 repoUrl,
-                gitHubToken,
                 userToProjects:{
                     create:{
                         userId: ctx.user.userId!,
@@ -59,7 +57,7 @@ export const projectRouter = createTRPCRouter({
             }
         });
         await pollCommits(project.id);
-        await indexGithubRepo(project.id, repoUrl, gitHubToken);
+        await indexGithubRepo(project.id, repoUrl);
         return project;
     }),
     getProjects: protectedProcedure.query(async ({ctx}) => {
@@ -74,13 +72,10 @@ export const projectRouter = createTRPCRouter({
         projectId: z.string(),
     })).query(async ({ctx, input}) => {
         const {projectId} = input;
-        console.log(`polling commits for project ${projectId}`);
         pollCommits(projectId)
             .then(() => {
-                console.log(`Successfully polled commits for project ${projectId}`);
             })
-            .catch((error) => {
-                console.error(`Error polling commits for project ${projectId}`, error);
+            .catch((error: Error) => {
             });
         return await ctx.db.commit.findMany({
             where: {projectId},

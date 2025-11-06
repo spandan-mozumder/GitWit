@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { 
-  getCommitStats, 
-  getPullRequestStats, 
+import {
+  getCommitStats,
+  getPullRequestStats,
   getContributorStats,
-  getCodeHotspots 
+  getCodeHotspots
 } from "@/lib/github-analytics";
 export const analyticsRouter = createTRPCRouter({
   getDeveloperMetrics: protectedProcedure
@@ -96,21 +96,20 @@ export const analyticsRouter = createTRPCRouter({
               linesDeleted: totalLinesDeleted,
               prsCreated: totalPRs,
               prsReviewed: mergedPRs,
-              issuesClosed: 0, 
+              issuesClosed: 0,
             },
             _avg: {
               averageReviewTime: avgReviewTime,
-              activeHours: Math.floor(totalCommits / (daysBack / 7)) * 8, 
-              focusTimeHours: Math.floor(totalCommits / (daysBack / 7)) * 6, 
+              activeHours: Math.floor(totalCommits / (daysBack / 7)) * 8,
+              focusTimeHours: Math.floor(totalCommits / (daysBack / 7)) * 6,
             },
           },
-          team: null, 
+          team: null,
           period: input.period,
           realTimeData: true,
           lastUpdated: new Date(),
         };
       } catch (error) {
-        console.error("Error fetching GitHub data:", error);
         throw new Error("Failed to fetch repository analytics");
       }
     }),
@@ -143,7 +142,6 @@ export const analyticsRouter = createTRPCRouter({
           createdAt: new Date(),
         }));
       } catch (error) {
-        console.error("Error fetching code hotspots:", error);
         return [];
       }
     }),
@@ -177,9 +175,9 @@ export const analyticsRouter = createTRPCRouter({
           userId: contributor.login,
           _sum: {
             commitsCount: contributor.commits,
-            prsCreated: 0, 
-            prsReviewed: 0, 
-            issuesClosed: 0, 
+            prsCreated: 0,
+            prsReviewed: 0,
+            issuesClosed: 0,
             linesAdded: contributor.additions,
           },
           user: {
@@ -192,7 +190,6 @@ export const analyticsRouter = createTRPCRouter({
           score: contributor.contributions,
         }));
       } catch (error) {
-        console.error("Error fetching leaderboard:", error);
         return [];
       }
     }),
@@ -235,14 +232,13 @@ export const analyticsRouter = createTRPCRouter({
             projectId: input.projectId,
             date: new Date(date),
             totalCommits: metrics.commits,
-            totalPRs: 0, 
+            totalPRs: 0,
             averagePRSize: (metrics.additions + metrics.deletions) / metrics.commits,
             linesChanged: metrics.additions + metrics.deletions,
-            velocity: metrics.commits, 
+            velocity: metrics.commits,
           }))
           .sort((a, b) => a.date.getTime() - b.date.getTime());
       } catch (error) {
-        console.error("Error fetching velocity trends:", error);
         return [];
       }
     }),
@@ -286,7 +282,7 @@ export const analyticsRouter = createTRPCRouter({
           .map(pr => {
             const created = new Date(pr.createdAt).getTime();
             const merged = new Date(pr.mergedAt!).getTime();
-            return (merged - created) / (1000 * 60 * 60); 
+            return (merged - created) / (1000 * 60 * 60);
           });
         const avgLeadTime = leadTimes.length > 0
           ? leadTimes.reduce((sum, time) => sum + time, 0) / leadTimes.length
@@ -316,7 +312,6 @@ export const analyticsRouter = createTRPCRouter({
           realTimeData: true,
         };
       } catch (error) {
-        console.error("Error fetching DORA metrics:", error);
         return null;
       }
     }),
@@ -351,7 +346,7 @@ async function calculateAndSaveMetrics(
         userId: user.id,
         projectId,
         date: dateOnly,
-        commitsCount: 0, 
+        commitsCount: 0,
         linesAdded: 0,
         linesDeleted: 0,
         prsCreated: 0,
@@ -417,7 +412,7 @@ function calculateDORArating(metrics: {
   return "Low";
 }
 function calculateRiskScore(changes: number, contributors: number): number {
-  const changeScore = Math.min(changes / 10, 100); 
+  const changeScore = Math.min(changes / 10, 100);
   const contributorScore = contributors > 0 ? 100 / contributors : 100;
   return Math.min(Math.round((changeScore + contributorScore) / 2), 100);
 }

@@ -18,7 +18,6 @@ const MeetingCard = () => {
     const processMeeting= useMutation({
         mutationFn: async ( data:{meetingUrl: string, meetingId: string, projectId: string}) =>{
             const {meetingUrl, meetingId, projectId} = data;
-            console.log("Processing meeting", data)
             const response =  await axios.post('/api/process-meeting',{
                 meetingUrl,
                 meetingId,
@@ -30,7 +29,7 @@ const MeetingCard = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<string>('');
     const uploadMeeting = api.project.uploadMeeting.useMutation()
-    const MAX_FILE_SIZE = 50 * 1024 * 1024; 
+    const MAX_FILE_SIZE = 50 * 1024 * 1024;
     const {getInputProps, getRootProps, isDragActive}= useDropzone({
         accept:{
             'audio/*':[],
@@ -54,7 +53,6 @@ const MeetingCard = () => {
                 return;
             }
             const file = acceptedFiles[0];
-            console.log("File drop:",file)
             if (!file) {
                 toast.error("No file selected", {
                     description: "Please select an audio file to upload"
@@ -87,7 +85,6 @@ const MeetingCard = () => {
                             meetingId: meeting.id,
                             projectId: project.projectId
                         }).catch((error) => {
-                            console.error("Meeting processing error:", error);
                             toast.error("Processing incomplete", {
                                 description: "Meeting uploaded but analysis failed. We'll retry automatically.",
                                 icon: <AlertCircle className="h-4 w-4" />
@@ -96,7 +93,6 @@ const MeetingCard = () => {
                     },
                     onError: (error) => {
                         toast.dismiss(uploadToast);
-                        console.error("Upload meeting error:", error);
                         toast.error("Upload failed", {
                             description: error.message || "Unable to upload meeting. Please try again.",
                             icon: <AlertCircle className="h-4 w-4" />,
@@ -106,7 +102,6 @@ const MeetingCard = () => {
                 })
             } catch (error) {
                 toast.dismiss(uploadToast);
-                console.error("File upload error:", error);
                 toast.error("Upload failed", {
                     description: "Network error. Please check your connection and try again.",
                     icon: <AlertCircle className="h-4 w-4" />,
@@ -119,10 +114,10 @@ const MeetingCard = () => {
         },
     })
   return (
-        <Card 
+        <Card
             className={`col-span-2 relative overflow-hidden border border-border/70 bg-card/70 transition-colors ${
                 isDragActive ? 'border-primary/60 bg-primary/5' : ''
-            }`} 
+            }`}
             {...getRootProps()}
         >
             <div className="absolute inset-x-10 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
@@ -146,7 +141,7 @@ const MeetingCard = () => {
                                 <span>Max 50MB • MP3, WAV, M4A</span>
                             </div>
                         </div>
-                        <Button 
+                        <Button
                             disabled={isUploading}
                             size="lg"
                             className="mt-4 gap-2 rounded-full"

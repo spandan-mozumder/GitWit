@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { toast } from "sonner";
-import { 
-  Mic, 
-  Users, 
-  Upload, 
+import {
+  Mic,
+  Users,
+  Upload,
   StopCircle,
   PlayCircle,
 } from "lucide-react";
@@ -42,7 +42,7 @@ export default function LiveMeetingPage() {
   const endMeeting = api.liveMeetings.endMeeting.useMutation();
   const uploadRecording = api.liveMeetings.uploadRecording.useMutation();
   const leaveMeeting = api.liveMeetings.leaveMeeting.useMutation();
-  const isHost = meeting?.hostId === meeting?.participants?.[0]?.userId; // Simplified check
+  const isHost = meeting?.hostId === meeting?.participants?.[0]?.userId;
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -71,7 +71,7 @@ export default function LiveMeetingPage() {
         setAudioBlob(blob);
         stream.getTracks().forEach(track => track.stop());
       };
-      mediaRecorder.start(1000); // Collect data every second
+      mediaRecorder.start(1000);
       setIsRecording(true);
       setRecordingTime(0);
       timerRef.current = setInterval(() => {
@@ -80,7 +80,6 @@ export default function LiveMeetingPage() {
       toast.success("Recording started");
     } catch (error) {
       toast.error("Failed to access microphone");
-      console.error(error);
     }
   };
   const stopRecording = () => {
@@ -150,7 +149,8 @@ export default function LiveMeetingPage() {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recording Controls */}
+        {
+}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -289,7 +289,8 @@ export default function LiveMeetingPage() {
             )}
           </CardContent>
         </Card>
-        {/* Participants */}
+        {
+}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -322,7 +323,8 @@ export default function LiveMeetingPage() {
           </CardContent>
         </Card>
       </div>
-      {/* Meeting Controls */}
+      {
+}
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">

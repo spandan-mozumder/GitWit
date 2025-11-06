@@ -17,13 +17,13 @@ export const processMeeting = async (meetingUrl: string) => {
         audio: meetingUrl,
         auto_chapters: true,
     });
-    
+
     const transcript = await withTimeout(
         transcriptPromise,
         300000,
         'AssemblyAI transcription timeout (5 minutes)'
     );
-    
+
     const summaries = transcript.chapters?.map(chapter=>({
         start: msToTime(chapter.start),
         end: msToTime(chapter.end),
@@ -31,9 +31,9 @@ export const processMeeting = async (meetingUrl: string) => {
         headline:chapter.headline,
         summary: chapter.summary
     })) || []
-    
+
     if(!transcript.text) throw new Error('No transcript found')
-    
+
     return {
         summaries
     }

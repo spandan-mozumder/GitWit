@@ -6,13 +6,13 @@ import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { Badge } from "~/components/ui/badge"
 import { Spinner } from "~/components/ui/spinner"
-import { 
-  ArrowLeft, 
-  GitBranch, 
-  GitMerge, 
-  GitPullRequest, 
-  Check, 
-  X, 
+import {
+  ArrowLeft,
+  GitBranch,
+  GitMerge,
+  GitPullRequest,
+  Check,
+  X,
   AlertCircle,
   FileCode,
   Plus,
@@ -131,8 +131,8 @@ export default function PullRequestDetailPage() {
               #{github.number} {github.title}
             </h1>
             <Badge variant={
-              isMerged ? "default" : 
-              github.state === 'open' ? "secondary" : 
+              isMerged ? "default" :
+              github.state === 'open' ? "secondary" :
               "outline"
             }>
               {isMerged ? 'Merged' : github.state}
@@ -348,9 +348,9 @@ export default function PullRequestDetailPage() {
                   <span className="text-muted-foreground">Author:</span>
                   <div className="flex items-center gap-2">
                     {github.authorAvatar && (
-                      <img 
-                        src={github.authorAvatar} 
-                        alt={github.author || 'Author'} 
+                      <img
+                        src={github.authorAvatar}
+                        alt={github.author || 'Author'}
                         className="h-5 w-5 rounded-full"
                       />
                     )}

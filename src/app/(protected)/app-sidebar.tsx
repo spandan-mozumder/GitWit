@@ -1,12 +1,12 @@
 "use client"
-import { 
-    Bot, 
-    CreditCard, 
-    LayoutDashboard, 
-    Plus, 
-    Presentation, 
-    BarChart3, 
-    Code2, 
+import {
+    Bot,
+    CreditCard,
+    LayoutDashboard,
+    Plus,
+    Presentation,
+    BarChart3,
+    Code2,
     MessageSquare,
     Sparkles,
     Lightbulb,
@@ -95,7 +95,7 @@ export function AppSidebar(){
                         Application
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
-                        <SidebarMenu> 
+                        <SidebarMenu>
                             {mainItems.map((item)=>{
                                 return(
                                     <SidebarMenuItem key={item.title}>
@@ -119,7 +119,7 @@ export function AppSidebar(){
                             Project Features
                         </SidebarGroupLabel>
                         <SidebarGroupContent>
-                            <SidebarMenu> 
+                            <SidebarMenu>
                                 {projectFeatures.map((item)=>{
                                     return(
                                         <SidebarMenuItem key={item.title}>
@@ -151,7 +151,7 @@ export function AppSidebar(){
                         Your Projects
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
-                        <SidebarMenu> 
+                        <SidebarMenu>
                             {projects?.map((project: { id: string; name: string })=>{
                                 return(
                                     <SidebarMenuItem key={project.name}>

@@ -121,7 +121,7 @@ export function AttachmentDisplay({ fileName, fileUrl, fileType, fileSize }: Att
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
-  // If it's an image, show preview
+
   if (fileType.startsWith("image/")) {
     return (
       <a
@@ -138,7 +138,7 @@ export function AttachmentDisplay({ fileName, fileUrl, fileType, fileSize }: Att
       </a>
     );
   }
-  // For other files, show download link
+
   return (
     <a
       href={fileUrl}

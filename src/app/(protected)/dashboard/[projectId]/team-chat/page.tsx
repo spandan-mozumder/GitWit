@@ -123,9 +123,9 @@ export default function TeamChatPage() {
   ];
   useKeyboardShortcuts(teamChatShortcuts, true);
   const chatMutation = api.teamChat.getOrCreateChat.useMutation();
-  // Get chat rooms
-  const { data: myRooms } = api.chatRooms.getMyRooms.useQuery({ 
-    projectId: params.projectId 
+
+  const { data: myRooms } = api.chatRooms.getMyRooms.useQuery({
+    projectId: params.projectId
   });
   const { data: messages, refetch: refetchMessages } = api.teamChat.getMessages.useQuery(
     {
@@ -135,7 +135,7 @@ export default function TeamChatPage() {
     },
     {
       enabled: !!chatId,
-      refetchInterval: 3000, 
+      refetchInterval: 3000,
     }
   );
   const { data: annotations } = api.teamChat.getAnnotations.useQuery({
@@ -279,7 +279,8 @@ export default function TeamChatPage() {
                 )}
               </div>
             </div>
-            {/* Room Selector */}
+            {
+}
             {myRooms && myRooms.length > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Room:</span>
@@ -360,7 +361,8 @@ export default function TeamChatPage() {
                       </div>
                     ) : msg.messageType === "FILE" ? (
                       <div className="space-y-2">
-                        {/* New attachments from Uploadthing */}
+                        {
+}
                         {msg.attachments && msg.attachments.length > 0 && (
                           <div className="space-y-2">
                             {msg.attachments.map((attachment: { id: string; fileName: string; fileUrl: string; fileType: string; fileSize: number }) => (
@@ -374,7 +376,8 @@ export default function TeamChatPage() {
                             ))}
                           </div>
                         )}
-                        {/* Legacy single attachment */}
+                        {
+}
                         {msg.attachmentUrl && !msg.attachments?.length && (
                           <div className="flex items-center gap-3 p-3 bg-background/80 rounded border border-border">
                             {msg.attachmentType?.startsWith('image/') ? (
@@ -499,7 +502,8 @@ export default function TeamChatPage() {
             <div ref={messagesEndRef} />
           </div>
           <div className="p-4 border-t border-border/50 space-y-3">
-            {/* Show pending Uploadthing attachments */}
+            {
+}
             {pendingAttachments.length > 0 && (
               <div className="space-y-2">
                 {pendingAttachments.map((att, idx) => (
@@ -524,7 +528,8 @@ export default function TeamChatPage() {
                 ))}
               </div>
             )}
-            {/* Legacy file upload preview */}
+            {
+}
             {uploadedFile && (
               <div className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg border border-border">
                 {filePreviewUrl ? (
@@ -665,7 +670,8 @@ export default function TeamChatPage() {
               >
                 <Paperclip className="h-4 w-4" />
               </Button>
-              {/* New Uploadthing file upload */}
+              {
+}
               <ChatFileUpload
                 onUploadComplete={(files) => {
                   setPendingAttachments(prev => [...prev, ...files]);
