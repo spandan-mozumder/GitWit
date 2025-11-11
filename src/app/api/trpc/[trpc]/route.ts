@@ -15,9 +15,6 @@ const handler = (req: NextRequest) =>
     router: appRouter,
     createContext: () => createContext(req),
     onError:
-      env.NODE_ENV === "development"
-        ? ({ path, error }) => {
-          }
-        : undefined,
+      env.NODE_ENV === "development" ? ({ path, error }) => {} : undefined,
   });
 export { handler as GET, handler as POST };

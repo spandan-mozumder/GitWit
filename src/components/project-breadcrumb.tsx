@@ -1,8 +1,8 @@
-"use client"
-import { ChevronRight, Home } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Fragment } from "react"
+"use client";
+import { ChevronRight, Home } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Fragment } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,28 +10,28 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb"
-import useProject from "~/hooks/use-project"
+} from "~/components/ui/breadcrumb";
+import useProject from "~/hooks/use-project";
 export function ProjectBreadcrumb() {
-  const pathname = usePathname()
-  const { project } = useProject()
-  const segments = pathname.split('/').filter(Boolean)
-  if (segments.length <= 1) return null
+  const pathname = usePathname();
+  const { project } = useProject();
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length <= 1) return null;
   const breadcrumbs = segments.map((segment, index) => {
-    const path = `/${segments.slice(0, index + 1).join('/')}`
+    const path = `/${segments.slice(0, index + 1).join("/")}`;
     let label = segment
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
     if (segment === project?.id) {
-      label = project.name
+      label = project.name;
     }
     return {
       label,
       path,
-      isLast: index === segments.length - 1
-    }
-  })
+      isLast: index === segments.length - 1,
+    };
+  });
   return (
     <Breadcrumb className="mb-6">
       <BreadcrumbList>
@@ -50,7 +50,9 @@ export function ProjectBreadcrumb() {
             </BreadcrumbSeparator>
             <BreadcrumbItem>
               {crumb.isLast ? (
-                <BreadcrumbPage className="font-medium">{crumb.label}</BreadcrumbPage>
+                <BreadcrumbPage className="font-medium">
+                  {crumb.label}
+                </BreadcrumbPage>
               ) : (
                 <BreadcrumbLink asChild>
                   <Link href={crumb.path}>{crumb.label}</Link>
@@ -61,5 +63,5 @@ export function ProjectBreadcrumb() {
         ))}
       </BreadcrumbList>
     </Breadcrumb>
-  )
+  );
 }

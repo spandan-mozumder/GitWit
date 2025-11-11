@@ -1,11 +1,17 @@
-"use client"
-import { useParams, useRouter } from "next/navigation"
-import { api } from "~/trpc/react"
-import useProject from "~/hooks/use-project"
-import { Button } from "~/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
-import { Badge } from "~/components/ui/badge"
-import { Spinner } from "~/components/ui/spinner"
+"use client";
+import { useParams, useRouter } from "next/navigation";
+import { api } from "~/trpc/react";
+import useProject from "~/hooks/use-project";
+import { Button } from "~/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { Badge } from "~/components/ui/badge";
+import { Spinner } from "~/components/ui/spinner";
 import {
   ArrowLeft,
   GitBranch,
@@ -21,11 +27,11 @@ import {
   ChevronRight,
   ExternalLink,
   Clock,
-  User
-} from "lucide-react"
-import { useState } from "react"
-import { cn } from "~/lib/utils"
-import { toast } from "sonner"
+  User,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { cn } from "~/lib/utils";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,90 +42,123 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "~/components/ui/alert-dialog"
+} from "~/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select"
-import { ScrollArea } from "~/components/ui/scroll-area"
+} from "~/components/ui/select";
+import { ScrollArea } from "~/components/ui/scroll-area";
 export default function PullRequestDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { project } = useProject()
-  const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set())
-  const [mergeMethod, setMergeMethod] = useState<'merge' | 'squash' | 'rebase'>('merge')
-  const prNumber = parseInt(params.prNumber as string)
-  const { data: prData, isLoading, refetch } = api.codeBrowser.getPullRequestDetails.useQuery(
+  const params = useParams();
+  const router = useRouter();
+  const { project } = useProject();
+  const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
+  const [mergeMethod, setMergeMethod] = useState<"merge" | "squash" | "rebase">(
+    "merge",
+  );
+  const [analysisTriggered, setAnalysisTriggered] = useState(false);
+  const prNumber = parseInt(params.prNumber as string);
+  const {
+    data: prData,
+    isLoading,
+    refetch,
+  } = api.codeBrowser.getPullRequestDetails.useQuery(
     {
-      projectId: project?.id ?? '',
+      projectId: project?.id ?? "",
       prNumber,
     },
     {
       enabled: !!project?.id,
-    }
-  )
-  const mergePR = api.codeBrowser.mergePullRequest.useMutation({
+    },
+  );
+  const analyzePR = api.codeBrowser.analyzePullRequest.useMutation({
     onSuccess: () => {
-      toast.success('Pull request merged successfully!', {
-        icon: <Check className="h-4 w-4" />
-      })
-      refetch()
+      toast.success("PR analyzed successfully!", {
+        icon: <Check className="h-4 w-4" />,
+      });
+      refetch();
     },
     onError: (error) => {
-      toast.error('Failed to merge PR', {
+      toast.error("Failed to analyze PR", {
         description: error.message,
-        icon: <X className="h-4 w-4" />
-      })
+        icon: <X className="h-4 w-4" />,
+      });
+    },
+  });
+  useEffect(() => {
+    if (
+      prData &&
+      !prData.analysis &&
+      project?.id &&
+      !analysisTriggered &&
+      !analyzePR.isPending
+    ) {
+      setAnalysisTriggered(true);
+      analyzePR.mutate({ projectId: project.id, prNumber });
     }
-  })
+  }, [prData, project?.id, analysisTriggered, analyzePR.isPending]);
+  const mergePR = api.codeBrowser.mergePullRequest.useMutation({
+    onSuccess: () => {
+      toast.success("Pull request merged successfully!", {
+        icon: <Check className="h-4 w-4" />,
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast.error("Failed to merge PR", {
+        description: error.message,
+        icon: <X className="h-4 w-4" />,
+      });
+    },
+  });
   const toggleFileExpand = (filename: string) => {
-    const newExpanded = new Set(expandedFiles)
+    const newExpanded = new Set(expandedFiles);
     if (newExpanded.has(filename)) {
-      newExpanded.delete(filename)
+      newExpanded.delete(filename);
     } else {
-      newExpanded.add(filename)
+      newExpanded.add(filename);
     }
-    setExpandedFiles(newExpanded)
-  }
+    setExpandedFiles(newExpanded);
+  };
   const handleMerge = () => {
-    if (!project?.id) return
+    if (!project?.id) return;
     mergePR.mutate({
       projectId: project.id,
       prNumber,
       mergeMethod,
-    })
-  }
+    });
+  };
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Spinner className="size-8" />
       </div>
-    )
+    );
   }
   if (!prData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
         <AlertCircle className="h-12 w-12 text-muted-foreground" />
         <h2 className="text-xl font-semibold">Pull Request Not Found</h2>
-        <Button onClick={() => router.push('/code-browser')}>
+        <Button onClick={() => router.push("/code-browser")}>
           Back to Code Browser
         </Button>
       </div>
-    )
+    );
   }
-  const { github, files, analysis } = prData
-  const isMerged = github.merged
-  const isMergeable = github.mergeable && github.state === 'open'
+  const { github, files, analysis } = prData;
+  const isMerged = github.merged;
+  const isMergeable = github.mergeable && github.state === "open";
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push('/code-browser')}
+          onClick={() => router.push("/code-browser")}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
@@ -130,12 +169,16 @@ export default function PullRequestDetailPage() {
             <h1 className="text-2xl font-bold">
               #{github.number} {github.title}
             </h1>
-            <Badge variant={
-              isMerged ? "default" :
-              github.state === 'open' ? "secondary" :
-              "outline"
-            }>
-              {isMerged ? 'Merged' : github.state}
+            <Badge
+              variant={
+                isMerged
+                  ? "default"
+                  : github.state === "open"
+                    ? "secondary"
+                    : "outline"
+              }
+            >
+              {isMerged ? "Merged" : github.state}
             </Badge>
           </div>
         </div>
@@ -152,31 +195,51 @@ export default function PullRequestDetailPage() {
                 <AlertDialogTitle>Merge Pull Request</AlertDialogTitle>
                 <AlertDialogDescription className="space-y-4">
                   <p>
-                    This will merge <strong>{github.head.ref}</strong> into <strong>{github.base.ref}</strong>.
+                    This will merge <strong>{github.head.ref}</strong> into{" "}
+                    <strong>{github.base.ref}</strong>.
                   </p>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Merge Method</label>
-                    <Select value={mergeMethod} onValueChange={(v) => setMergeMethod(v as typeof mergeMethod)}>
+                    <label className="text-sm font-medium text-foreground">
+                      Merge Method
+                    </label>
+                    <Select
+                      value={mergeMethod}
+                      onValueChange={(v) =>
+                        setMergeMethod(v as typeof mergeMethod)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="merge">
                           <div className="flex flex-col items-start">
-                            <span className="font-medium">Create a merge commit</span>
-                            <span className="text-xs text-muted-foreground">All commits will be preserved</span>
+                            <span className="font-medium">
+                              Create a merge commit
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              All commits will be preserved
+                            </span>
                           </div>
                         </SelectItem>
                         <SelectItem value="squash">
                           <div className="flex flex-col items-start">
-                            <span className="font-medium">Squash and merge</span>
-                            <span className="text-xs text-muted-foreground">Combine all commits into one</span>
+                            <span className="font-medium">
+                              Squash and merge
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Combine all commits into one
+                            </span>
                           </div>
                         </SelectItem>
                         <SelectItem value="rebase">
                           <div className="flex flex-col items-start">
-                            <span className="font-medium">Rebase and merge</span>
-                            <span className="text-xs text-muted-foreground">Rebase commits onto base branch</span>
+                            <span className="font-medium">
+                              Rebase and merge
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Rebase commits onto base branch
+                            </span>
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -194,9 +257,8 @@ export default function PullRequestDetailPage() {
           </AlertDialog>
         )}
         {mergePR.isPending && (
-          <Button disabled className="gap-2">
+          <Button disabled className="min-w-[80px]">
             <Spinner className="h-4 w-4" />
-            Merging...
           </Button>
         )}
       </div>
@@ -212,7 +274,9 @@ export default function PullRequestDetailPage() {
                   <p className="whitespace-pre-wrap">{github.body}</p>
                 </div>
               ) : (
-                <p className="text-muted-foreground italic">No description provided</p>
+                <p className="text-muted-foreground italic">
+                  No description provided
+                </p>
               )}
             </CardContent>
           </Card>
@@ -220,18 +284,23 @@ export default function PullRequestDetailPage() {
             <CardHeader>
               <CardTitle>Changes</CardTitle>
               <CardDescription>
-                {github.changedFiles} files changed with {github.additions} additions and {github.deletions} deletions
+                {github.changedFiles} files changed with {github.additions}{" "}
+                additions and {github.deletions} deletions
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Plus className="h-4 w-4 text-green-500" />
-                  <span className="text-green-500 font-medium">{github.additions} additions</span>
+                  <span className="text-green-500 font-medium">
+                    {github.additions} additions
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Minus className="h-4 w-4 text-red-500" />
-                  <span className="text-red-500 font-medium">{github.deletions} deletions</span>
+                  <span className="text-red-500 font-medium">
+                    {github.deletions} deletions
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <FileCode className="h-4 w-4" />
@@ -240,42 +309,7 @@ export default function PullRequestDetailPage() {
               </div>
             </CardContent>
           </Card>
-          {analysis && (
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Analysis</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  {analysis.qualityScore !== null && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Quality Score:</span>
-                      <Badge variant={analysis.qualityScore >= 80 ? "default" : analysis.qualityScore >= 60 ? "secondary" : "destructive"}>
-                        {analysis.qualityScore}/100
-                      </Badge>
-                    </div>
-                  )}
-                  {analysis.riskLevel && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Risk Level:</span>
-                      <Badge variant={
-                        analysis.riskLevel === 'LOW' ? "default" :
-                        analysis.riskLevel === 'MEDIUM' ? "secondary" :
-                        "destructive"
-                      }>
-                        {analysis.riskLevel}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-                {analysis.aiSummary && (
-                  <div className="rounded-lg bg-muted p-4">
-                    <p className="text-sm whitespace-pre-wrap">{analysis.aiSummary}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {/* AI Analysis card removed per request */}
           <Card>
             <CardHeader>
               <CardTitle>Files Changed ({files.length})</CardTitle>
@@ -295,7 +329,9 @@ export default function PullRequestDetailPage() {
                           <ChevronRight className="h-4 w-4" />
                         )}
                         <FileCode className="h-4 w-4" />
-                        <span className="font-mono text-sm">{file.filename}</span>
+                        <span className="font-mono text-sm">
+                          {file.filename}
+                        </span>
                         <Badge variant="outline" className="text-xs">
                           {file.status}
                         </Badge>
@@ -314,14 +350,19 @@ export default function PullRequestDetailPage() {
                     {expandedFiles.has(file.filename) && file.patch && (
                       <div className="border-t bg-muted/30">
                         <pre className="p-4 overflow-x-auto text-xs font-mono">
-                          {file.patch.split('\n').map((line, i) => (
+                          {file.patch.split("\n").map((line, i) => (
                             <div
                               key={i}
                               className={cn(
                                 "px-2",
-                                line.startsWith('+') && !line.startsWith('+++') && "bg-green-500/10 text-green-600",
-                                line.startsWith('-') && !line.startsWith('---') && "bg-red-500/10 text-red-600",
-                                line.startsWith('@@') && "bg-blue-500/10 text-blue-600 font-semibold"
+                                line.startsWith("+") &&
+                                  !line.startsWith("+++") &&
+                                  "bg-green-500/10 text-green-600",
+                                line.startsWith("-") &&
+                                  !line.startsWith("---") &&
+                                  "bg-red-500/10 text-red-600",
+                                line.startsWith("@@") &&
+                                  "bg-blue-500/10 text-blue-600 font-semibold",
                               )}
                             >
                               {line}
@@ -350,7 +391,7 @@ export default function PullRequestDetailPage() {
                     {github.authorAvatar && (
                       <img
                         src={github.authorAvatar}
-                        alt={github.author || 'Author'}
+                        alt={github.author || "Author"}
                         className="h-5 w-5 rounded-full"
                       />
                     )}
@@ -366,7 +407,9 @@ export default function PullRequestDetailPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <GitMerge className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Merged:</span>
-                    <span>{new Date(github.mergedAt).toLocaleDateString()}</span>
+                    <span>
+                      {new Date(github.mergedAt).toLocaleDateString()}
+                    </span>
                   </div>
                 )}
               </div>
@@ -386,12 +429,14 @@ export default function PullRequestDetailPage() {
                   </code>
                 </div>
               </div>
-              {!isMergeable && github.state === 'open' && (
+              {!isMergeable && github.state === "open" && (
                 <div className="border-t pt-4">
                   <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-500">
                     <AlertCircle className="h-4 w-4" />
                     <span>
-                      {github.mergeable === false ? 'Has conflicts' : 'Checking merge status...'}
+                      {github.mergeable === false
+                        ? "Has conflicts"
+                        : "Checking merge status..."}
                     </span>
                   </div>
                 </div>
@@ -402,11 +447,15 @@ export default function PullRequestDetailPage() {
                   size="sm"
                   className="w-full gap-2"
                   onClick={() => {
-                    const [owner, repo] = project?.repoUrl
-                      .replace('https://github.com/', '')
-                      .replace('.git', '')
-                      .split('/') ?? []
-                    window.open(`https://github.com/${owner}/${repo}/pull/${prNumber}`, '_blank')
+                    const [owner, repo] =
+                      project?.repoUrl
+                        .replace("https://github.com/", "")
+                        .replace(".git", "")
+                        .split("/") ?? [];
+                    window.open(
+                      `https://github.com/${owner}/${repo}/pull/${prNumber}`,
+                      "_blank",
+                    );
                   }}
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -434,5 +483,5 @@ export default function PullRequestDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

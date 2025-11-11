@@ -29,13 +29,16 @@ export const createTRPCRouter = t.router;
 const isAuthenticated = t.middleware(async ({ next, ctx }) => {
   const user = await auth();
   if (!user) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be logged in to access this resource" });
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be logged in to access this resource",
+    });
   }
   return next({
-    ctx:{
+    ctx: {
       ...ctx,
-      user
-    }
+      user,
+    },
   });
 });
 const timingMiddleware = t.middleware(async ({ next, path }) => {
@@ -51,7 +54,8 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 
 const rateLimitMiddleware = t.middleware(async ({ next, ctx, path }) => {
   const user = await auth();
-  const identifier = user?.userId || ctx.headers.get("x-forwarded-for") || "anonymous";
+  const identifier =
+    user?.userId || ctx.headers.get("x-forwarded-for") || "anonymous";
 
   const { success, remaining, reset } = await checkRateLimit(identifier);
 
@@ -62,9 +66,12 @@ const rateLimitMiddleware = t.middleware(async ({ next, ctx, path }) => {
     });
   }
 
-
   return next();
 });
 
-export const publicProcedure = t.procedure.use(timingMiddleware).use(rateLimitMiddleware);
-export const protectedProcedure = t.procedure.use(isAuthenticated).use(rateLimitMiddleware);
+export const publicProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(rateLimitMiddleware);
+export const protectedProcedure = t.procedure
+  .use(isAuthenticated)
+  .use(rateLimitMiddleware);

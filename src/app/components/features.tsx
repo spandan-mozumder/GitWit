@@ -1,4 +1,11 @@
-import { BarChart3, Briefcase, Castle, Cog, Github, MessageSquare } from "lucide-react"
+import {
+  BarChart3,
+  Briefcase,
+  Castle,
+  Cog,
+  Github,
+  MessageSquare,
+} from "lucide-react";
 const capabilities = [
   {
     title: "Context Engine",
@@ -60,10 +67,13 @@ const capabilities = [
       "See cycle times, focus areas, and emerging risk",
     ],
   },
-]
+];
 export function Features() {
   return (
-    <section id="features" className="relative w-full px-4 py-20 md:px-6 md:py-28">
+    <section
+      id="features"
+      className="relative w-full px-4 py-20 md:px-6 md:py-28"
+    >
       <div className="container mx-auto max-w-6xl lg:max-w-7xl">
         <div className="mb-16 grid gap-6 text-left lg:grid-cols-[minmax(0,1.1fr),minmax(0,0.9fr)]">
           <div className="space-y-3">
@@ -75,27 +85,41 @@ export function Features() {
             </h2>
           </div>
           <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
-            Every module is crafted to remove administrative drag and highlight what matters now. Use each
-            capability individually or combine them into a live program that keeps product, engineering, and
-            executives attuned to the same outcome.
+            Every module is crafted to remove administrative drag and highlight
+            what matters now. Use each capability individually or combine them
+            into a live program that keeps product, engineering, and executives
+            attuned to the same outcome.
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-2">
           {capabilities.map(({ title, subtitle, icon: Icon, highlights }) => (
-            <article key={title} className="card-hover relative flex h-full flex-col justify-between rounded-3xl bg-card/80 p-6 shadow-primary/5 transition-colors hover:bg-card/90">
-              <div className="absolute inset-0 rounded-3xl border border-border/60" aria-hidden />
+            <article
+              key={title}
+              className="card-hover relative flex h-full flex-col justify-between rounded-3xl bg-card/80 p-6 shadow-primary/5 transition-colors hover:bg-card/90"
+            >
+              <div
+                className="absolute inset-0 rounded-3xl border border-border/60"
+                aria-hidden
+              />
               <div className="relative space-y-5">
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/12 text-primary">
                   <Icon className="h-5 w-5" />
                 </span>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-semibold text-foreground">{title}</h3>
-                  <p className="text-sm uppercase tracking-[0.25em] text-muted-foreground">{subtitle}</p>
+                  <h3 className="text-xl font-semibold text-foreground">
+                    {title}
+                  </h3>
+                  <p className="text-sm uppercase tracking-[0.25em] text-muted-foreground">
+                    {subtitle}
+                  </p>
                 </div>
                 <ul className="space-y-3 text-sm text-muted-foreground">
                   {highlights.map((highlight) => (
                     <li key={highlight} className="flex gap-3">
-                      <span className="mt-1 h-1.5 w-6 rounded-full bg-primary/50" aria-hidden />
+                      <span
+                        className="mt-1 h-1.5 w-6 rounded-full bg-primary/50"
+                        aria-hidden
+                      />
                       <span className="leading-relaxed">{highlight}</span>
                     </li>
                   ))}
@@ -106,5 +130,5 @@ export function Features() {
         </div>
       </div>
     </section>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input
@@ -20,10 +20,10 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         "file:inline-flex file:h-8 file:border-0 file:bg-transparent file:text-sm file:font-semibold file:mr-4",
         "aria-invalid:border-destructive/50 aria-invalid:ring-4 aria-invalid:ring-destructive/10",
         "md:text-sm",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
-export { Input }
+export { Input };

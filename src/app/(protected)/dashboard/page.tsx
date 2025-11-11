@@ -1,19 +1,35 @@
-"use client"
-import { ExternalLink, Github, Sparkles, BarChart3, Code2, MessageSquare, ArrowRight, Lightbulb, FolderTree } from 'lucide-react';
-import Link from 'next/link';
-import React from 'react'
-import useProject from '~/hooks/use-project';
-import AskQuestionCard from './ask-question-card';
-import MeetingCard from './meeting-card';
-import CommitLog from './commit-log';
-import DeleteButton from './delete-button';
-import InviteButton from './invite-button';
-import TeamMembers from './team-members';
-import { Spinner } from '~/components/ui/spinner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
-import { EmptyProjectState } from '~/components/empty-project-state';
+"use client";
+import {
+  ExternalLink,
+  Github,
+  Sparkles,
+  BarChart3,
+  Code2,
+  MessageSquare,
+  ArrowRight,
+  Lightbulb,
+  FolderTree,
+} from "lucide-react";
+import Link from "next/link";
+import React from "react";
+import useProject from "~/hooks/use-project";
+import AskQuestionCard from "./ask-question-card";
+import MeetingCard from "./meeting-card";
+import CommitLog from "./commit-log";
+import DeleteButton from "./delete-button";
+import InviteButton from "./invite-button";
+import TeamMembers from "./team-members";
+import { Spinner } from "~/components/ui/spinner";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { EmptyProjectState } from "~/components/empty-project-state";
 const DashboardPage = () => {
   const { project, projects } = useProject();
   if (!projects) {
@@ -24,7 +40,7 @@ const DashboardPage = () => {
     );
   }
   if (!project) {
-    return <EmptyProjectState />
+    return <EmptyProjectState />;
   }
   return (
     <div className="space-y-8 animate-fade-in">
@@ -37,13 +53,18 @@ const DashboardPage = () => {
                 <Sparkles className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Active workspace</p>
-                <h1 className="text-2xl font-semibold md:text-3xl">{project?.name || 'Untitled initiative'}</h1>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                  Active workspace
+                </p>
+                <h1 className="text-2xl font-semibold md:text-3xl">
+                  {project?.name || "Untitled initiative"}
+                </h1>
               </div>
             </div>
             <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
-              This hub keeps your squads aligned across analysis, updates, and decision logs. Review core signals, act on
-              AI insights, and keep leadership informed without extra status pings.
+              This hub keeps your squads aligned across analysis, updates, and
+              decision logs. Review core signals, act on AI insights, and keep
+              leadership informed without extra status pings.
             </p>
           </div>
           <aside className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-background/70 p-5 text-sm">
@@ -52,36 +73,45 @@ const DashboardPage = () => {
                 <Github className="h-5 w-5" />
               </span>
               <div className="min-w-0">
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Connected repository</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  Connected repository
+                </p>
                 <Link
                   href={project?.repoUrl ?? "#"}
-                  target='_blank'
-                  className='inline-flex items-center gap-1 truncate text-sm text-foreground transition-colors hover:text-primary'
+                  target="_blank"
+                  className="inline-flex items-center gap-1 truncate text-sm text-foreground transition-colors hover:text-primary"
                 >
-                  <span className="truncate">{project?.repoUrl || 'Link a repository to unlock insights'}</span>
-                  <ExternalLink className='h-3 w-3 flex-shrink-0' />
+                  <span className="truncate">
+                    {project?.repoUrl || "Link a repository to unlock insights"}
+                  </span>
+                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
                 </Link>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <TeamMembers/>
-              <InviteButton/>
-              <DeleteButton/>
+              <TeamMembers />
+              <InviteButton />
+              <DeleteButton />
             </div>
           </aside>
         </div>
       </section>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <AskQuestionCard />
-        <MeetingCard/>
+        <MeetingCard />
       </div>
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold">Platform Features</h2>
-            <p className="text-sm text-muted-foreground mt-1">Powerful tools to boost your team&apos;s productivity</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Powerful tools to boost your team&apos;s productivity
+            </p>
           </div>
-          <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+          <Badge
+            variant="secondary"
+            className="bg-primary/10 text-primary border-primary/20"
+          >
             <Sparkles className="size-3 mr-1" />
             AI-Powered
           </Badge>
@@ -94,16 +124,22 @@ const DashboardPage = () => {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500">
                   <BarChart3 className="h-6 w-6" />
                 </div>
-                <Badge variant="outline" className="text-xs">New</Badge>
+                <Badge variant="outline" className="text-xs">
+                  New
+                </Badge>
               </div>
               <CardTitle className="mt-4">Advanced Analytics</CardTitle>
               <CardDescription>
-                Track team metrics, DORA scores, velocity trends, and code hotspots with AI-powered insights.
+                Track team metrics, DORA scores, velocity trends, and code
+                hotspots with AI-powered insights.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Link href={`/dashboard/${project?.id}/analytics`}>
-                <Button variant="ghost" className="w-full justify-between group/btn">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between group/btn"
+                >
                   View Analytics
                   <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
@@ -117,16 +153,25 @@ const DashboardPage = () => {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-500">
                   <Code2 className="h-6 w-6" />
                 </div>
-                <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600 border-purple-500/20">AI</Badge>
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-purple-500/10 text-purple-600 border-purple-500/20"
+                >
+                  AI
+                </Badge>
               </div>
               <CardTitle className="mt-4">AI Code Review</CardTitle>
               <CardDescription>
-                Automated security scanning, performance analysis, and code quality scoring with AI suggestions.
+                Automated security scanning, performance analysis, and code
+                quality scoring with AI suggestions.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Link href={`/dashboard/${project?.id}/code-review`}>
-                <Button variant="ghost" className="w-full justify-between group/btn">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between group/btn"
+                >
                   Start Review
                   <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
@@ -140,16 +185,25 @@ const DashboardPage = () => {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-green-500/10 text-green-500">
                   <MessageSquare className="h-6 w-6" />
                 </div>
-                <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">Live</Badge>
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
+                >
+                  Live
+                </Badge>
               </div>
               <CardTitle className="mt-4">Team Collaboration</CardTitle>
               <CardDescription>
-                Real-time chat with code context, annotations, @mentions, and AI-powered assistance.
+                Real-time chat with code context, annotations, @mentions, and
+                AI-powered assistance.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Link href={`/dashboard/${project?.id}/team-chat`}>
-                <Button variant="ghost" className="w-full justify-between group/btn">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between group/btn"
+                >
                   Open Chat
                   <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
@@ -163,16 +217,25 @@ const DashboardPage = () => {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-500/10 text-yellow-500">
                   <Lightbulb className="h-6 w-6" />
                 </div>
-                <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20">AI</Badge>
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
+                >
+                  AI
+                </Badge>
               </div>
               <CardTitle className="mt-4">Feature Brainstorming</CardTitle>
               <CardDescription>
-                AI-generated feature ideas with implementation plans, time estimates, and user stories.
+                AI-generated feature ideas with implementation plans, time
+                estimates, and user stories.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Link href="/brainstorming">
-                <Button variant="ghost" className="w-full justify-between group/btn">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between group/btn"
+                >
                   Generate Ideas
                   <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
@@ -186,16 +249,22 @@ const DashboardPage = () => {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-500">
                   <FolderTree className="h-6 w-6" />
                 </div>
-                <Badge variant="outline" className="text-xs">New</Badge>
+                <Badge variant="outline" className="text-xs">
+                  New
+                </Badge>
               </div>
               <CardTitle className="mt-4">Code Browser</CardTitle>
               <CardDescription>
-                Browse your entire codebase, view PRs with AI analysis, and explore file changes.
+                Browse your entire codebase, view PRs with AI analysis, and
+                explore file changes.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Link href="/code-browser">
-                <Button variant="ghost" className="w-full justify-between group/btn">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between group/btn"
+                >
                   Browse Code
                   <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
@@ -204,8 +273,8 @@ const DashboardPage = () => {
           </Card>
         </div>
       </section>
-      <CommitLog/>
+      <CommitLog />
     </div>
-  )
-}
-export default DashboardPage
+  );
+};
+export default DashboardPage;

@@ -10,7 +10,7 @@ const model = genAI.getGenerativeModel({
 
 export const aiSummariseCommit = async (diff: string) => {
   const generatePromise = model.generateContent([
-      `You are an expert programmer, and you are trying to summarize a git diff.
+    `You are an expert programmer, and you are trying to summarize a git diff.
   Reminders about the git diff format:
   For every file, there are a few metadata lines, like (for example):
   \`\`\`
@@ -39,23 +39,23 @@ export const aiSummariseCommit = async (diff: string) => {
   because there were more than two relevant files in the hypothetical commit.
   Do not include parts of the example in your summary.
   It is given only as an example of appropriate comments.`,
-  `Please summarise the following diff file: \n\n${diff}`
+    `Please summarise the following diff file: \n\n${diff}`,
   ]);
-  
+
   const response = await withTimeout(
     generatePromise,
     30000,
-    'Gemini AI commit summary timeout'
+    "Gemini AI commit summary timeout",
   );
-  
+
   return response.response.text();
-}
+};
 
 export async function summariseCode(doc: Document) {
-    const code = doc.pageContent.slice(0, 10000);
-    try {
-      const generatePromise = model.generateContent([
-        `You are an intelligent senior software engineer who specializes in onboarding junior software engineers onto projects. 
+  const code = doc.pageContent.slice(0, 10000);
+  try {
+    const generatePromise = model.generateContent([
+      `You are an intelligent senior software engineer who specializes in onboarding junior software engineers onto projects. 
         You are onboarding a junior software engineer and explaining to them the purpose of the ${doc.metadata.source} file.
         
         Analyze the code and provide a clear, concise summary that includes:
@@ -70,20 +70,20 @@ export async function summariseCode(doc: Document) {
         ${code}
         ---
         
-        Please provide a summary of the code above in 100-150 words. Be specific and informative.`
-      ]);
-      
-      const response = await withTimeout(
-        generatePromise,
-        30000,
-        'Gemini AI code summary timeout'
-      );
-      
-      const summary = response.response.text();
-      return summary;
-    } catch (error) {
-      return "";
-    }
+        Please provide a summary of the code above in 100-150 words. Be specific and informative.`,
+    ]);
+
+    const response = await withTimeout(
+      generatePromise,
+      30000,
+      "Gemini AI code summary timeout",
+    );
+
+    const summary = response.response.text();
+    return summary;
+  } catch (error) {
+    return "";
+  }
 }
 
 export async function generateEmbedding(summary: string) {
@@ -91,28 +91,27 @@ export async function generateEmbedding(summary: string) {
     if (!summary || summary.trim() === "") {
       throw new Error("Cannot generate embedding for empty summary");
     }
-    
+
     const embeddingModel = genAI.getGenerativeModel({
-        model: "text-embedding-004",  
+      model: "text-embedding-004",
     });
-    
-    // Limit summary length for embedding generation
+
     const limitedSummary = summary.slice(0, 3000);
-    
+
     const embedPromise = embeddingModel.embedContent(limitedSummary);
-    
+
     const result = await withTimeout(
       embedPromise,
       15000,
-      'Gemini embedding generation timeout'
+      "Gemini embedding generation timeout",
     );
-    
+
     const embedding = result.embedding;
-    
+
     if (!embedding || !embedding.values || embedding.values.length === 0) {
       throw new Error("Invalid embedding received from API");
     }
-    
+
     return embedding.values;
   } catch (error) {
     throw error;

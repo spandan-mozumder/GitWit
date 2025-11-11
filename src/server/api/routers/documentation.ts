@@ -13,7 +13,7 @@ export const documentationRouter = createTRPCRouter({
           "TECHNICAL_SPEC",
           "USER_GUIDE",
         ]),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const project = await ctx.db.project.findUnique({
@@ -31,10 +31,7 @@ export const documentationRouter = createTRPCRouter({
       if (!project) {
         throw new Error("Project not found");
       }
-      const docContent = await generateDocContent(
-        project,
-        input.docType
-      );
+      const docContent = await generateDocContent(project, input.docType);
       const documentation = await ctx.db.documentation.create({
         data: {
           projectId: input.projectId,
@@ -67,7 +64,7 @@ export const documentationRouter = createTRPCRouter({
             "USER_GUIDE",
           ])
           .optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       return await ctx.db.documentation.findMany({
@@ -94,7 +91,7 @@ export const documentationRouter = createTRPCRouter({
         title: z.string().optional(),
         content: z.string().optional(),
         status: z.enum(["DRAFT", "REVIEW", "PUBLISHED", "ARCHIVED"]).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { documentationId, ...data } = input;
@@ -150,7 +147,7 @@ export const documentationRouter = createTRPCRouter({
           "FLOW_CHART",
           "COMPONENT",
         ]),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const project = await ctx.db.project.findUnique({
@@ -162,10 +159,7 @@ export const documentationRouter = createTRPCRouter({
       if (!project) {
         throw new Error("Project not found");
       }
-      const diagramData = await generateDiagram(
-        project,
-        input.diagramType
-      );
+      const diagramData = await generateDiagram(project, input.diagramType);
       const diagram = await ctx.db.architectureDiagram.create({
         data: {
           projectId: input.projectId,
@@ -194,7 +188,7 @@ export const documentationRouter = createTRPCRouter({
       z.object({
         projectId: z.string(),
         sinceDate: z.date().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const commits = await ctx.db.commit.findMany({
@@ -220,11 +214,15 @@ export const documentationRouter = createTRPCRouter({
           tags: ["changelog", "releases"],
           estimatedReadTime: 5,
           sections: {
-            create: Object.entries(changelog).map(([category, items], index) => ({
-              order: index,
-              heading: category,
-              content: (items as Array<{ commitMessage: string }>).map((c) => `- ${c.commitMessage}`).join("\n"),
-            })),
+            create: Object.entries(changelog).map(
+              ([category, items], index) => ({
+                order: index,
+                heading: category,
+                content: (items as Array<{ commitMessage: string }>)
+                  .map((c) => `- ${c.commitMessage}`)
+                  .join("\n"),
+              }),
+            ),
           },
         },
         include: {
@@ -234,8 +232,19 @@ export const documentationRouter = createTRPCRouter({
       return documentation;
     }),
 });
-async function generateDocContent(project: { name: string; githubUrl?: string }, docType: string) {
-  const templates: Record<string, { title: string; content: string; tags: string[]; sections: Array<{ heading: string; content: string; order: number }> }> = {
+async function generateDocContent(
+  project: { name: string; githubUrl?: string },
+  docType: string,
+) {
+  const templates: Record<
+    string,
+    {
+      title: string;
+      content: string;
+      tags: string[];
+      sections: Array<{ heading: string; content: string; order: number }>;
+    }
+  > = {
     API_REFERENCE: {
       title: `${project.name} API Reference`,
       content: "Complete API documentation for " + project.name,
@@ -310,7 +319,10 @@ async function extractEndpoints(_codeEmbeddings: unknown[]) {
   ];
 }
 async function generateDiagram(project: { name: string }, diagramType: string) {
-  const diagrams: Record<string, { title: string; description: string; code: string }> = {
+  const diagrams: Record<
+    string,
+    { title: string; description: string; code: string }
+  > = {
     ARCHITECTURE: {
       title: "System Architecture",
       description: "High-level system architecture",
@@ -365,7 +377,9 @@ function categorizeCommits(commits: Array<{ commitMessage: string }>) {
   });
   return categories;
 }
-function formatChangelog(changelog: Record<string, Array<{ commitMessage: string }>>): string {
+function formatChangelog(
+  changelog: Record<string, Array<{ commitMessage: string }>>,
+): string {
   let content = "# Changelog\n\n";
   Object.entries(changelog).forEach(([category, commits]) => {
     if (commits.length > 0) {

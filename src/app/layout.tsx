@@ -1,7 +1,7 @@
 import "./globals.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/app/components/theme-provider";
@@ -17,7 +17,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${GeistSans.variable}`} suppressHydrationWarning>
+      <html
+        lang="en"
+        className={`${GeistSans.variable}`}
+        suppressHydrationWarning
+      >
         <body>
           <ThemeProvider
             attribute="class"
@@ -26,7 +30,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <TRPCReactProvider>{children}</TRPCReactProvider>
-            <Toaster richColors/>
+            <Toaster richColors />
           </ThemeProvider>
         </body>
       </html>

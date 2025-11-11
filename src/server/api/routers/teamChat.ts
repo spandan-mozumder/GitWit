@@ -54,16 +54,18 @@ export const teamChatRouter = createTRPCRouter({
       z.object({
         chatId: z.string(),
         content: z.string(),
-        messageType: z
-          .enum(["TEXT", "CODE", "FILE", "SYSTEM"])
-          .default("TEXT"),
+        messageType: z.enum(["TEXT", "CODE", "FILE", "SYSTEM"]).default("TEXT"),
         roomId: z.string().optional(),
-        attachments: z.array(z.object({
-          fileName: z.string(),
-          fileUrl: z.string(),
-          fileType: z.string(),
-          fileSize: z.number()
-        })).optional(),
+        attachments: z
+          .array(
+            z.object({
+              fileName: z.string(),
+              fileUrl: z.string(),
+              fileType: z.string(),
+              fileSize: z.number(),
+            }),
+          )
+          .optional(),
         attachmentUrl: z.string().optional(),
         attachmentName: z.string().optional(),
         attachmentSize: z.number().optional(),
@@ -75,13 +77,14 @@ export const teamChatRouter = createTRPCRouter({
         commitHash: z.string().optional(),
         parentMessageId: z.string().optional(),
         mentionedUserIds: z.array(z.string()).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { mentionedUserIds, attachments, ...messageData } = input;
-      const aiContext = input.messageType === "CODE" && input.codeSnippet
-        ? await generateAIContext(input.codeSnippet)
-        : null;
+      const aiContext =
+        input.messageType === "CODE" && input.codeSnippet
+          ? await generateAIContext(input.codeSnippet)
+          : null;
       const message = await ctx.db.chatMessage.create({
         data: {
           ...messageData,
@@ -145,7 +148,7 @@ export const teamChatRouter = createTRPCRouter({
         roomId: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const messages = await ctx.db.chatMessage.findMany({
@@ -222,7 +225,7 @@ export const teamChatRouter = createTRPCRouter({
       z.object({
         messageId: z.string(),
         emoji: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.messageReaction.create({
@@ -238,7 +241,7 @@ export const teamChatRouter = createTRPCRouter({
       z.object({
         messageId: z.string(),
         emoji: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.messageReaction.deleteMany({
@@ -293,7 +296,7 @@ export const teamChatRouter = createTRPCRouter({
         lineStart: z.number(),
         lineEnd: z.number(),
         content: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.codeAnnotation.create({
@@ -318,7 +321,7 @@ export const teamChatRouter = createTRPCRouter({
       z.object({
         projectId: z.string(),
         filePath: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       return await ctx.db.codeAnnotation.findMany({
@@ -362,7 +365,7 @@ export const teamChatRouter = createTRPCRouter({
       z.object({
         annotationId: z.string(),
         content: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.annotationReply.create({

@@ -1,5 +1,5 @@
-"use client"
-import Link from "next/link"
+"use client";
+import Link from "next/link";
 import {
   Plus,
   Sparkles,
@@ -7,37 +7,42 @@ import {
   BarChart3,
   Code2,
   MessageSquare,
-  Bot
-} from "lucide-react"
-import { Button } from "~/components/ui/button"
-import { Card, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
+  Bot,
+} from "lucide-react";
+import { Button } from "~/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 export function EmptyProjectState() {
   const features = [
     {
       icon: Bot,
       title: "AI Q&A",
       description: "Get instant answers about your codebase",
-      color: "blue"
+      color: "blue",
     },
     {
       icon: Code2,
       title: "Code Review",
       description: "AI-powered security & performance analysis",
-      color: "purple"
+      color: "purple",
     },
     {
       icon: BarChart3,
       title: "Analytics",
       description: "Track team metrics & DORA scores",
-      color: "green"
+      color: "green",
     },
     {
       icon: MessageSquare,
       title: "Team Chat",
       description: "Real-time collaboration with context",
-      color: "orange"
-    }
-  ]
+      color: "orange",
+    },
+  ];
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 text-center animate-fade-in p-8">
       <div className="relative">
@@ -51,12 +56,16 @@ export function EmptyProjectState() {
           Welcome to GitWit
         </h1>
         <p className="text-xl text-muted-foreground">
-          Create your first project to unlock powerful AI-driven insights for your codebase
+          Create your first project to unlock powerful AI-driven insights for
+          your codebase
         </p>
       </div>
       <div className="flex flex-col sm:flex-row gap-4">
         <Link href="/create">
-          <Button size="lg" className="gap-2 shadow-lg shadow-primary/20 h-12 px-8">
+          <Button
+            size="lg"
+            className="gap-2 shadow-lg shadow-primary/20 h-12 px-8"
+          >
             <Plus className="h-5 w-5" />
             Create Your First Project
           </Button>
@@ -70,11 +79,16 @@ export function EmptyProjectState() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-4xl pt-8">
         {features.map((feature) => {
-          const Icon = feature.icon
+          const Icon = feature.icon;
           return (
-            <Card key={feature.title} className="border-border/70 bg-card/50 hover:bg-card transition-colors">
+            <Card
+              key={feature.title}
+              className="border-border/70 bg-card/50 hover:bg-card transition-colors"
+            >
               <CardHeader className="space-y-3 flex flex-col items-center text-center">
-                <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl bg-${feature.color}-500/10 text-${feature.color}-500`}>
+                <div
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-xl bg-${feature.color}-500/10 text-${feature.color}-500`}
+                >
                   <Icon className="h-5 w-5" />
                 </div>
                 <CardTitle className="text-base">{feature.title}</CardTitle>
@@ -83,7 +97,7 @@ export function EmptyProjectState() {
                 </CardDescription>
               </CardHeader>
             </Card>
-          )
+          );
         })}
       </div>
       <div className="flex flex-wrap justify-center gap-8 pt-8 border-t border-border/50">
@@ -101,5 +115,5 @@ export function EmptyProjectState() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,10 +1,16 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "~/components/ui/spinner";
 import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { QuickNav } from "@/components/quick-nav";
 import {
@@ -67,10 +73,8 @@ export default function ReviewDetailPage() {
   };
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-96 w-full" />
+      <div className="container mx-auto p-6 flex items-center justify-center min-h-[60vh]">
+        <Spinner className="h-8 w-8" />
       </div>
     );
   }
@@ -100,7 +104,9 @@ export default function ReviewDetailPage() {
       </div>
       <Button
         variant="ghost"
-        onClick={() => router.push(`/dashboard/${params.projectId}/code-review`)}
+        onClick={() =>
+          router.push(`/dashboard/${params.projectId}/code-review`)
+        }
         className="gap-2"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -112,10 +118,16 @@ export default function ReviewDetailPage() {
             <div className="space-y-2">
               <CardTitle className="text-2xl">Code Review Analysis</CardTitle>
               <CardDescription>
-                Branch: <code className="text-xs bg-muted px-2 py-1 rounded">{review.branch}</code>
+                Branch:{" "}
+                <code className="text-xs bg-muted px-2 py-1 rounded">
+                  {review.branch}
+                </code>
                 {review.commitHash && (
                   <>
-                    {" · "}Commit: <code className="text-xs bg-muted px-2 py-1 rounded">{review.commitHash.slice(0, 7)}</code>
+                    {" · "}Commit:{" "}
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      {review.commitHash.slice(0, 7)}
+                    </code>
                   </>
                 )}
               </CardDescription>
@@ -139,7 +151,9 @@ export default function ReviewDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <div className={`text-4xl font-bold ${getScoreColor(review.overallScore)}`}>
+              <div
+                className={`text-4xl font-bold ${getScoreColor(review.overallScore)}`}
+              >
                 {review.overallScore}
               </div>
               <div className="text-muted-foreground">/100</div>
@@ -156,7 +170,9 @@ export default function ReviewDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <div className={`text-4xl font-bold ${getScoreColor(review.securityScore)}`}>
+              <div
+                className={`text-4xl font-bold ${getScoreColor(review.securityScore)}`}
+              >
                 {review.securityScore}
               </div>
               <div className="text-muted-foreground">/100</div>
@@ -173,7 +189,9 @@ export default function ReviewDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <div className={`text-4xl font-bold ${getScoreColor(review.performanceScore)}`}>
+              <div
+                className={`text-4xl font-bold ${getScoreColor(review.performanceScore)}`}
+              >
                 {review.performanceScore}
               </div>
               <div className="text-muted-foreground">/100</div>
@@ -190,7 +208,9 @@ export default function ReviewDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <div className={`text-4xl font-bold ${getScoreColor(review.maintainabilityScore)}`}>
+              <div
+                className={`text-4xl font-bold ${getScoreColor(review.maintainabilityScore)}`}
+              >
                 {review.maintainabilityScore}
               </div>
               <div className="text-muted-foreground">/100</div>
@@ -219,7 +239,10 @@ export default function ReviewDetailPage() {
                     <div className="flex items-center gap-3 w-full">
                       {getSeverityIcon(severity)}
                       <span className="font-semibold">{severity}</span>
-                      <Badge variant="outline" className={getSeverityColor(severity)}>
+                      <Badge
+                        variant="outline"
+                        className={getSeverityColor(severity)}
+                      >
                         {findings.length}
                       </Badge>
                     </div>
@@ -293,12 +316,17 @@ export default function ReviewDetailPage() {
                 <div className="flex items-start justify-between">
                   <h4 className="font-medium">{suggestion.title}</h4>
                   {suggestion.applied && (
-                    <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600">
+                    <Badge
+                      variant="outline"
+                      className="text-xs bg-green-500/10 text-green-600"
+                    >
                       Applied
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {suggestion.description}
+                </p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <FileCode className="h-3 w-3" />
                   <code className="bg-muted px-2 py-0.5 rounded">
@@ -309,12 +337,16 @@ export default function ReviewDetailPage() {
                 {suggestion.reasoning && (
                   <div className="flex items-start gap-2 text-sm">
                     <TrendingUp className="h-4 w-4 text-green-500 mt-0.5" />
-                    <span className="text-green-600">{suggestion.reasoning}</span>
+                    <span className="text-green-600">
+                      {suggestion.reasoning}
+                    </span>
                   </div>
                 )}
                 {suggestion.suggestedCode && (
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Suggested Code:</p>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Suggested Code:
+                    </p>
                     <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
                       <code>{suggestion.suggestedCode}</code>
                     </pre>

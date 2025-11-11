@@ -1,25 +1,25 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 export const liveMeetingsRouter = createTRPCRouter({
-
   startMeeting: protectedProcedure
-    .input(z.object({
-      projectId: z.string(),
-      title: z.string(),
-      description: z.string().optional()
-    }))
+    .input(
+      z.object({
+        projectId: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-
       const member = await ctx.db.projectMember.findUnique({
         where: {
           userId_projectId: {
             userId: ctx.user.userId!,
-            projectId: input.projectId
-          }
-        }
+            projectId: input.projectId,
+          },
+        },
       });
-      if (!member || !['ADMIN', 'COLLABORATOR'].includes(member.role)) {
-        throw new Error('Only admins or collaborators can host meetings');
+      if (!member || !["ADMIN", "COLLABORATOR"].includes(member.role)) {
+        throw new Error("Only admins or collaborators can host meetings");
       }
 
       const meeting = await ctx.db.liveMeeting.create({
@@ -28,19 +28,19 @@ export const liveMeetingsRouter = createTRPCRouter({
           title: input.title,
           description: input.description,
           hostId: ctx.user.userId!,
-          status: 'IN_PROGRESS',
+          status: "IN_PROGRESS",
           startedAt: new Date(),
-          transcriptionStatus: 'PENDING'
-        }
+          transcriptionStatus: "PENDING",
+        },
       });
 
       await ctx.db.liveMeetingParticipant.create({
         data: {
           meetingId: meeting.id,
           userId: ctx.user.userId!,
-          role: 'HOST',
-          joinedAt: new Date()
-        }
+          role: "HOST",
+          joinedAt: new Date(),
+        },
       });
       return meeting;
     }),
@@ -49,18 +49,18 @@ export const liveMeetingsRouter = createTRPCRouter({
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const meeting = await ctx.db.liveMeeting.findUnique({
-        where: { id: input.meetingId }
+        where: { id: input.meetingId },
       });
-      if (!meeting) throw new Error('Meeting not found');
+      if (!meeting) throw new Error("Meeting not found");
       if (meeting.hostId !== ctx.user.userId!) {
-        throw new Error('Only the host can end the meeting');
+        throw new Error("Only the host can end the meeting");
       }
       return await ctx.db.liveMeeting.update({
         where: { id: input.meetingId },
         data: {
-          status: 'ENDED',
-          endedAt: new Date()
-        }
+          status: "ENDED",
+          endedAt: new Date(),
+        },
       });
     }),
 
@@ -68,29 +68,29 @@ export const liveMeetingsRouter = createTRPCRouter({
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const meeting = await ctx.db.liveMeeting.findUnique({
-        where: { id: input.meetingId }
+        where: { id: input.meetingId },
       });
-      if (!meeting) throw new Error('Meeting not found');
+      if (!meeting) throw new Error("Meeting not found");
 
       const member = await ctx.db.projectMember.findUnique({
         where: {
           userId_projectId: {
             userId: ctx.user.userId!,
-            projectId: meeting.projectId
-          }
-        }
+            projectId: meeting.projectId,
+          },
+        },
       });
       if (!member) {
-        throw new Error('Only project members can join meetings');
+        throw new Error("Only project members can join meetings");
       }
 
       const existing = await ctx.db.liveMeetingParticipant.findUnique({
         where: {
           meetingId_userId: {
             meetingId: input.meetingId,
-            userId: ctx.user.userId!
-          }
-        }
+            userId: ctx.user.userId!,
+          },
+        },
       });
       if (existing) {
         return existing;
@@ -99,9 +99,9 @@ export const liveMeetingsRouter = createTRPCRouter({
         data: {
           meetingId: input.meetingId,
           userId: ctx.user.userId!,
-          role: 'PARTICIPANT',
-          joinedAt: new Date()
-        }
+          role: "PARTICIPANT",
+          joinedAt: new Date(),
+        },
       });
     }),
 
@@ -112,59 +112,65 @@ export const liveMeetingsRouter = createTRPCRouter({
         where: {
           meetingId_userId: {
             meetingId: input.meetingId,
-            userId: ctx.user.userId!
-          }
+            userId: ctx.user.userId!,
+          },
         },
-        data: { leftAt: new Date() }
+        data: { leftAt: new Date() },
       });
     }),
 
   uploadRecording: protectedProcedure
-    .input(z.object({
-      meetingId: z.string(),
-      audioFileUrl: z.string()
-    }))
+    .input(
+      z.object({
+        meetingId: z.string(),
+        audioFileUrl: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const meeting = await ctx.db.liveMeeting.findUnique({
-        where: { id: input.meetingId }
+        where: { id: input.meetingId },
       });
-      if (!meeting) throw new Error('Meeting not found');
+      if (!meeting) throw new Error("Meeting not found");
       if (meeting.hostId !== ctx.user.userId!) {
-        throw new Error('Only the host can upload recordings');
+        throw new Error("Only the host can upload recordings");
       }
 
       await ctx.db.liveMeeting.update({
         where: { id: input.meetingId },
         data: {
           audioFileUrl: input.audioFileUrl,
-          transcriptionStatus: 'PROCESSING'
-        }
+          transcriptionStatus: "PROCESSING",
+        },
       });
 
       try {
         const assemblyAiKey = process.env.ASSEMBLY_API_KEY;
-        if (!assemblyAiKey) throw new Error('AssemblyAI API key not configured');
-        const response = await fetch('https://api.assemblyai.com/v2/transcript', {
-          method: 'POST',
-          headers: {
-            'authorization': assemblyAiKey,
-            'content-type': 'application/json'
+        if (!assemblyAiKey)
+          throw new Error("AssemblyAI API key not configured");
+        const response = await fetch(
+          "https://api.assemblyai.com/v2/transcript",
+          {
+            method: "POST",
+            headers: {
+              authorization: assemblyAiKey,
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              audio_url: input.audioFileUrl,
+            }),
           },
-          body: JSON.stringify({
-            audio_url: input.audioFileUrl
-          })
-        });
-        const data = await response.json() as { id: string };
+        );
+        const data = (await response.json()) as { id: string };
 
         await ctx.db.liveMeeting.update({
           where: { id: input.meetingId },
-          data: { transcriptId: data.id }
+          data: { transcriptId: data.id },
         });
         return { transcriptId: data.id };
       } catch (error) {
         await ctx.db.liveMeeting.update({
           where: { id: input.meetingId },
-          data: { transcriptionStatus: 'FAILED' }
+          data: { transcriptionStatus: "FAILED" },
         });
         throw error;
       }
@@ -174,45 +180,45 @@ export const liveMeetingsRouter = createTRPCRouter({
     .input(z.object({ meetingId: z.string() }))
     .query(async ({ ctx, input }) => {
       const meeting = await ctx.db.liveMeeting.findUnique({
-        where: { id: input.meetingId }
+        where: { id: input.meetingId },
       });
       if (!meeting?.transcriptId) {
-        throw new Error('No transcription in progress');
+        throw new Error("No transcription in progress");
       }
       const assemblyAiKey = process.env.ASSEMBLY_API_KEY;
-      if (!assemblyAiKey) throw new Error('AssemblyAI API key not configured');
+      if (!assemblyAiKey) throw new Error("AssemblyAI API key not configured");
       const response = await fetch(
         `https://api.assemblyai.com/v2/transcript/${meeting.transcriptId}`,
         {
           headers: {
-            'authorization': assemblyAiKey
-          }
-        }
+            authorization: assemblyAiKey,
+          },
+        },
       );
-      const data = await response.json() as {
+      const data = (await response.json()) as {
         status: string;
         text?: string;
         error?: string;
       };
 
-      if (data.status === 'completed' && data.text) {
+      if (data.status === "completed" && data.text) {
         await ctx.db.liveMeeting.update({
           where: { id: input.meetingId },
           data: {
             transcript: data.text,
-            transcriptionStatus: 'COMPLETED'
-          }
+            transcriptionStatus: "COMPLETED",
+          },
         });
-      } else if (data.status === 'error') {
+      } else if (data.status === "error") {
         await ctx.db.liveMeeting.update({
           where: { id: input.meetingId },
-          data: { transcriptionStatus: 'FAILED' }
+          data: { transcriptionStatus: "FAILED" },
         });
       }
       return {
         status: data.status,
         transcript: data.text,
-        error: data.error
+        error: data.error,
       };
     }),
 
@@ -220,30 +226,30 @@ export const liveMeetingsRouter = createTRPCRouter({
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const meeting = await ctx.db.liveMeeting.findUnique({
-        where: { id: input.meetingId }
+        where: { id: input.meetingId },
       });
-      if (!meeting) throw new Error('Meeting not found');
+      if (!meeting) throw new Error("Meeting not found");
 
       const member = await ctx.db.projectMember.findUnique({
         where: {
           userId_projectId: {
             userId: ctx.user.userId!,
-            projectId: meeting.projectId
-          }
-        }
+            projectId: meeting.projectId,
+          },
+        },
       });
-      if (member?.role !== 'ADMIN') {
-        throw new Error('Only admins can request summaries');
+      if (member?.role !== "ADMIN") {
+        throw new Error("Only admins can request summaries");
       }
-      if (meeting.transcriptionStatus !== 'COMPLETED') {
-        throw new Error('Transcription must be completed first');
+      if (meeting.transcriptionStatus !== "COMPLETED") {
+        throw new Error("Transcription must be completed first");
       }
       return await ctx.db.liveMeeting.update({
         where: { id: input.meetingId },
         data: {
           summaryRequested: true,
-          summaryRequestedBy: ctx.user.userId!
-        }
+          summaryRequestedBy: ctx.user.userId!,
+        },
       });
     }),
 
@@ -251,49 +257,55 @@ export const liveMeetingsRouter = createTRPCRouter({
     .input(z.object({ meetingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const meeting = await ctx.db.liveMeeting.findUnique({
-        where: { id: input.meetingId }
+        where: { id: input.meetingId },
       });
-      if (!meeting) throw new Error('Meeting not found');
+      if (!meeting) throw new Error("Meeting not found");
       if (!meeting.summaryRequested) {
-        throw new Error('Summary has not been requested');
+        throw new Error("Summary has not been requested");
       }
       if (!meeting.transcript) {
-        throw new Error('No transcript available');
+        throw new Error("No transcript available");
       }
 
       const geminiKey = process.env.GEMINI_API_KEY;
-      if (!geminiKey) throw new Error('Gemini API key not configured');
+      if (!geminiKey) throw new Error("Gemini API key not configured");
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiKey}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: `Please provide a comprehensive summary of the following meeting transcript. Include key points, decisions made, action items, and any important discussions:\n\n${meeting.transcript}`
-              }]
-            }]
-          })
-        }
+            contents: [
+              {
+                parts: [
+                  {
+                    text: `Please provide a comprehensive summary of the following meeting transcript. Include key points, decisions made, action items, and any important discussions:\n\n${meeting.transcript}`,
+                  },
+                ],
+              },
+            ],
+          }),
+        },
       );
-      const data = await response.json() as {
+      const data = (await response.json()) as {
         candidates?: Array<{
           content?: {
             parts?: Array<{ text?: string }>;
           };
         }>;
       };
-      const summary = data.candidates?.[0]?.content?.parts?.[0]?.text ?? 'Failed to generate summary';
+      const summary =
+        data.candidates?.[0]?.content?.parts?.[0]?.text ??
+        "Failed to generate summary";
 
       const updated = await ctx.db.liveMeeting.update({
         where: { id: input.meetingId },
         data: {
           summary,
-          status: 'SUMMARIZED'
-        }
+          status: "SUMMARIZED",
+        },
       });
       return { summary: updated.summary };
     }),
@@ -304,8 +316,8 @@ export const liveMeetingsRouter = createTRPCRouter({
       return await ctx.db.liveMeeting.findUnique({
         where: { id: input.meetingId },
         include: {
-          participants: true
-        }
+          participants: true,
+        },
       });
     }),
 
@@ -316,10 +328,10 @@ export const liveMeetingsRouter = createTRPCRouter({
         where: { projectId: input.projectId },
         include: {
           _count: {
-            select: { participants: true }
-          }
+            select: { participants: true },
+          },
         },
-        orderBy: { startedAt: 'desc' }
+        orderBy: { startedAt: "desc" },
       });
     }),
 });

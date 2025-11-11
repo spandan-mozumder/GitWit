@@ -1,18 +1,18 @@
-"use client"
-import Link from "next/link"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Menu, X } from "lucide-react"
-import { Button } from "~/components/ui/button"
-import { Logo } from "./logo"
-import { ModeToggle } from "./ThemeToggle"
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import { Button } from "~/components/ui/button";
+import { Logo } from "./logo";
+import { ModeToggle } from "./ThemeToggle";
 const links = [
   { href: "#features", label: "Platform" },
   { href: "#how-it-works", label: "Method" },
-]
+];
 export function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const router = useRouter()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
       <div className="container mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-6">
@@ -33,7 +33,11 @@ export function Navbar() {
             </Link>
           ))}
           <ModeToggle />
-          <Button size="sm" onClick={() => router.push("/sign-up")} className="rounded-full">
+          <Button
+            size="sm"
+            onClick={() => router.push("/sign-up")}
+            className="rounded-full"
+          >
             Start now
           </Button>
         </nav>
@@ -42,7 +46,11 @@ export function Navbar() {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle navigation"
         >
-          {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {isMenuOpen ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
         </button>
       </div>
       {isMenuOpen && (
@@ -60,8 +68,8 @@ export function Navbar() {
             ))}
             <Button
               onClick={() => {
-                router.push("/sign-up")
-                setIsMenuOpen(false)
+                router.push("/sign-up");
+                setIsMenuOpen(false);
               }}
             >
               Start now
@@ -70,5 +78,5 @@ export function Navbar() {
         </div>
       )}
     </header>
-  )
+  );
 }

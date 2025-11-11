@@ -1,55 +1,86 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { generateObject } from "ai";
-import { google } from "@ai-sdk/google";
-const geminiFlashModel = google("gemini-1.5-flash-latest");
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { env } from "~/env";
+
 export const featureBrainstormingRouter = createTRPCRouter({
   generateFeatureIdeas: protectedProcedure
-    .input(z.object({
-      projectId: z.string(),
-      userInput: z.string(),
-      count: z.number().default(5),
-    }))
+    .input(
+      z.object({
+        projectId: z.string(),
+        userInput: z.string(),
+        count: z.number().default(5),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const project = await ctx.db.project.findUnique({
-        where: { id: input.projectId },
-        include: {
-          Commit: {
-            take: 10,
-            orderBy: { commitDate: 'desc' }
-          },
-          sourceCodeEmbedding: {
-            take: 20
-          }
-        }
-      });
-      if (!project) {
-        throw new Error("Project not found");
+      const apiKey = env.GEMINI_API_KEY;
+      if (!apiKey || apiKey.trim() === "") {
+        throw new Error(
+          "Google Generative AI API key is not configured. Please set GEMINI_API_KEY in your environment variables.",
+        );
       }
-      const recentCommits = project.Commit.map((c: { commitMessage: string }) => c.commitMessage).join('\n');
-      const codeContext = project.sourceCodeEmbedding
-        .map((e: { fileName: string; summary: string | null }) => `${e.fileName}: ${e.summary}`)
-        .slice(0, 10)
-        .join('\n');
-      const { object: ideas } = await generateObject({
-        model: geminiFlashModel,
-        schema: z.object({
-          features: z.array(z.object({
-            title: z.string(),
-            description: z.string(),
-            implementation: z.string(),
-            complexity: z.enum(['EASY', 'MEDIUM', 'HARD', 'VERY_HARD']),
-            estimatedHours: z.number(),
-            techStack: z.array(z.string()),
-            userStories: z.array(z.string()),
-            category: z.enum([
-              'NEW_FEATURE', 'ENHANCEMENT', 'BUG_FIX', 'PERFORMANCE', 
-              'SECURITY', 'UI_UX', 'REFACTOR', 'TESTING', 'DOCUMENTATION'
-            ]),
-            tags: z.array(z.string()),
-          }))
-        }),
-        prompt: `You are a senior product manager and software architect. Analyze this project and generate ${input.count} innovative, practical feature ideas.
+
+      const google = createGoogleGenerativeAI({
+        apiKey: apiKey,
+      });
+
+      const geminiFlashModel = google("gemini-2.5-flash-lite");
+
+      try {
+        const project = await ctx.db.project.findUnique({
+          where: { id: input.projectId },
+          include: {
+            Commit: {
+              take: 10,
+              orderBy: { commitDate: "desc" },
+            },
+            sourceCodeEmbedding: {
+              take: 20,
+            },
+          },
+        });
+        if (!project) {
+          throw new Error("Project not found");
+        }
+        const recentCommits = project.Commit.map(
+          (c: { commitMessage: string }) => c.commitMessage,
+        ).join("\n");
+        const codeContext = project.sourceCodeEmbedding
+          .map(
+            (e: { fileName: string; summary: string | null }) =>
+              `${e.fileName}: ${e.summary}`,
+          )
+          .slice(0, 10)
+          .join("\n");
+        const { object: ideas } = await generateObject({
+          model: geminiFlashModel,
+          schema: z.object({
+            features: z.array(
+              z.object({
+                title: z.string(),
+                description: z.string(),
+                implementation: z.string(),
+                complexity: z.enum(["EASY", "MEDIUM", "HARD", "VERY_HARD"]),
+                estimatedHours: z.number(),
+                techStack: z.array(z.string()),
+                userStories: z.array(z.string()),
+                category: z.enum([
+                  "NEW_FEATURE",
+                  "ENHANCEMENT",
+                  "BUG_FIX",
+                  "PERFORMANCE",
+                  "SECURITY",
+                  "UI_UX",
+                  "REFACTOR",
+                  "TESTING",
+                  "DOCUMENTATION",
+                ]),
+                tags: z.array(z.string()),
+              }),
+            ),
+          }),
+          prompt: `You are a senior product manager and software architect. Analyze this project and generate ${input.count} innovative, practical feature ideas.
 Project: ${project.name}
 Repository: ${project.repoUrl}
 User Request: "${input.userInput}"
@@ -74,37 +105,63 @@ For each feature, provide:
 - Category classification
 - Relevant tags
 Make the ideas creative but grounded in reality.`,
-      });
-      const createdIdeas = await Promise.all(
-        ideas.features.map(async (idea) => {
-          return await ctx.db.featureIdea.create({
-            data: {
-              projectId: input.projectId,
-              title: idea.title,
-              description: idea.description,
-              implementation: idea.implementation,
-              complexity: idea.complexity,
-              estimatedHours: idea.estimatedHours,
-              techStack: idea.techStack,
-              userStories: idea.userStories,
-              category: idea.category,
-              tags: idea.tags,
-              priority: 3,
-            }
-          });
-        })
-      );
-      return createdIdeas;
+        });
+        const createdIdeas = await Promise.all(
+          ideas.features.map(async (idea) => {
+            return await ctx.db.featureIdea.create({
+              data: {
+                projectId: input.projectId,
+                title: idea.title,
+                description: idea.description,
+                implementation: idea.implementation,
+                complexity: idea.complexity,
+                estimatedHours: idea.estimatedHours,
+                techStack: idea.techStack,
+                userStories: idea.userStories,
+                category: idea.category,
+                tags: idea.tags,
+                priority: 3,
+              },
+            });
+          }),
+        );
+        return createdIdeas;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        if (
+          errorMessage.includes("API key") ||
+          errorMessage.includes("GEMINI_API_KEY")
+        ) {
+          throw new Error(
+            "Google Generative AI API key is not configured. Please set GEMINI_API_KEY in your environment variables.",
+          );
+        }
+        throw error;
+      }
     }),
   getFeatureIdeas: protectedProcedure
-    .input(z.object({
-      projectId: z.string(),
-      status: z.enum(['IDEA', 'PLANNED', 'IN_PROGRESS', 'DONE', 'REJECTED']).optional(),
-      category: z.enum([
-        'NEW_FEATURE', 'ENHANCEMENT', 'BUG_FIX', 'PERFORMANCE', 
-        'SECURITY', 'UI_UX', 'REFACTOR', 'TESTING', 'DOCUMENTATION'
-      ]).optional(),
-    }))
+    .input(
+      z.object({
+        projectId: z.string(),
+        status: z
+          .enum(["IDEA", "PLANNED", "IN_PROGRESS", "DONE", "REJECTED"])
+          .optional(),
+        category: z
+          .enum([
+            "NEW_FEATURE",
+            "ENHANCEMENT",
+            "BUG_FIX",
+            "PERFORMANCE",
+            "SECURITY",
+            "UI_UX",
+            "REFACTOR",
+            "TESTING",
+            "DOCUMENTATION",
+          ])
+          .optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       return await ctx.db.featureIdea.findMany({
         where: {
@@ -116,32 +173,34 @@ Make the ideas creative but grounded in reality.`,
           votes: true,
         },
         orderBy: [
-          { priority: 'desc' },
-          { voteCount: 'desc' },
-          { createdAt: 'desc' }
-        ]
+          { priority: "desc" },
+          { voteCount: "desc" },
+          { createdAt: "desc" },
+        ],
       });
     }),
   voteFeature: protectedProcedure
-    .input(z.object({
-      featureId: z.string(),
-    }))
+    .input(
+      z.object({
+        featureId: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const existingVote = await ctx.db.featureVote.findUnique({
         where: {
           userId_featureId: {
             userId: ctx.user.userId!,
             featureId: input.featureId,
-          }
-        }
+          },
+        },
       });
       if (existingVote) {
         await ctx.db.featureVote.delete({
-          where: { id: existingVote.id }
+          where: { id: existingVote.id },
         });
         await ctx.db.featureIdea.update({
           where: { id: input.featureId },
-          data: { voteCount: { decrement: 1 } }
+          data: { voteCount: { decrement: 1 } },
         });
         return { voted: false };
       } else {
@@ -149,65 +208,107 @@ Make the ideas creative but grounded in reality.`,
           data: {
             userId: ctx.user.userId!,
             featureId: input.featureId,
-          }
+          },
         });
         await ctx.db.featureIdea.update({
           where: { id: input.featureId },
-          data: { voteCount: { increment: 1 } }
+          data: { voteCount: { increment: 1 } },
         });
         return { voted: true };
       }
     }),
   updateFeatureStatus: protectedProcedure
-    .input(z.object({
-      featureId: z.string(),
-      status: z.enum(['IDEA', 'PLANNED', 'IN_PROGRESS', 'DONE', 'REJECTED']),
-    }))
+    .input(
+      z.object({
+        featureId: z.string(),
+        status: z.enum(["IDEA", "PLANNED", "IN_PROGRESS", "DONE", "REJECTED"]),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.featureIdea.update({
         where: { id: input.featureId },
-        data: { status: input.status }
+        data: { status: input.status },
       });
     }),
   updateFeaturePriority: protectedProcedure
-    .input(z.object({
-      featureId: z.string(),
-      priority: z.number().min(1).max(5),
-    }))
+    .input(
+      z.object({
+        featureId: z.string(),
+        priority: z.number().min(1).max(5),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.featureIdea.update({
         where: { id: input.featureId },
-        data: { priority: input.priority }
+        data: { priority: input.priority },
+      });
+    }),
+  updateFeature: protectedProcedure
+    .input(
+      z.object({
+        featureId: z.string(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        implementation: z.string().optional(),
+        complexity: z.enum(["EASY", "MEDIUM", "HARD", "VERY_HARD"]).optional(),
+        estimatedHours: z.number().optional(),
+        techStack: z.array(z.string()).optional(),
+        userStories: z.array(z.string()).optional(),
+        category: z
+          .enum([
+            "NEW_FEATURE",
+            "ENHANCEMENT",
+            "BUG_FIX",
+            "PERFORMANCE",
+            "SECURITY",
+            "UI_UX",
+            "REFACTOR",
+            "TESTING",
+            "DOCUMENTATION",
+          ])
+          .optional(),
+        tags: z.array(z.string()).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { featureId, ...updateData } = input;
+      return await ctx.db.featureIdea.update({
+        where: { id: featureId },
+        data: updateData,
       });
     }),
   deleteFeature: protectedProcedure
-    .input(z.object({
-      featureId: z.string(),
-    }))
+    .input(
+      z.object({
+        featureId: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.featureIdea.delete({
-        where: { id: input.featureId }
+        where: { id: input.featureId },
       });
     }),
   createGitHubIssue: protectedProcedure
-    .input(z.object({
-      featureId: z.string(),
-    }))
+    .input(
+      z.object({
+        featureId: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const feature = await ctx.db.featureIdea.findUnique({
         where: { id: input.featureId },
-        include: { project: true }
+        include: { project: true },
       });
       if (!feature) {
         throw new Error("Feature not found");
       }
       const [owner, repo] = feature.project.repoUrl
-        .replace('https://github.com/', '')
-        .replace('.git', '')
-        .split('/');
-      const { Octokit } = await import('octokit');
-      const octokit = new Octokit({ 
-        auth: process.env.GITHUB_ACCESS_TOKEN
+        .replace("https://github.com/", "")
+        .replace(".git", "")
+        .split("/");
+      const { Octokit } = await import("octokit");
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_ACCESS_TOKEN,
       });
       const issueBody = `## Description
 ${feature.description}
@@ -216,9 +317,9 @@ ${feature.implementation}
 ## Technical Details
 - **Complexity:** ${feature.complexity}
 - **Estimated Hours:** ${feature.estimatedHours}
-- **Tech Stack:** ${feature.techStack.join(', ')}
+- **Tech Stack:** ${feature.techStack.join(", ")}
 ## User Stories
-${feature.userStories.map((story: string, idx: number) => `${idx + 1}. ${story}`).join('\n')}
+${feature.userStories.map((story: string, idx: number) => `${idx + 1}. ${story}`).join("\n")}
 ---
 *Generated by GitWit Feature Brainstorming*`;
       const issue = await octokit.rest.issues.create({
@@ -230,10 +331,10 @@ ${feature.userStories.map((story: string, idx: number) => `${idx + 1}. ${story}`
       });
       await ctx.db.featureIdea.update({
         where: { id: input.featureId },
-        data: { 
+        data: {
           githubIssueUrl: issue.data.html_url,
-          status: 'PLANNED'
-        }
+          status: "PLANNED",
+        },
       });
       return { issueUrl: issue.data.html_url };
     }),

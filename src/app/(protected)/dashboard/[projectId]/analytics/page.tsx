@@ -2,10 +2,16 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/trpc/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "~/components/ui/spinner";
 import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { QuickNav } from "@/components/quick-nav";
 import {
@@ -34,6 +40,10 @@ import {
 export default function AnalyticsPage() {
   const params = useParams<{ projectId: string }>();
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("week");
+  const { data: project, isLoading: loadingProject } =
+    api.project.getProjects.useQuery(undefined, {
+      select: (projects) => projects.find((p) => p.id === params.projectId),
+    });
   const { data: productivity, isLoading: loadingProductivity } =
     api.analytics.getProductivitySummary.useQuery({
       projectId: params.projectId,
@@ -55,6 +65,11 @@ export default function AnalyticsPage() {
       projectId: params.projectId,
       limit: 10,
     });
+  const { data: commits, isLoading: loadingCommits } =
+    api.project.getCommits.useQuery({
+      projectId: params.projectId,
+      period,
+    });
   const { data: doraMetrics, isLoading: loadingDora } =
     api.analytics.getDoraMetrics.useQuery({
       projectId: params.projectId,
@@ -67,6 +82,43 @@ export default function AnalyticsPage() {
         <ProjectBreadcrumb />
         <QuickNav />
       </div>
+      {project && (
+        <Card className="border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Project Name
+                </p>
+                <p className="text-lg font-semibold">{project.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Repository URL
+                </p>
+                <p className="text-sm font-mono truncate text-blue-600 hover:text-blue-700">
+                  <a
+                    href={project.repoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline"
+                  >
+                    {project.repoUrl.replace("https://github.com/", "")}
+                  </a>
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Project Created
+                </p>
+                <p className="text-sm">
+                  {new Date(project.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <div className="flex justify-between items-start">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -83,14 +135,21 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2">
-            <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+            <Badge
+              variant="secondary"
+              className="bg-blue-500/10 text-blue-600 border-blue-500/20"
+            >
               <Sparkles className="size-3 mr-1" />
               AI-Powered Insights
             </Badge>
             <Badge variant="outline">DORA Metrics</Badge>
           </div>
         </div>
-        <Tabs value={period} onValueChange={(v) => setPeriod(v as "week" | "month" | "quarter")} className="w-fit">
+        <Tabs
+          value={period}
+          onValueChange={(v) => setPeriod(v as "week" | "month" | "quarter")}
+          className="w-fit"
+        >
           <TabsList>
             <TabsTrigger value="week">Week</TabsTrigger>
             <TabsTrigger value="month">Month</TabsTrigger>
@@ -98,35 +157,101 @@ export default function AnalyticsPage() {
           </TabsList>
         </Tabs>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          title="Total Commits"
-          value={productivity?.developer._sum.commitsCount || 0}
-          icon={<GitCommit className="h-5 w-5" />}
-          trend={12}
-          loading={loadingProductivity}
-        />
-        <MetricCard
-          title="Pull Requests"
-          value={productivity?.developer._sum.prsCreated || 0}
-          icon={<GitPullRequest className="h-5 w-5" />}
-          trend={-5}
-          loading={loadingProductivity}
-        />
-        <MetricCard
-          title="Issues Closed"
-          value={productivity?.developer._sum.issuesClosed || 0}
-          icon={<Target className="h-5 w-5" />}
-          trend={8}
-          loading={loadingProductivity}
-        />
-        <MetricCard
-          title="Avg Review Time"
-          value={`${Math.round(productivity?.developer._avg.averageReviewTime || 0)}m`}
-          icon={<Clock className="h-5 w-5" />}
-          trend={-15}
-          loading={loadingProductivity}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">
+              Real-Time Repository Stats
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Total Commits
+              </span>
+              <span className="text-2xl font-bold">
+                {commits?.length ?? "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Unique Contributors
+              </span>
+              <span className="text-2xl font-bold">
+                {commits
+                  ? new Set(commits.map((c: any) => c.commitAuthorName)).size
+                  : "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Last Updated:</span>
+              <span>
+                {commits && commits.length > 0
+                  ? new Date(commits[0].commitDate).toLocaleString()
+                  : "N/A"}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">
+              Period Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Period</span>
+              <Badge variant="outline" className="capitalize">
+                {period}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Commits This Period
+              </span>
+              <span className="text-2xl font-bold">
+                {productivity?.developer?._sum?.commitsCount ?? "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Pull Requests
+              </span>
+              <span className="text-2xl font-bold">
+                {productivity?.developer?._sum?.prsCreated ?? "N/A"}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Data Quality</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Data Source</span>
+              <Badge variant="success" className="text-xs">
+                GitHub API
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Real-Time</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span className="text-xs font-medium">Live</span>
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Synced</span>
+              <span>
+                {productivity?.lastUpdated
+                  ? new Date(productivity.lastUpdated).toLocaleTimeString()
+                  : "N/A"}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
@@ -136,12 +261,20 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             {loadingVelocity ? (
-              <Skeleton className="h-[300px]" />
+              <div className="flex items-center justify-center h-[300px]">
+                <Spinner className="h-8 w-8" />
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={velocityTrends}>
                   <defs>
-                    <linearGradient id="colorCommits" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient
+                      id="colorCommits"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
                       <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
                     </linearGradient>
@@ -153,7 +286,9 @@ export default function AnalyticsPage() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     dataKey="date"
-                    tickFormatter={(date) => new Date(date).toLocaleDateString()}
+                    tickFormatter={(date) =>
+                      new Date(date).toLocaleDateString()
+                    }
                   />
                   <YAxis />
                   <Tooltip />
@@ -189,8 +324,8 @@ export default function AnalyticsPage() {
                     doraMetrics.rating === "Elite"
                       ? "default"
                       : doraMetrics.rating === "High"
-                      ? "success"
-                      : "warning"
+                        ? "success"
+                        : "warning"
                   }
                 >
                   {doraMetrics.rating}
@@ -201,7 +336,9 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             {loadingDora ? (
-              <Skeleton className="h-[300px]" />
+              <div className="flex items-center justify-center h-[300px]">
+                <Spinner className="h-8 w-8" />
+              </div>
             ) : doraMetrics ? (
               <div className="space-y-4">
                 <DORAMetricItem
@@ -237,7 +374,9 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             {loadingLeaderboard ? (
-              <Skeleton className="h-[300px]" />
+              <div className="flex items-center justify-center h-[300px]">
+                <Spinner className="h-8 w-8" />
+              </div>
             ) : (
               <div className="space-y-4">
                 {leaderboard?.slice(0, 5).map((entry, index) => (
@@ -255,10 +394,10 @@ export default function AnalyticsPage() {
                         {entry.user?.firstName} {entry.user?.lastName}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {entry._sum.commitsCount} commits
+                        {entry._sum?.commitsCount ?? "N/A"} commits
                       </p>
                     </div>
-                    <Badge>{entry._sum.prsCreated} PRs</Badge>
+                    <Badge>{entry._sum?.prsCreated ?? "N/A"} PRs</Badge>
                   </div>
                 ))}
               </div>
@@ -272,7 +411,9 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             {loadingHotspots ? (
-              <Skeleton className="h-[300px]" />
+              <div className="flex items-center justify-center h-[300px]">
+                <Spinner className="h-8 w-8" />
+              </div>
             ) : (
               <div className="space-y-3">
                 {hotspots?.map((hotspot) => (
@@ -289,8 +430,8 @@ export default function AnalyticsPage() {
                           hotspot.riskScore > 75
                             ? "destructive"
                             : hotspot.riskScore > 50
-                            ? "warning"
-                            : "default"
+                              ? "warning"
+                              : "default"
                         }
                       >
                         Risk: {hotspot.riskScore}
@@ -327,13 +468,8 @@ function MetricCard({
   if (loading) {
     return (
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-5 w-5 rounded" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-8 w-16 mb-1" />
-          <Skeleton className="h-3 w-20" />
+        <CardContent className="flex items-center justify-center py-8">
+          <Spinner className="h-6 w-6" />
         </CardContent>
       </Card>
     );

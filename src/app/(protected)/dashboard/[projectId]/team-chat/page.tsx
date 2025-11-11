@@ -11,7 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { QuickNav } from "@/components/quick-nav";
-import { ChatFileUpload, AttachmentDisplay } from "@/components/chat-file-upload";
+import {
+  ChatFileUpload,
+  AttachmentDisplay,
+} from "@/components/chat-file-upload";
 import {
   Select,
   SelectContent,
@@ -48,19 +51,81 @@ import {
   Download,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import {
+  vscDarkPlus,
+  vs,
+} from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "next-themes";
-import { useKeyboardShortcuts, type KeyboardShortcut } from "@/hooks/use-keyboard-shortcuts";
+import {
+  useKeyboardShortcuts,
+  type KeyboardShortcut,
+} from "@/hooks/use-keyboard-shortcuts";
 const EMOJI_LIST = [
-  "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂",
-  "🙂", "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩",
-  "😘", "😗", "😚", "😙", "🥲", "😋", "😛", "😜",
-  "🤪", "😝", "🤑", "🤗", "🤭", "🤫", "🤔", "🤐",
-  "👍", "👎", "👌", "✌️", "🤞", "🤝", "👏", "🙌",
-  "🎉", "🎊", "🎈", "🎁", "🏆", "🥇", "🥈", "🥉",
-  "⭐", "🌟", "✨", "💫", "🔥", "💯", "✅", "❌",
-  "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍",
+  "😀",
+  "😃",
+  "😄",
+  "😁",
+  "😆",
+  "😅",
+  "🤣",
+  "😂",
+  "🙂",
+  "🙃",
+  "😉",
+  "😊",
+  "😇",
+  "🥰",
+  "😍",
+  "🤩",
+  "😘",
+  "😗",
+  "😚",
+  "😙",
+  "🥲",
+  "😋",
+  "😛",
+  "😜",
+  "🤪",
+  "😝",
+  "🤑",
+  "🤗",
+  "🤭",
+  "🤫",
+  "🤔",
+  "🤐",
+  "👍",
+  "👎",
+  "👌",
+  "✌️",
+  "🤞",
+  "🤝",
+  "👏",
+  "🙌",
+  "🎉",
+  "🎊",
+  "🎈",
+  "🎁",
+  "🏆",
+  "🥇",
+  "🥈",
+  "🥉",
+  "⭐",
+  "🌟",
+  "✨",
+  "💫",
+  "🔥",
+  "💯",
+  "✅",
+  "❌",
+  "❤️",
+  "🧡",
+  "💛",
+  "💚",
+  "💙",
+  "💜",
+  "🖤",
+  "🤍",
 ];
 const CODE_LANGUAGES = [
   { value: "typescript", label: "TypeScript" },
@@ -96,28 +161,30 @@ export default function TeamChatPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [pendingAttachments, setPendingAttachments] = useState<Array<{
-    fileName: string;
-    fileUrl: string;
-    fileType: string;
-    fileSize: number;
-  }>>([]);
+  const [pendingAttachments, setPendingAttachments] = useState<
+    Array<{
+      fileName: string;
+      fileUrl: string;
+      fileType: string;
+      fileSize: number;
+    }>
+  >([]);
   const [codeDialogOpen, setCodeDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const teamChatShortcuts: KeyboardShortcut[] = [
     {
-      key: 'c',
+      key: "c",
       metaKey: true,
       shiftKey: true,
-      description: 'Open code snippet dialog',
+      description: "Open code snippet dialog",
       action: () => setCodeDialogOpen(true),
     },
     {
-      key: 'u',
+      key: "u",
       metaKey: true,
       shiftKey: true,
-      description: 'Upload file',
+      description: "Upload file",
       action: () => fileInputRef.current?.click(),
     },
   ];
@@ -125,19 +192,20 @@ export default function TeamChatPage() {
   const chatMutation = api.teamChat.getOrCreateChat.useMutation();
 
   const { data: myRooms } = api.chatRooms.getMyRooms.useQuery({
-    projectId: params.projectId
+    projectId: params.projectId,
   });
-  const { data: messages, refetch: refetchMessages } = api.teamChat.getMessages.useQuery(
-    {
-      chatId: chatId || "",
-      roomId: selectedRoomId || undefined,
-      limit: 50,
-    },
-    {
-      enabled: !!chatId,
-      refetchInterval: 3000,
-    }
-  );
+  const { data: messages, refetch: refetchMessages } =
+    api.teamChat.getMessages.useQuery(
+      {
+        chatId: chatId || "",
+        roomId: selectedRoomId || undefined,
+        limit: 50,
+      },
+      {
+        enabled: !!chatId,
+        refetchInterval: 3000,
+      },
+    );
   const { data: annotations } = api.teamChat.getAnnotations.useQuery({
     projectId: params.projectId,
   });
@@ -171,14 +239,26 @@ export default function TeamChatPage() {
   }, [messages]);
   const handleSendMessage = () => {
     if (!chatId) return;
-    if (!message.trim() && !uploadedFile && pendingAttachments.length === 0) return;
-    const messageType = isCodeMode ? "CODE" : (uploadedFile || pendingAttachments.length > 0) ? "FILE" : "TEXT";
+    if (!message.trim() && !uploadedFile && pendingAttachments.length === 0)
+      return;
+    const messageType = isCodeMode
+      ? "CODE"
+      : uploadedFile || pendingAttachments.length > 0
+        ? "FILE"
+        : "TEXT";
     sendMessage.mutate({
       chatId,
       roomId: selectedRoomId || undefined,
-      content: message.trim() || (uploadedFile ? uploadedFile.name : pendingAttachments.length > 0 ? "Sent files" : ""),
+      content:
+        message.trim() ||
+        (uploadedFile
+          ? uploadedFile.name
+          : pendingAttachments.length > 0
+            ? "Sent files"
+            : ""),
       messageType,
-      attachments: pendingAttachments.length > 0 ? pendingAttachments : undefined,
+      attachments:
+        pendingAttachments.length > 0 ? pendingAttachments : undefined,
       codeSnippet: isCodeMode ? message : undefined,
       codeLanguage: isCodeMode ? codeLanguage : undefined,
       attachmentName: uploadedFile ? uploadedFile.name : undefined,
@@ -197,7 +277,7 @@ export default function TeamChatPage() {
     const file = e.target.files?.[0];
     if (file) {
       setUploadedFile(file);
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onloadend = () => {
           setFilePreviewUrl(reader.result as string);
@@ -216,9 +296,9 @@ export default function TeamChatPage() {
     });
   };
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
   return (
     <div className="container mx-auto p-6 space-y-6 animate-fade-in">
@@ -241,7 +321,10 @@ export default function TeamChatPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 mt-2">
-          <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">
+          <Badge
+            variant="secondary"
+            className="bg-green-500/10 text-green-600 border-green-500/20"
+          >
             <Radio className="size-3 mr-1 animate-pulse" />
             Live Updates
           </Badge>
@@ -264,7 +347,10 @@ export default function TeamChatPage() {
               </div>
               <div className="flex items-center gap-2">
                 {chatMutation.data?.participants.slice(0, 5).map((p) => (
-                  <Avatar key={p.id} className="h-8 w-8 border-2 border-background">
+                  <Avatar
+                    key={p.id}
+                    className="h-8 w-8 border-2 border-background"
+                  >
                     <AvatarImage src={p.user.imageUrl || ""} />
                     <AvatarFallback>
                       {p.user.firstName?.[0]}
@@ -279,14 +365,15 @@ export default function TeamChatPage() {
                 )}
               </div>
             </div>
-            {
-}
+            {}
             {myRooms && myRooms.length > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Room:</span>
                 <Select
                   value={selectedRoomId || "all"}
-                  onValueChange={(value) => setSelectedRoomId(value === "all" ? null : value)}
+                  onValueChange={(value) =>
+                    setSelectedRoomId(value === "all" ? null : value)
+                  }
                 >
                   <SelectTrigger className="w-48">
                     <SelectValue />
@@ -336,8 +423,13 @@ export default function TeamChatPage() {
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <FileCode className="h-3 w-3" />
                             {msg.codeLanguage ? (
-                              <Badge variant="outline" className="text-xs capitalize">
-                                {CODE_LANGUAGES.find(l => l.value === msg.codeLanguage)?.label || msg.codeLanguage}
+                              <Badge
+                                variant="outline"
+                                className="text-xs capitalize"
+                              >
+                                {CODE_LANGUAGES.find(
+                                  (l) => l.value === msg.codeLanguage,
+                                )?.label || msg.codeLanguage}
                               </Badge>
                             ) : (
                               <span>Code Snippet</span>
@@ -346,12 +438,12 @@ export default function TeamChatPage() {
                         </div>
                         <div className="rounded overflow-hidden border border-border">
                           <SyntaxHighlighter
-                            language={msg.codeLanguage || 'text'}
-                            style={theme === 'dark' ? vscDarkPlus : vs}
+                            language={msg.codeLanguage || "text"}
+                            style={theme === "dark" ? vscDarkPlus : vs}
                             customStyle={{
                               margin: 0,
-                              fontSize: '0.75rem',
-                              lineHeight: '1.5',
+                              fontSize: "0.75rem",
+                              lineHeight: "1.5",
                             }}
                             showLineNumbers
                           >
@@ -361,26 +453,32 @@ export default function TeamChatPage() {
                       </div>
                     ) : msg.messageType === "FILE" ? (
                       <div className="space-y-2">
-                        {
-}
+                        {}
                         {msg.attachments && msg.attachments.length > 0 && (
                           <div className="space-y-2">
-                            {msg.attachments.map((attachment: { id: string; fileName: string; fileUrl: string; fileType: string; fileSize: number }) => (
-                              <AttachmentDisplay
-                                key={attachment.id}
-                                fileName={attachment.fileName}
-                                fileUrl={attachment.fileUrl}
-                                fileType={attachment.fileType}
-                                fileSize={attachment.fileSize}
-                              />
-                            ))}
+                            {msg.attachments.map(
+                              (attachment: {
+                                id: string;
+                                fileName: string;
+                                fileUrl: string;
+                                fileType: string;
+                                fileSize: number;
+                              }) => (
+                                <AttachmentDisplay
+                                  key={attachment.id}
+                                  fileName={attachment.fileName}
+                                  fileUrl={attachment.fileUrl}
+                                  fileType={attachment.fileType}
+                                  fileSize={attachment.fileSize}
+                                />
+                              ),
+                            )}
                           </div>
                         )}
-                        {
-}
+                        {}
                         {msg.attachmentUrl && !msg.attachments?.length && (
                           <div className="flex items-center gap-3 p-3 bg-background/80 rounded border border-border">
-                            {msg.attachmentType?.startsWith('image/') ? (
+                            {msg.attachmentType?.startsWith("image/") ? (
                               <div className="relative">
                                 <ImageIcon className="h-10 w-10 text-blue-500" />
                               </div>
@@ -388,24 +486,38 @@ export default function TeamChatPage() {
                               <File className="h-10 w-10 text-muted-foreground" />
                             )}
                             <div className="flex-1">
-                              <p className="font-medium text-sm">{msg.attachmentName || 'Attachment'}</p>
+                              <p className="font-medium text-sm">
+                                {msg.attachmentName || "Attachment"}
+                              </p>
                               <p className="text-xs text-muted-foreground">
-                                {msg.attachmentSize ? formatFileSize(msg.attachmentSize) : 'Unknown size'}
+                                {msg.attachmentSize
+                                  ? formatFileSize(msg.attachmentSize)
+                                  : "Unknown size"}
                               </p>
                             </div>
                             <Button size="sm" variant="ghost" asChild>
-                              <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer">
+                              <a
+                                href={msg.attachmentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
                                 <Download className="h-4 w-4" />
                               </a>
                             </Button>
                           </div>
                         )}
-                        {msg.content && msg.content !== msg.attachmentName && msg.content !== "Sent files" && (
-                          <p className="text-sm mt-2 whitespace-pre-wrap">{msg.content}</p>
-                        )}
+                        {msg.content &&
+                          msg.content !== msg.attachmentName &&
+                          msg.content !== "Sent files" && (
+                            <p className="text-sm mt-2 whitespace-pre-wrap">
+                              {msg.content}
+                            </p>
+                          )}
                       </div>
                     ) : (
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-sm whitespace-pre-wrap">
+                        {msg.content}
+                      </p>
                     )}
                     {msg.codeSnippet && msg.messageType !== "CODE" && (
                       <div className="mt-2 p-2 bg-background rounded border border-border/50">
@@ -427,10 +539,13 @@ export default function TeamChatPage() {
                   {msg.reactions.length > 0 && (
                     <div className="flex gap-1 mt-2 flex-wrap">
                       {Object.entries(
-                        msg.reactions.reduce((acc, r) => {
-                          acc[r.emoji] = (acc[r.emoji] || 0) + 1;
-                          return acc;
-                        }, {} as Record<string, number>)
+                        msg.reactions.reduce(
+                          (acc, r) => {
+                            acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                            return acc;
+                          },
+                          {} as Record<string, number>,
+                        ),
                       ).map(([emoji, count]) => (
                         <Button
                           key={emoji}
@@ -447,7 +562,11 @@ export default function TeamChatPage() {
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity mt-1">
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-7 text-xs">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
                           <Smile className="h-3 w-3 mr-1" />
                           React
                         </Button>
@@ -485,9 +604,12 @@ export default function TeamChatPage() {
                                 {reply.user.firstName}
                               </span>
                               <span className="text-xs text-muted-foreground">
-                                {formatDistanceToNow(new Date(reply.createdAt), {
-                                  addSuffix: true,
-                                })}
+                                {formatDistanceToNow(
+                                  new Date(reply.createdAt),
+                                  {
+                                    addSuffix: true,
+                                  },
+                                )}
                               </span>
                             </div>
                             <p className="text-xs">{reply.content}</p>
@@ -502,25 +624,37 @@ export default function TeamChatPage() {
             <div ref={messagesEndRef} />
           </div>
           <div className="p-4 border-t border-border/50 space-y-3">
-            {
-}
+            {}
             {pendingAttachments.length > 0 && (
               <div className="space-y-2">
                 {pendingAttachments.map((att, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg border border-border">
-                    {att.fileType.startsWith('image/') ? (
-                      <img src={att.fileUrl} alt={att.fileName} className="h-16 w-16 object-cover rounded" />
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg border border-border"
+                  >
+                    {att.fileType.startsWith("image/") ? (
+                      <img
+                        src={att.fileUrl}
+                        alt={att.fileName}
+                        className="h-16 w-16 object-cover rounded"
+                      />
                     ) : (
                       <File className="h-12 w-12 text-muted-foreground" />
                     )}
                     <div className="flex-1">
                       <p className="font-medium text-sm">{att.fileName}</p>
-                      <p className="text-xs text-muted-foreground">{formatFileSize(att.fileSize)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(att.fileSize)}
+                      </p>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setPendingAttachments(prev => prev.filter((_, i) => i !== idx))}
+                      onClick={() =>
+                        setPendingAttachments((prev) =>
+                          prev.filter((_, i) => i !== idx),
+                        )
+                      }
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -528,18 +662,23 @@ export default function TeamChatPage() {
                 ))}
               </div>
             )}
-            {
-}
+            {}
             {uploadedFile && (
               <div className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg border border-border">
                 {filePreviewUrl ? (
-                  <img src={filePreviewUrl} alt="Preview" className="h-16 w-16 object-cover rounded" />
+                  <img
+                    src={filePreviewUrl}
+                    alt="Preview"
+                    className="h-16 w-16 object-cover rounded"
+                  />
                 ) : (
                   <File className="h-12 w-12 text-muted-foreground" />
                 )}
                 <div className="flex-1">
                   <p className="font-medium text-sm">{uploadedFile.name}</p>
-                  <p className="text-xs text-muted-foreground">{formatFileSize(uploadedFile.size)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatFileSize(uploadedFile.size)}
+                  </p>
                 </div>
                 <Button
                   variant="ghost"
@@ -670,11 +809,10 @@ export default function TeamChatPage() {
               >
                 <Paperclip className="h-4 w-4" />
               </Button>
-              {
-}
+              {}
               <ChatFileUpload
                 onUploadComplete={(files) => {
-                  setPendingAttachments(prev => [...prev, ...files]);
+                  setPendingAttachments((prev) => [...prev, ...files]);
                 }}
                 disabled={sendMessage.isPending}
               />
@@ -690,13 +828,22 @@ export default function TeamChatPage() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder={uploadedFile ? "Add a caption (optional)..." : "Type a message..."}
+                  placeholder={
+                    uploadedFile
+                      ? "Add a caption (optional)..."
+                      : "Type a message..."
+                  }
                   className="flex-1"
                 />
               )}
               <Button
                 onClick={handleSendMessage}
-                disabled={(!message.trim() && !uploadedFile && pendingAttachments.length === 0) || sendMessage.isPending}
+                disabled={
+                  (!message.trim() &&
+                    !uploadedFile &&
+                    pendingAttachments.length === 0) ||
+                  sendMessage.isPending
+                }
               >
                 <Send className="h-4 w-4" />
               </Button>

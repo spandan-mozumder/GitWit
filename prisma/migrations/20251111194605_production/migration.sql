@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "vector";
 
 -- CreateEnum
-CREATE TYPE "MeetingStatus" AS ENUM ('PROCESSING', 'COMPLETED');
+CREATE TYPE "MeetingStatus" AS ENUM ('PROCESSING', 'COMPLETED', 'SCHEDULED', 'IN_PROGRESS', 'ENDED', 'SUMMARIZED');
 
 -- CreateEnum
 CREATE TYPE "ReviewStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED');
@@ -34,6 +34,33 @@ CREATE TYPE "Priority" AS ENUM ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW');
 -- CreateEnum
 CREATE TYPE "TaskStatus" AS ENUM ('TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE', 'CANCELLED');
 
+-- CreateEnum
+CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'COLLABORATOR', 'VIEWER');
+
+-- CreateEnum
+CREATE TYPE "TranscriptionStatus" AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED');
+
+-- CreateEnum
+CREATE TYPE "ParticipantRole" AS ENUM ('HOST', 'CO_HOST', 'PARTICIPANT');
+
+-- CreateEnum
+CREATE TYPE "FeatureComplexity" AS ENUM ('EASY', 'MEDIUM', 'HARD', 'VERY_HARD');
+
+-- CreateEnum
+CREATE TYPE "FeatureStatus" AS ENUM ('IDEA', 'PLANNED', 'IN_PROGRESS', 'DONE', 'REJECTED');
+
+-- CreateEnum
+CREATE TYPE "FeatureCategory" AS ENUM ('NEW_FEATURE', 'ENHANCEMENT', 'BUG_FIX', 'PERFORMANCE', 'SECURITY', 'UI_UX', 'REFACTOR', 'TESTING', 'DOCUMENTATION');
+
+-- CreateEnum
+CREATE TYPE "PRStatus" AS ENUM ('OPEN', 'CLOSED', 'MERGED', 'DRAFT');
+
+-- CreateEnum
+CREATE TYPE "PRRiskLevel" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+
+-- CreateEnum
+CREATE TYPE "FileChangeStatus" AS ENUM ('ADDED', 'MODIFIED', 'DELETED', 'RENAMED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -55,7 +82,6 @@ CREATE TABLE "Project" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "name" TEXT NOT NULL,
     "repoUrl" TEXT NOT NULL,
-    "gitHubToken" TEXT,
     "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Project_pkey" PRIMARY KEY ("id")
@@ -228,6 +254,7 @@ CREATE TABLE "ChatMessage" (
     "aiContext" TEXT,
     "userId" TEXT NOT NULL,
     "chatId" TEXT NOT NULL,
+    "roomId" TEXT,
     "parentMessageId" TEXT,
 
     CONSTRAINT "ChatMessage_pkey" PRIMARY KEY ("id")
@@ -451,6 +478,179 @@ CREATE TABLE "Reminder" (
     CONSTRAINT "Reminder_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "FeatureIdea" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "implementation" TEXT,
+    "complexity" "FeatureComplexity" NOT NULL DEFAULT 'MEDIUM',
+    "estimatedHours" INTEGER,
+    "techStack" TEXT[],
+    "userStories" TEXT[],
+    "priority" INTEGER NOT NULL DEFAULT 3,
+    "voteCount" INTEGER NOT NULL DEFAULT 0,
+    "status" "FeatureStatus" NOT NULL DEFAULT 'IDEA',
+    "category" "FeatureCategory",
+    "tags" TEXT[],
+    "githubIssueUrl" TEXT,
+    "jiraTicketId" TEXT,
+    "projectId" TEXT NOT NULL,
+
+    CONSTRAINT "FeatureIdea_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FeatureVote" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+    "featureId" TEXT NOT NULL,
+
+    CONSTRAINT "FeatureVote_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PullRequest" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "prNumber" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "status" "PRStatus" NOT NULL DEFAULT 'OPEN',
+    "author" TEXT NOT NULL,
+    "authorAvatar" TEXT,
+    "branch" TEXT NOT NULL,
+    "baseBranch" TEXT NOT NULL DEFAULT 'main',
+    "filesChanged" INTEGER NOT NULL DEFAULT 0,
+    "additions" INTEGER NOT NULL DEFAULT 0,
+    "deletions" INTEGER NOT NULL DEFAULT 0,
+    "commits" INTEGER NOT NULL DEFAULT 0,
+    "aiSummary" TEXT,
+    "qualityScore" INTEGER,
+    "riskLevel" "PRRiskLevel",
+    "hasBreakingChanges" BOOLEAN NOT NULL DEFAULT false,
+    "breakingChangesDesc" TEXT,
+    "testCoverageImpact" TEXT,
+    "openedAt" TIMESTAMP(3) NOT NULL,
+    "closedAt" TIMESTAMP(3),
+    "mergedAt" TIMESTAMP(3),
+    "projectId" TEXT NOT NULL,
+
+    CONSTRAINT "PullRequest_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PRFile" (
+    "id" TEXT NOT NULL,
+    "filename" TEXT NOT NULL,
+    "status" "FileChangeStatus" NOT NULL,
+    "additions" INTEGER NOT NULL DEFAULT 0,
+    "deletions" INTEGER NOT NULL DEFAULT 0,
+    "changes" INTEGER NOT NULL DEFAULT 0,
+    "patch" TEXT,
+    "aiSummary" TEXT,
+    "riskScore" INTEGER,
+    "pullRequestId" TEXT NOT NULL,
+
+    CONSTRAINT "PRFile_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProjectMember" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL,
+    "projectId" TEXT NOT NULL,
+    "role" "UserRole" NOT NULL DEFAULT 'COLLABORATOR',
+    "invitedBy" TEXT,
+    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ProjectMember_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ChatRoom" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "projectId" TEXT NOT NULL,
+    "createdBy" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "ChatRoom_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RoomMembership" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "roomId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "addedBy" TEXT NOT NULL,
+    "addedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RoomMembership_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ChatAttachment" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "messageId" TEXT NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "fileUrl" TEXT NOT NULL,
+    "fileType" TEXT NOT NULL,
+    "fileSize" INTEGER NOT NULL,
+    "uploadedBy" TEXT NOT NULL,
+
+    CONSTRAINT "ChatAttachment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "LiveMeeting" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "projectId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "hostId" TEXT NOT NULL,
+    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "endedAt" TIMESTAMP(3),
+    "status" "MeetingStatus" NOT NULL DEFAULT 'PROCESSING',
+    "recordingUrl" TEXT,
+    "audioFileUrl" TEXT,
+    "transcriptId" TEXT,
+    "transcript" TEXT,
+    "transcriptionStatus" "TranscriptionStatus" NOT NULL DEFAULT 'PENDING',
+    "summaryRequested" BOOLEAN NOT NULL DEFAULT false,
+    "summaryRequestedBy" TEXT,
+    "summaryRequestedAt" TIMESTAMP(3),
+    "summary" TEXT,
+    "meetingId" TEXT,
+
+    CONSTRAINT "LiveMeeting_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "LiveMeetingParticipant" (
+    "id" TEXT NOT NULL,
+    "meetingId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "role" "ParticipantRole" NOT NULL DEFAULT 'PARTICIPANT',
+    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "leftAt" TIMESTAMP(3),
+
+    CONSTRAINT "LiveMeetingParticipant_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_EmailAddress_key" ON "User"("EmailAddress");
 
@@ -474,6 +674,21 @@ CREATE UNIQUE INDEX "TeamMetric_projectId_date_key" ON "TeamMetric"("projectId",
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CodeHotspot_projectId_filePath_key" ON "CodeHotspot"("projectId", "filePath");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FeatureVote_userId_featureId_key" ON "FeatureVote"("userId", "featureId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PullRequest_projectId_prNumber_key" ON "PullRequest"("projectId", "prNumber");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProjectMember_userId_projectId_key" ON "ProjectMember"("userId", "projectId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RoomMembership_roomId_userId_key" ON "RoomMembership"("roomId", "userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "LiveMeetingParticipant_meetingId_userId_key" ON "LiveMeetingParticipant"("meetingId", "userId");
 
 -- AddForeignKey
 ALTER TABLE "UserToProject" ADD CONSTRAINT "UserToProject_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -516,6 +731,9 @@ ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_userId_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "TeamChat"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "ChatRoom"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_parentMessageId_fkey" FOREIGN KEY ("parentMessageId") REFERENCES "ChatMessage"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -582,3 +800,24 @@ ALTER TABLE "ActionItem" ADD CONSTRAINT "ActionItem_meetingId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "Reminder" ADD CONSTRAINT "Reminder_actionItemId_fkey" FOREIGN KEY ("actionItemId") REFERENCES "ActionItem"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FeatureIdea" ADD CONSTRAINT "FeatureIdea_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FeatureVote" ADD CONSTRAINT "FeatureVote_featureId_fkey" FOREIGN KEY ("featureId") REFERENCES "FeatureIdea"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PullRequest" ADD CONSTRAINT "PullRequest_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PRFile" ADD CONSTRAINT "PRFile_pullRequestId_fkey" FOREIGN KEY ("pullRequestId") REFERENCES "PullRequest"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RoomMembership" ADD CONSTRAINT "RoomMembership_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "ChatRoom"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatAttachment" ADD CONSTRAINT "ChatAttachment_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "ChatMessage"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LiveMeetingParticipant" ADD CONSTRAINT "LiveMeetingParticipant_meetingId_fkey" FOREIGN KEY ("meetingId") REFERENCES "LiveMeeting"("id") ON DELETE CASCADE ON UPDATE CASCADE;

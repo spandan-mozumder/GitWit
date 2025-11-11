@@ -52,23 +52,27 @@ interface GitHubContributor {
   additions: number;
   deletions: number;
 }
-export async function getRepoStats(githubUrl: string, daysBack = 30): Promise<GitHubRepoStats> {
+export async function getRepoStats(
+  githubUrl: string,
+  daysBack = 30,
+): Promise<GitHubRepoStats> {
   const [owner, repo] = parseGitHubUrl(githubUrl);
-  const [repoData, commits, pullRequests, issues, contributors, languages] = await Promise.all([
-    octokit.rest.repos.get({ owner, repo }),
-    getRecentCommits(owner, repo, daysBack),
-    getRecentPullRequests(owner, repo, daysBack),
-    getRecentIssues(owner, repo, daysBack),
-    octokit.rest.repos.listContributors({ owner, repo, per_page: 100 }),
-    octokit.rest.repos.listLanguages({ owner, repo }),
-  ]);
+  const [repoData, commits, pullRequests, issues, contributors, languages] =
+    await Promise.all([
+      octokit.rest.repos.get({ owner, repo }),
+      getRecentCommits(owner, repo, daysBack),
+      getRecentPullRequests(owner, repo, daysBack),
+      getRecentIssues(owner, repo, daysBack),
+      octokit.rest.repos.listContributors({ owner, repo, per_page: 100 }),
+      octokit.rest.repos.listLanguages({ owner, repo }),
+    ]);
   return {
     owner,
     repo,
     totalCommits: commits.length,
-    totalPRs: pullRequests.filter(pr => pr.state === 'closed').length,
+    totalPRs: pullRequests.filter((pr) => pr.state === "closed").length,
     openIssues: repoData.data.open_issues_count,
-    closedIssues: issues.filter(i => i.state === 'closed').length,
+    closedIssues: issues.filter((i) => i.state === "closed").length,
     contributors: contributors.data.length,
     stars: repoData.data.stargazers_count,
     forks: repoData.data.forks_count,
@@ -81,7 +85,10 @@ export async function getRepoStats(githubUrl: string, daysBack = 30): Promise<Gi
     },
   };
 }
-export async function getCommitStats(githubUrl: string, daysBack = 30): Promise<GitHubCommitStats[]> {
+export async function getCommitStats(
+  githubUrl: string,
+  daysBack = 30,
+): Promise<GitHubCommitStats[]> {
   const [owner, repo] = parseGitHubUrl(githubUrl);
   const since = new Date();
   since.setDate(since.getDate() - daysBack);
@@ -102,45 +109,52 @@ export async function getCommitStats(githubUrl: string, daysBack = 30): Promise<
       commitStats.push({
         sha: commit.sha,
         message: commit.commit.message,
-        author: commit.commit.author?.name || 'Unknown',
-        authorAvatar: commit.author?.avatar_url || '',
+        author: commit.commit.author?.name || "Unknown",
+        authorAvatar: commit.author?.avatar_url || "",
         date: commit.commit.author?.date || new Date().toISOString(),
         additions: commitDetail.stats?.additions || 0,
         deletions: commitDetail.stats?.deletions || 0,
         filesChanged: commitDetail.files?.length || 0,
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   }
   return commitStats;
 }
-export async function getPullRequestStats(githubUrl: string, daysBack = 30): Promise<GitHubPullRequest[]> {
+export async function getPullRequestStats(
+  githubUrl: string,
+  daysBack = 30,
+): Promise<GitHubPullRequest[]> {
   const [owner, repo] = parseGitHubUrl(githubUrl);
   const { data: prs } = await octokit.rest.pulls.list({
     owner,
     repo,
-    state: 'all',
+    state: "all",
     per_page: 100,
-    sort: 'updated',
-    direction: 'desc',
+    sort: "updated",
+    direction: "desc",
   });
   const since = new Date();
   since.setDate(since.getDate() - daysBack);
-  const recentPRs = prs.filter(pr =>
-    new Date(pr.created_at) >= since
-  );
+  const recentPRs = prs.filter((pr) => new Date(pr.created_at) >= since);
   const prStats: GitHubPullRequest[] = [];
   for (const pr of recentPRs) {
     const reviewTime = pr.merged_at
-      ? Math.abs(new Date(pr.merged_at).getTime() - new Date(pr.created_at).getTime()) / (1000 * 60 * 60)
+      ? Math.abs(
+          new Date(pr.merged_at).getTime() - new Date(pr.created_at).getTime(),
+        ) /
+        (1000 * 60 * 60)
       : pr.closed_at
-      ? Math.abs(new Date(pr.closed_at).getTime() - new Date(pr.created_at).getTime()) / (1000 * 60 * 60)
-      : undefined;
+        ? Math.abs(
+            new Date(pr.closed_at).getTime() -
+              new Date(pr.created_at).getTime(),
+          ) /
+          (1000 * 60 * 60)
+        : undefined;
     prStats.push({
       number: pr.number,
       title: pr.title,
       state: pr.state,
-      author: pr.user?.login || 'Unknown',
+      author: pr.user?.login || "Unknown",
       createdAt: pr.created_at,
       closedAt: pr.closed_at,
       mergedAt: pr.merged_at,
@@ -164,13 +178,14 @@ export async function getPullRequestStats(githubUrl: string, daysBack = 30): Pro
           deletions: prDetail.deletions,
           changedFiles: prDetail.changed_files,
         };
-      } catch (error) {
-      }
-    })
+      } catch (error) {}
+    }),
   );
   return prStats;
 }
-export async function getContributorStats(githubUrl: string): Promise<GitHubContributor[]> {
+export async function getContributorStats(
+  githubUrl: string,
+): Promise<GitHubContributor[]> {
   const [owner, repo] = parseGitHubUrl(githubUrl);
   const { data: contributors } = await octokit.rest.repos.listContributors({
     owner,
@@ -197,8 +212,7 @@ export async function getContributorStats(githubUrl: string): Promise<GitHubCont
           });
           totalAdditions += commitDetail.stats?.additions || 0;
           totalDeletions += commitDetail.stats?.deletions || 0;
-        } catch (error) {
-        }
+        } catch (error) {}
       }
       contributorStats.push({
         login: contributor.login!,
@@ -209,18 +223,22 @@ export async function getContributorStats(githubUrl: string): Promise<GitHubCont
         additions: totalAdditions,
         deletions: totalDeletions,
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   }
   return contributorStats.sort((a, b) => b.contributions - a.contributions);
 }
-export async function getCodeHotspots(githubUrl: string, daysBack = 90): Promise<Array<{
-  path: string;
-  changes: number;
-  additions: number;
-  deletions: number;
-  contributors: Set<string>;
-}>> {
+export async function getCodeHotspots(
+  githubUrl: string,
+  daysBack = 90,
+): Promise<
+  Array<{
+    path: string;
+    changes: number;
+    additions: number;
+    deletions: number;
+    contributors: Set<string>;
+  }>
+> {
   const [owner, repo] = parseGitHubUrl(githubUrl);
   const since = new Date();
   since.setDate(since.getDate() - daysBack);
@@ -230,12 +248,15 @@ export async function getCodeHotspots(githubUrl: string, daysBack = 90): Promise
     since: since.toISOString(),
     per_page: 100,
   });
-  const fileStats = new Map<string, {
-    changes: number;
-    additions: number;
-    deletions: number;
-    contributors: Set<string>;
-  }>();
+  const fileStats = new Map<
+    string,
+    {
+      changes: number;
+      additions: number;
+      deletions: number;
+      contributors: Set<string>;
+    }
+  >();
   for (const commit of commits) {
     try {
       const { data: commitDetail } = await octokit.rest.repos.getCommit({
@@ -253,11 +274,10 @@ export async function getCodeHotspots(githubUrl: string, daysBack = 90): Promise
         existing.changes += file.changes;
         existing.additions += file.additions;
         existing.deletions += file.deletions;
-        existing.contributors.add(commit.commit.author?.name || 'Unknown');
+        existing.contributors.add(commit.commit.author?.name || "Unknown");
         fileStats.set(file.filename, existing);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   }
   return Array.from(fileStats.entries())
     .map(([path, stats]) => ({
@@ -267,13 +287,18 @@ export async function getCodeHotspots(githubUrl: string, daysBack = 90): Promise
     .sort((a, b) => b.changes - a.changes)
     .slice(0, 20);
 }
-export async function getRepoFiles(githubUrl: string, path = ''): Promise<Array<{
-  name: string;
-  path: string;
-  type: 'file' | 'dir';
-  size?: number;
-  content?: string;
-}>> {
+export async function getRepoFiles(
+  githubUrl: string,
+  path = "",
+): Promise<
+  Array<{
+    name: string;
+    path: string;
+    type: "file" | "dir";
+    size?: number;
+    content?: string;
+  }>
+> {
   const [owner, repo] = parseGitHubUrl(githubUrl);
   try {
     const { data } = await octokit.rest.repos.getContent({
@@ -282,30 +307,35 @@ export async function getRepoFiles(githubUrl: string, path = ''): Promise<Array<
       path,
     });
     if (Array.isArray(data)) {
-      return data.map(item => ({
+      return data.map((item) => ({
         name: item.name,
         path: item.path,
-        type: item.type as 'file' | 'dir',
+        type: item.type as "file" | "dir",
         size: item.size,
       }));
     } else {
-      return [{
-        name: data.name,
-        path: data.path,
-        type: data.type as 'file' | 'dir',
-        size: data.size,
-        content: 'content' in data ? Buffer.from(data.content, 'base64').toString('utf-8') : undefined,
-      }];
+      return [
+        {
+          name: data.name,
+          path: data.path,
+          type: data.type as "file" | "dir",
+          size: data.size,
+          content:
+            "content" in data
+              ? Buffer.from(data.content, "base64").toString("utf-8")
+              : undefined,
+        },
+      ];
     }
   } catch (error) {
     return [];
   }
 }
 function parseGitHubUrl(githubUrl: string): [string, string] {
-  const url = githubUrl.replace('https://github.com/', '').replace('.git', '');
-  const [owner, repo] = url.split('/');
+  const url = githubUrl.replace("https://github.com/", "").replace(".git", "");
+  const [owner, repo] = url.split("/");
   if (!owner || !repo) {
-    throw new Error('Invalid GitHub URL');
+    throw new Error("Invalid GitHub URL");
   }
   return [owner, repo];
 }
@@ -320,29 +350,33 @@ async function getRecentCommits(owner: string, repo: string, daysBack: number) {
   });
   return data;
 }
-async function getRecentPullRequests(owner: string, repo: string, daysBack: number) {
+async function getRecentPullRequests(
+  owner: string,
+  repo: string,
+  daysBack: number,
+) {
   const { data } = await octokit.rest.pulls.list({
     owner,
     repo,
-    state: 'all',
+    state: "all",
     per_page: 100,
-    sort: 'updated',
-    direction: 'desc',
+    sort: "updated",
+    direction: "desc",
   });
   const since = new Date();
   since.setDate(since.getDate() - daysBack);
-  return data.filter(pr => new Date(pr.created_at) >= since);
+  return data.filter((pr) => new Date(pr.created_at) >= since);
 }
 async function getRecentIssues(owner: string, repo: string, daysBack: number) {
   const { data } = await octokit.rest.issues.listForRepo({
     owner,
     repo,
-    state: 'all',
+    state: "all",
     per_page: 100,
-    sort: 'updated',
-    direction: 'desc',
+    sort: "updated",
+    direction: "desc",
   });
   const since = new Date();
   since.setDate(since.getDate() - daysBack);
-  return data.filter(issue => new Date(issue.created_at) >= since);
+  return data.filter((issue) => new Date(issue.created_at) >= since);
 }

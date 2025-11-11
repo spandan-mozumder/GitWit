@@ -4,7 +4,11 @@ import { Redis } from "@upstash/redis";
 let ratelimit: Ratelimit | null = null;
 
 export function getRateLimiter() {
-  if (!ratelimit && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (
+    !ratelimit &&
+    process.env.UPSTASH_REDIS_REST_URL &&
+    process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
     const redis = new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL,
       token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -14,7 +18,7 @@ export function getRateLimiter() {
       redis,
       limiter: Ratelimit.slidingWindow(
         parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100", 10),
-        "1 m"
+        "1 m",
       ),
       analytics: true,
       prefix: "@upstash/ratelimit",
@@ -24,11 +28,23 @@ export function getRateLimiter() {
   return ratelimit;
 }
 
-export async function checkRateLimit(identifier: string): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
+export async function checkRateLimit(
+  identifier: string,
+): Promise<{
+  success: boolean;
+  limit: number;
+  remaining: number;
+  reset: number;
+}> {
   const limiter = getRateLimiter();
 
   if (!limiter) {
-    return { success: true, limit: 100, remaining: 100, reset: Date.now() + 60000 };
+    return {
+      success: true,
+      limit: 100,
+      remaining: 100,
+      reset: Date.now() + 60000,
+    };
   }
 
   const { success, limit, remaining, reset } = await limiter.limit(identifier);
@@ -39,12 +55,22 @@ export async function checkRateLimit(identifier: string): Promise<{ success: boo
 export async function checkRateLimitForEndpoint(
   identifier: string,
   endpoint: string,
-  customLimit?: number
-): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
+  customLimit?: number,
+): Promise<{
+  success: boolean;
+  limit: number;
+  remaining: number;
+  reset: number;
+}> {
   const limiter = getRateLimiter();
 
   if (!limiter) {
-    return { success: true, limit: customLimit || 100, remaining: customLimit || 100, reset: Date.now() + 60000 };
+    return {
+      success: true,
+      limit: customLimit || 100,
+      remaining: customLimit || 100,
+      reset: Date.now() + 60000,
+    };
   }
 
   const key = `${identifier}:${endpoint}`;

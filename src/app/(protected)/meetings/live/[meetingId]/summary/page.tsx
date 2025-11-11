@@ -3,7 +3,13 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "~/components/ui/card";
 import { toast } from "sonner";
 import {
   FileText,
@@ -11,7 +17,7 @@ import {
   Download,
   RefreshCw,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -33,11 +39,14 @@ export default function MeetingSummaryPage() {
   const { data: meeting, refetch } = api.liveMeetings.getMeeting.useQuery({
     meetingId: params.meetingId,
   });
-  const { data: myRole } = api.projectMembers.getMyRole.useQuery({
-    projectId: meeting?.projectId || "",
-  }, {
-    enabled: !!meeting?.projectId,
-  });
+  const { data: myRole } = api.projectMembers.getMyRole.useQuery(
+    {
+      projectId: meeting?.projectId || "",
+    },
+    {
+      enabled: !!meeting?.projectId,
+    },
+  );
   const requestSummary = api.liveMeetings.requestSummary.useMutation();
   const generateSummary = api.liveMeetings.generateSummary.useMutation();
   const isAdmin = myRole === "ADMIN";
@@ -58,8 +67,7 @@ export default function MeetingSummaryPage() {
             clearInterval(interval);
             toast.error("Transcription failed");
           }
-        } catch (error) {
-        }
+        } catch (error) {}
       }, 5000);
       return () => clearInterval(interval);
     }
@@ -70,7 +78,9 @@ export default function MeetingSummaryPage() {
       toast.success("Summary requested");
       await refetch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to request summary");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to request summary",
+      );
     }
   };
   const handleGenerateSummary = async () => {
@@ -79,7 +89,9 @@ export default function MeetingSummaryPage() {
       toast.success("Summary generated successfully!");
       await refetch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to generate summary");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to generate summary",
+      );
     }
   };
   const downloadTranscript = () => {
@@ -113,8 +125,7 @@ export default function MeetingSummaryPage() {
           Back to Meeting
         </Button>
       </div>
-      {
-}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader>
@@ -189,8 +200,7 @@ export default function MeetingSummaryPage() {
           </CardContent>
         </Card>
       </div>
-      {
-}
+      {}
       {meeting?.transcript && (
         <Card>
           <CardHeader>
@@ -219,8 +229,7 @@ export default function MeetingSummaryPage() {
           </CardContent>
         </Card>
       )}
-      {
-}
+      {}
       {meeting?.transcriptionStatus === "COMPLETED" && !meeting?.summary && (
         <Card>
           <CardHeader>
@@ -236,7 +245,8 @@ export default function MeetingSummaryPage() {
             {!meeting.summaryRequested ? (
               <>
                 <p className="text-sm text-muted-foreground">
-                  The AI summary will extract key points, decisions made, and action items from the transcript.
+                  The AI summary will extract key points, decisions made, and
+                  action items from the transcript.
                   {!isAdmin && " Only admins can request summaries."}
                 </p>
                 {isAdmin && (
@@ -249,10 +259,13 @@ export default function MeetingSummaryPage() {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Generate AI Summary?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                          Generate AI Summary?
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will use AI to analyze the transcript and generate a comprehensive
-                          summary including key points, decisions, and action items.
+                          This will use AI to analyze the transcript and
+                          generate a comprehensive summary including key points,
+                          decisions, and action items.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -269,7 +282,9 @@ export default function MeetingSummaryPage() {
               <>
                 <div className="flex items-center gap-2 text-blue-600">
                   <Spinner className="h-4 w-4" />
-                  <span className="text-sm">Summary requested, generating...</span>
+                  <span className="text-sm">
+                    Summary requested, generating...
+                  </span>
                 </div>
                 <Button
                   onClick={handleGenerateSummary}
@@ -294,8 +309,7 @@ export default function MeetingSummaryPage() {
           </CardContent>
         </Card>
       )}
-      {
-}
+      {}
       {meeting?.summary && (
         <Card className="border-2 border-primary/20">
           <CardHeader>
@@ -326,8 +340,7 @@ export default function MeetingSummaryPage() {
           </CardContent>
         </Card>
       )}
-      {
-}
+      {}
       {!meeting?.audioFileUrl && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">

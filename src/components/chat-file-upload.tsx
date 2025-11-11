@@ -10,15 +10,20 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 interface ChatFileUploadProps {
-  onUploadComplete: (files: Array<{
-    fileName: string;
-    fileUrl: string;
-    fileType: string;
-    fileSize: number;
-  }>) => void;
+  onUploadComplete: (
+    files: Array<{
+      fileName: string;
+      fileUrl: string;
+      fileType: string;
+      fileSize: number;
+    }>,
+  ) => void;
   disabled?: boolean;
 }
-export function ChatFileUpload({ onUploadComplete, disabled }: ChatFileUploadProps) {
+export function ChatFileUpload({
+  onUploadComplete,
+  disabled,
+}: ChatFileUploadProps) {
   return (
     <TooltipProvider>
       <Tooltip>
@@ -28,21 +33,24 @@ export function ChatFileUpload({ onUploadComplete, disabled }: ChatFileUploadPro
               endpoint="chatAttachment"
               onClientUploadComplete={(res) => {
                 if (res) {
-                  const files = res.map(file => ({
+                  const files = res.map((file) => ({
                     fileName: file.name,
                     fileUrl: file.url,
                     fileType: file.type,
                     fileSize: file.size,
                   }));
                   onUploadComplete(files);
-                  toast.success(`${files.length} file(s) uploaded successfully`);
+                  toast.success(
+                    `${files.length} file(s) uploaded successfully`,
+                  );
                 }
               }}
               onUploadError={(error: Error) => {
                 toast.error(`Upload failed: ${error.message}`);
               }}
               appearance={{
-                button: "text-sm px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground",
+                button:
+                  "text-sm px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground",
                 allowedContent: "hidden",
               }}
               content={{
@@ -69,7 +77,12 @@ interface FilePreviewProps {
   fileSize: number;
   onRemove?: () => void;
 }
-export function FilePreview({ fileName, fileType, fileSize, onRemove }: FilePreviewProps) {
+export function FilePreview({
+  fileName,
+  fileType,
+  fileSize,
+  onRemove,
+}: FilePreviewProps) {
   const getFileIcon = () => {
     if (fileType.startsWith("image/")) return <Image className="h-4 w-4" />;
     if (fileType.startsWith("video/")) return <Video className="h-4 w-4" />;
@@ -87,7 +100,9 @@ export function FilePreview({ fileName, fileType, fileSize, onRemove }: FilePrev
       {getFileIcon()}
       <div className="flex-1 truncate">
         <p className="truncate font-medium">{fileName}</p>
-        <p className="text-xs text-muted-foreground">{formatFileSize(fileSize)}</p>
+        <p className="text-xs text-muted-foreground">
+          {formatFileSize(fileSize)}
+        </p>
       </div>
       {onRemove && (
         <Button
@@ -108,7 +123,12 @@ interface AttachmentDisplayProps {
   fileType: string;
   fileSize: number;
 }
-export function AttachmentDisplay({ fileName, fileUrl, fileType, fileSize }: AttachmentDisplayProps) {
+export function AttachmentDisplay({
+  fileName,
+  fileUrl,
+  fileType,
+  fileSize,
+}: AttachmentDisplayProps) {
   const getFileIcon = () => {
     if (fileType.startsWith("image/")) return <Image className="h-5 w-5" />;
     if (fileType.startsWith("video/")) return <Video className="h-5 w-5" />;
@@ -150,7 +170,9 @@ export function AttachmentDisplay({ fileName, fileUrl, fileType, fileSize }: Att
       {getFileIcon()}
       <div className="flex-1 min-w-0">
         <p className="truncate font-medium text-sm">{fileName}</p>
-        <p className="text-xs text-muted-foreground">{formatFileSize(fileSize)}</p>
+        <p className="text-xs text-muted-foreground">
+          {formatFileSize(fileSize)}
+        </p>
       </div>
     </a>
   );

@@ -2,10 +2,15 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { QuickNav } from "@/components/quick-nav";
@@ -19,7 +24,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Shield,
@@ -45,23 +56,36 @@ export default function CodeReviewPage() {
   const [selectedBranch, setSelectedBranch] = useState<string>("");
   const [selectedCommit, setSelectedCommit] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: reviews, isLoading, refetch } = api.codeReview.getProjectReviews.useQuery({
+  const {
+    data: reviews,
+    isLoading,
+    refetch,
+  } = api.codeReview.getProjectReviews.useQuery({
     projectId: params.projectId,
     limit: 20,
   });
   const { data: stats } = api.codeReview.getReviewStats.useQuery({
     projectId: params.projectId,
   });
-  const { data: branches, isLoading: loadingBranches } = api.codeBrowser.getBranches.useQuery({
-    projectId: params.projectId,
-  }, { enabled: isCreateOpen });
-  const { data: commits, isLoading: loadingCommits } = api.codeBrowser.getCommits.useQuery({
-    projectId: params.projectId,
-    branch: selectedBranch || undefined,
-  }, { enabled: isCreateOpen && !!selectedBranch });
+  const { data: branches, isLoading: loadingBranches } =
+    api.codeBrowser.getBranches.useQuery(
+      {
+        projectId: params.projectId,
+      },
+      { enabled: isCreateOpen },
+    );
+  const { data: commits, isLoading: loadingCommits } =
+    api.codeBrowser.getCommits.useQuery(
+      {
+        projectId: params.projectId,
+        branch: selectedBranch || undefined,
+      },
+      { enabled: isCreateOpen && !!selectedBranch },
+    );
   useEffect(() => {
     if (branches && branches.length > 0 && !selectedBranch) {
-      const defaultBranch = branches.find(b => b.name === 'main') || branches[0];
+      const defaultBranch =
+        branches.find((b) => b.name === "main") || branches[0];
       if (defaultBranch) {
         setSelectedBranch(defaultBranch.name);
       }
@@ -83,10 +107,11 @@ export default function CodeReviewPage() {
       commitHash: selectedCommit,
     });
   };
-  const filteredCommits = commits?.filter(commit =>
-    commit.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    commit.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    commit.sha.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCommits = commits?.filter(
+    (commit) =>
+      commit.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      commit.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      commit.sha.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (!params.projectId) {
@@ -110,13 +135,13 @@ export default function CodeReviewPage() {
     return "text-red-600";
   };
   const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'Unknown';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (!dateString) return "Unknown";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
   return (
@@ -141,7 +166,10 @@ export default function CodeReviewPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2">
-            <Badge variant="secondary" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+            <Badge
+              variant="secondary"
+              className="bg-purple-500/10 text-purple-600 border-purple-500/20"
+            >
               <Sparkles className="size-3 mr-1" />
               AI-Powered Analysis
             </Badge>
@@ -162,7 +190,8 @@ export default function CodeReviewPage() {
                 Create Code Review
               </DialogTitle>
               <DialogDescription>
-                Select a branch and commit to analyze. AI will scan for security, performance, and best practices.
+                Select a branch and commit to analyze. AI will scan for
+                security, performance, and best practices.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-6">
@@ -172,9 +201,14 @@ export default function CodeReviewPage() {
                   Branch
                 </Label>
                 {loadingBranches ? (
-                  <Skeleton className="h-10 w-full" />
+                  <div className="flex items-center justify-center h-10 rounded-md border border-input bg-background">
+                    <Spinner className="h-4 w-4" />
+                  </div>
                 ) : (
-                  <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                  <Select
+                    value={selectedBranch}
+                    onValueChange={setSelectedBranch}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a branch" />
                     </SelectTrigger>
@@ -185,7 +219,12 @@ export default function CodeReviewPage() {
                             <GitBranch className="h-3 w-3" />
                             {branch.name}
                             {branch.protected && (
-                              <Badge variant="secondary" className="ml-2 text-xs">Protected</Badge>
+                              <Badge
+                                variant="secondary"
+                                className="ml-2 text-xs"
+                              >
+                                Protected
+                              </Badge>
                             )}
                           </div>
                         </SelectItem>
@@ -209,10 +248,8 @@ export default function CodeReviewPage() {
                     />
                   </div>
                   {loadingCommits ? (
-                    <div className="space-y-2">
-                      {[1, 2, 3].map((i) => (
-                        <Skeleton key={i} className="h-20 w-full" />
-                      ))}
+                    <div className="flex items-center justify-center h-[300px]">
+                      <Spinner className="h-6 w-6" />
                     </div>
                   ) : (
                     <ScrollArea className="h-[300px] rounded-md border">
@@ -222,7 +259,9 @@ export default function CodeReviewPage() {
                             <Card
                               key={commit.sha}
                               className={`cursor-pointer transition-all hover:border-primary/50 ${
-                                selectedCommit === commit.sha ? 'ring-2 ring-primary border-primary' : ''
+                                selectedCommit === commit.sha
+                                  ? "ring-2 ring-primary border-primary"
+                                  : ""
                               }`}
                               onClick={() => setSelectedCommit(commit.sha)}
                             >
@@ -230,7 +269,8 @@ export default function CodeReviewPage() {
                                 <div className="space-y-2">
                                   <div className="flex items-start justify-between gap-4">
                                     <p className="text-sm font-medium line-clamp-2">
-                                      {commit.message?.split('\n')[0] || 'No message'}
+                                      {commit.message?.split("\n")[0] ||
+                                        "No message"}
                                     </p>
                                     {selectedCommit === commit.sha && (
                                       <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
@@ -239,7 +279,7 @@ export default function CodeReviewPage() {
                                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                     <div className="flex items-center gap-1">
                                       <User className="h-3 w-3" />
-                                      {commit.author || 'Unknown'}
+                                      {commit.author || "Unknown"}
                                     </div>
                                     <div className="flex items-center gap-1">
                                       <Calendar className="h-3 w-3" />
@@ -255,7 +295,9 @@ export default function CodeReviewPage() {
                           ))
                         ) : (
                           <p className="text-sm text-muted-foreground text-center py-8">
-                            {searchTerm ? 'No commits found matching your search' : 'No commits available'}
+                            {searchTerm
+                              ? "No commits found matching your search"
+                              : "No commits available"}
                           </p>
                         )}
                       </div>
@@ -265,11 +307,15 @@ export default function CodeReviewPage() {
               )}
               <Button
                 onClick={handleCreateReview}
-                disabled={createReview.isPending || !selectedBranch || !selectedCommit}
+                disabled={
+                  createReview.isPending || !selectedBranch || !selectedCommit
+                }
                 className="w-full"
                 size="lg"
               >
-                {createReview.isPending ? "Creating Review..." : "Start AI Review"}
+                {createReview.isPending
+                  ? "Creating Review..."
+                  : "Start AI Review"}
               </Button>
             </div>
           </DialogContent>
@@ -291,13 +337,17 @@ export default function CodeReviewPage() {
           title="Security Score"
           value={`${Math.round(stats?.averageScores.securityScore || 0)}/100`}
           icon={<Shield className="h-5 w-5" />}
-          valueClassName={getScoreColor(stats?.averageScores.securityScore || 0)}
+          valueClassName={getScoreColor(
+            stats?.averageScores.securityScore || 0,
+          )}
         />
         <StatCard
           title="Performance Score"
           value={`${Math.round(stats?.averageScores.performanceScore || 0)}/100`}
           icon={<Zap className="h-5 w-5" />}
-          valueClassName={getScoreColor(stats?.averageScores.performanceScore || 0)}
+          valueClassName={getScoreColor(
+            stats?.averageScores.performanceScore || 0,
+          )}
         />
       </div>
       <Card>
@@ -307,10 +357,8 @@ export default function CodeReviewPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-32" />
-              ))}
+            <div className="flex justify-center py-12">
+              <Spinner className="h-8 w-8" />
             </div>
           ) : reviews?.reviews.length === 0 ? (
             <div className="text-center py-12">
@@ -328,7 +376,7 @@ export default function CodeReviewPage() {
                   className="hover:shadow-lg transition-shadow cursor-pointer"
                   onClick={() =>
                     router.push(
-                      `/dashboard/${params.projectId}/code-review/${review.id}`
+                      `/dashboard/${params.projectId}/code-review/${review.id}`,
                     )
                   }
                 >
@@ -337,24 +385,26 @@ export default function CodeReviewPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="font-semibold text-lg">
-                            {review.prTitle || `Review #${review.id.slice(0, 8)}`}
+                            {review.prTitle ||
+                              `Review #${review.id.slice(0, 8)}`}
                           </h3>
                           <Badge
                             variant={
                               review.status === "COMPLETED"
                                 ? "success"
                                 : review.status === "IN_PROGRESS"
-                                ? "default"
-                                : review.status === "FAILED"
-                                ? "destructive"
-                                : "default"
+                                  ? "default"
+                                  : review.status === "FAILED"
+                                    ? "destructive"
+                                    : "default"
                             }
                           >
                             {review.status}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Branch: {review.branch} • Commit: {review.commitHash.slice(0, 7)}
+                          Branch: {review.branch} • Commit:{" "}
+                          {review.commitHash.slice(0, 7)}
                         </p>
                       </div>
                       <ArrowRight className="h-5 w-5 text-muted-foreground" />
@@ -385,7 +435,9 @@ export default function CodeReviewPage() {
                             <span>
                               {
                                 review.findings.filter(
-                                  (f) => f.severity === "CRITICAL" || f.severity === "HIGH"
+                                  (f) =>
+                                    f.severity === "CRITICAL" ||
+                                    f.severity === "HIGH",
                                 ).length
                               }{" "}
                               critical/high issues

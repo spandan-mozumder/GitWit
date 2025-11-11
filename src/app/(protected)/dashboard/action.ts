@@ -1,15 +1,15 @@
-"use server"
-import { streamText } from "ai"
-import {createGoogleGenerativeAI} from "@ai-sdk/google"
-import { generateEmbedding } from "~/lib/gemini"
-import { db } from "~/server/db"
+"use server";
+import { streamText } from "ai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { generateEmbedding } from "~/lib/gemini";
+import { db } from "~/server/db";
 const google = createGoogleGenerativeAI({
-    apiKey: process.env.GEMINI_API_KEY,
-})
+  apiKey: process.env.GEMINI_API_KEY,
+});
 export async function askQuestion(question: string, projectId: string) {
-    const queryVector = await generateEmbedding(question)
-    const vectorQuery = `[${queryVector.join(",")}]`
-    const result = await db.$queryRaw`
+  const queryVector = await generateEmbedding(question);
+  const vectorQuery = `[${queryVector.join(",")}]`;
+  const result = (await db.$queryRaw`
     SELECT "fileName", "sourceCode", "summary",
     1-("summaryEmbedding" <=> ${vectorQuery}::vector) AS "similarity"
     FROM "SourceCodeEmbedding"
@@ -17,18 +17,18 @@ export async function askQuestion(question: string, projectId: string) {
     AND "projectId" = ${projectId}
     ORDER BY "similarity" DESC 
     LIMIT 10
-    ` as {
-        fileName: string 
-        sourceCode: string
-        summary: string
-    }[]
-    let context = ""
-    for (const doc of result){
-        context += `File: ${doc.fileName}\n\nContent:\n${doc.sourceCode}\n\nSummary: ${doc.summary}\n${'---'}\n\n`
-    }
-    const {textStream} = await streamText({
-        model:google("gemini-2.5-flash-lite"),
-        prompt: `You are an expert code assistant helping developers understand their codebase. Your audience includes new team members and experienced developers.
+    `) as {
+    fileName: string;
+    sourceCode: string;
+    summary: string;
+  }[];
+  let context = "";
+  for (const doc of result) {
+    context += `File: ${doc.fileName}\n\nContent:\n${doc.sourceCode}\n\nSummary: ${doc.summary}\n${"---"}\n\n`;
+  }
+  const { textStream } = await streamText({
+    model: google("gemini-2.5-flash-lite"),
+    prompt: `You are an expert code assistant helping developers understand their codebase. Your audience includes new team members and experienced developers.
 
 Instructions:
 1. Analyze the provided code context and answer the question accurately and thoroughly
@@ -47,10 +47,10 @@ QUESTION:
 ${question}
 
 Please provide a detailed, well-structured answer based on the context provided.`,
-        temperature: 0.7,
-    })
-    return {
-        output: textStream,
-        filesRefrences: result
-    }
+    temperature: 0.7,
+  });
+  return {
+    output: textStream,
+    filesRefrences: result,
+  };
 }

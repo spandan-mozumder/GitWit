@@ -8,26 +8,26 @@ const getDefaultBranch = async (repoUrl: string): Promise<string> => {
   try {
     const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
     if (!match) return "main";
-    
+
     const [, owner, repo] = match;
-    const cleanRepo = repo.replace(/\.git$/, '');
-    
+    const cleanRepo = repo.replace(/\.git$/, "");
+
     const response = await fetchWithTimeout(
       `https://api.github.com/repos/${owner}/${cleanRepo}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.GITHUB_ACCESS_TOKEN}`,
-          Accept: 'application/vnd.github.v3+json',
+          Accept: "application/vnd.github.v3+json",
         },
       },
-      10000
+      10000,
     );
-    
+
     if (!response.ok) {
       return "main";
     }
-    
-    const data = await response.json() as { default_branch: string };
+
+    const data = (await response.json()) as { default_branch: string };
     return data.default_branch || "main";
   } catch (error) {
     return "main";
@@ -36,7 +36,7 @@ const getDefaultBranch = async (repoUrl: string): Promise<string> => {
 
 export const loadGithubRepo = async (repoUrl: string) => {
   const defaultBranch = await getDefaultBranch(repoUrl);
-  
+
   const loader = new GithubRepoLoader(repoUrl, {
     accessToken: process.env.GITHUB_ACCESS_TOKEN as string,
     branch: defaultBranch,
@@ -50,11 +50,11 @@ export const loadGithubRepo = async (repoUrl: string) => {
     unknown: "warn",
     maxConcurrency: 5,
   });
-  
+
   return withTimeout(
     loader.load(),
     120000,
-    "GitHub repository loading timeout"
+    "GitHub repository loading timeout",
   );
 };
 export const generateEmbeddings = async (docs: Document[]) => {
@@ -62,13 +62,13 @@ export const generateEmbeddings = async (docs: Document[]) => {
     docs.map(async (doc) => {
       try {
         const summary = await summariseCode(doc);
-        
+
         if (!summary || summary.trim() === "") {
           return null;
         }
-        
+
         const embedding = await generateEmbedding(summary);
-        
+
         return {
           summary,
           embedding,
@@ -78,30 +78,26 @@ export const generateEmbeddings = async (docs: Document[]) => {
       } catch (error) {
         return null;
       }
-    })
+    }),
   );
 };
-export const indexGithubRepo = async (
-  projectId: string,
-  repoUrl: string
-) => {
+export const indexGithubRepo = async (projectId: string, repoUrl: string) => {
   try {
     const docs = await loadGithubRepo(repoUrl);
-    
+
     const allEmbeddingsResults = await generateEmbeddings(docs);
-    
-    // Filter out failed embeddings
+
     const successfulEmbeddings = allEmbeddingsResults
-      .map((result, index) => result.status === 'fulfilled' ? result.value : null)
+      .map((result, index) =>
+        result.status === "fulfilled" ? result.value : null,
+      )
       .filter((embedding) => embedding !== null);
-    
-    
-    // Create source code embeddings in database
+
     await Promise.allSettled(
       successfulEmbeddings.map(async (embedding, index) => {
         try {
           if (!embedding) return;
-          
+
           const sourceCodeEmbedding = await db.sourceCodeEmbedding.create({
             data: {
               summary: embedding.summary,
@@ -110,23 +106,21 @@ export const indexGithubRepo = async (
               projectId,
             },
           });
-          
+
           const vectorString = `[${embedding.embedding.join(",")}]`;
           await db.$executeRaw`
             UPDATE "SourceCodeEmbedding"
             SET "summaryEmbedding" = ${vectorString}::vector
             WHERE "id" = ${sourceCodeEmbedding.id}
           `;
-        } catch (error) {
-        }
-      })
+        } catch (error) {}
+      }),
     );
-    
   } catch (error) {
     throw error;
   }
 };
 export const checkCredits = async (repoUrl: string) => {
   const docs = await loadGithubRepo(repoUrl);
-  return docs.length; 
+  return docs.length;
 };

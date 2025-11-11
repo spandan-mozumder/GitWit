@@ -1,45 +1,49 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Spinner } from "~/components/ui/spinner";
 
 const SyncUser = () => {
-    const router = useRouter()
+  const router = useRouter();
 
-    useEffect(() => {
-        const syncAndRedirect = async () => {
-            try {
-                const response = await fetch('/api/sync-user', {
-                    method: 'POST',
-                })
-                
-                if (!response.ok) {
-                    throw new Error('Failed to sync user')
-                }
+  useEffect(() => {
+    const syncAndRedirect = async () => {
+      try {
+        const response = await fetch("/api/sync-user", {
+          method: "POST",
+        });
 
-                // Redirect after 3 seconds
-                setTimeout(() => {
-                    router.push('/dashboard')
-                }, 3000)
-            } catch (error) {
-                // Still redirect even on error after 3 seconds
-                setTimeout(() => {
-                    router.push('/dashboard')
-                }, 3000)
-            }
+        if (!response.ok) {
+          throw new Error("Failed to sync user");
         }
 
-        syncAndRedirect()
-    }, [router])
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 3000);
+      } catch (error) {
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 3000);
+      }
+    };
 
-    return (
-        <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-                <h1 className="text-2xl font-bold mb-4">Setting up your account...</h1>
-                <p className="text-gray-600">Redirecting to dashboard in 3 seconds...</p>
-            </div>
+    syncAndRedirect();
+  }, [router]);
+
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center space-y-4">
+        <Spinner className="h-8 w-8 mx-auto" />
+        <div>
+          <h1 className="text-2xl font-bold">Setting up your account...</h1>
+          <p className="text-muted-foreground">
+            Redirecting to dashboard in 3 seconds...
+          </p>
         </div>
-    )
-}
+      </div>
+    </div>
+  );
+};
 
-export default SyncUser
+export default SyncUser;

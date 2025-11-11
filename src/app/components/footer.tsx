@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { Github, Linkedin, Mail, ArrowUpRight } from "lucide-react"
-import { Logo } from "./logo"
+import Link from "next/link";
+import { Github, Linkedin, Mail, ArrowUpRight } from "lucide-react";
+import { Logo } from "./logo";
 const footerLinks = [
   {
     heading: "Product",
@@ -26,10 +26,13 @@ const footerLinks = [
       { label: "Status", href: "#" },
     ],
   },
-]
+];
 export function Footer() {
   return (
-    <footer id="footer" className="relative w-full border-t border-border/60 bg-background">
+    <footer
+      id="footer"
+      className="relative w-full border-t border-border/60 bg-background"
+    >
       <div className="container mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-16">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1.2fr),minmax(0,1fr)]">
           <div className="space-y-6">
@@ -40,17 +43,29 @@ export function Footer() {
               <img src="/text.png" alt="GitWit" className="h-7 w-auto" />
             </Link>
             <p className="max-w-md text-sm text-muted-foreground">
-              GitWit is the trusted operating system for product engineering. We blend your rituals, data, and
-              conversations into a single flow so every team ships with confidence.
+              GitWit is the trusted operating system for product engineering. We
+              blend your rituals, data, and conversations into a single flow so
+              every team ships with confidence.
             </p>
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <a className="inline-flex items-center gap-2" href="mailto:founders@gitwit.ai">
+              <a
+                className="inline-flex items-center gap-2"
+                href="mailto:founders@gitwit.ai"
+              >
                 <Mail className="h-4 w-4" /> founders@gitwit.ai
               </a>
-              <Link href="https://github.com/paras-verma7454/GitWit" target="_blank" className="inline-flex items-center gap-2">
+              <Link
+                href="https://github.com/paras-verma7454/GitWit"
+                target="_blank"
+                className="inline-flex items-center gap-2"
+              >
                 <Github className="h-4 w-4" /> GitHub
               </Link>
-              <Link href="https://www.linkedin.com/in/paras-vermaa" target="_blank" className="inline-flex items-center gap-2">
+              <Link
+                href="https://www.linkedin.com/in/paras-vermaa"
+                target="_blank"
+                className="inline-flex items-center gap-2"
+              >
                 <Linkedin className="h-4 w-4" /> LinkedIn
               </Link>
             </div>
@@ -58,7 +73,9 @@ export function Footer() {
           <div className="grid gap-8 sm:grid-cols-2">
             {footerLinks.map(({ heading, items }) => (
               <div key={heading} className="space-y-4">
-                <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">{heading}</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                  {heading}
+                </h3>
                 <ul className="space-y-3 text-sm text-muted-foreground">
                   {items.map((item) => (
                     <li key={item.label}>
@@ -75,9 +92,12 @@ export function Footer() {
               </div>
             ))}
             <div className="space-y-4 rounded-3xl border border-border/70 bg-card/70 p-6">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">Stay in rhythm</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                Stay in rhythm
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Monthly notes on building reliable product organizations, plus feature updates and invitations.
+                Monthly notes on building reliable product organizations, plus
+                feature updates and invitations.
               </p>
               <form className="flex flex-col gap-3 sm:flex-row">
                 <input
@@ -100,15 +120,27 @@ export function Footer() {
         </div>
         <div className="mt-12 border-t border-border/60 pt-6">
           <div className="flex flex-col gap-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-            <p>&copy; {new Date().getFullYear()} GitWit Labs. All rights reserved.</p>
+            <p>
+              &copy; {new Date().getFullYear()} GitWit Labs. All rights
+              reserved.
+            </p>
             <div className="flex flex-wrap gap-4">
-              <Link href="#" className="transition-colors hover:text-foreground">
+              <Link
+                href="#"
+                className="transition-colors hover:text-foreground"
+              >
                 Privacy
               </Link>
-              <Link href="#" className="transition-colors hover:text-foreground">
+              <Link
+                href="#"
+                className="transition-colors hover:text-foreground"
+              >
                 Terms
               </Link>
-              <Link href="#" className="transition-colors hover:text-foreground">
+              <Link
+                href="#"
+                className="transition-colors hover:text-foreground"
+              >
                 Responsible AI
               </Link>
             </div>
@@ -116,5 +148,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

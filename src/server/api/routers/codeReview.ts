@@ -11,7 +11,7 @@ export const codeReviewRouter = createTRPCRouter({
         prNumber: z.number().optional(),
         prTitle: z.string().optional(),
         prUrl: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const project = await ctx.db.project.findUnique({
@@ -40,7 +40,7 @@ export const codeReviewRouter = createTRPCRouter({
         const analysis = await analyzeRepositoryCode(
           project.repoUrl,
           input.branch,
-          input.commitHash
+          input.commitHash,
         );
         await ctx.db.codeReview.update({
           where: { id: review.id },
@@ -53,7 +53,7 @@ export const codeReviewRouter = createTRPCRouter({
           },
         });
         await ctx.db.codeReviewFinding.createMany({
-          data: analysis.findings.map(finding => ({
+          data: analysis.findings.map((finding) => ({
             reviewId: review.id,
             severity: finding.severity,
             category: finding.category,
@@ -66,7 +66,7 @@ export const codeReviewRouter = createTRPCRouter({
           })),
         });
         await ctx.db.codeReviewSuggestion.createMany({
-          data: analysis.suggestions.map(suggestion => ({
+          data: analysis.suggestions.map((suggestion) => ({
             reviewId: review.id,
             title: suggestion.title,
             description: suggestion.description,
@@ -91,7 +91,9 @@ export const codeReviewRouter = createTRPCRouter({
             status: "FAILED",
           },
         });
-        throw new Error(`Code analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(
+          `Code analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }),
   getReview: protectedProcedure
@@ -101,10 +103,7 @@ export const codeReviewRouter = createTRPCRouter({
         where: { id: input.reviewId },
         include: {
           findings: {
-            orderBy: [
-              { severity: "asc" },
-              { createdAt: "desc" },
-            ],
+            orderBy: [{ severity: "asc" }, { createdAt: "desc" }],
           },
           suggestions: {
             orderBy: { createdAt: "desc" },
@@ -125,7 +124,7 @@ export const codeReviewRouter = createTRPCRouter({
         projectId: z.string(),
         limit: z.number().min(1).max(100).default(10),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const reviews = await ctx.db.codeReview.findMany({
@@ -202,7 +201,10 @@ export const codeReviewRouter = createTRPCRouter({
       };
     }),
 });
-async function analyzeCode(reviewId: string, db: typeof import("~/server/db").db) {
+async function analyzeCode(
+  reviewId: string,
+  db: typeof import("~/server/db").db,
+) {
   try {
     await db.codeReview.update({
       where: { id: reviewId },
@@ -243,7 +245,14 @@ async function analyzeCode(reviewId: string, db: typeof import("~/server/db").db
   }
 }
 type FindingSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
-type FindingCategory = "SECURITY" | "PERFORMANCE" | "BUG" | "CODE_SMELL" | "BEST_PRACTICE" | "DOCUMENTATION" | "TESTING";
+type FindingCategory =
+  | "SECURITY"
+  | "PERFORMANCE"
+  | "BUG"
+  | "CODE_SMELL"
+  | "BEST_PRACTICE"
+  | "DOCUMENTATION"
+  | "TESTING";
 interface Finding {
   severity: FindingSeverity;
   category: FindingCategory;
@@ -264,7 +273,7 @@ function generateFindings(_review: unknown): Promise<Finding[]> {
       description: "User input is not properly sanitized before database query",
       filePath: "src/api/users.ts",
       lineNumber: 45,
-      codeSnippet: 'db.query(`SELECT * FROM users WHERE id = ${userId}`)',
+      codeSnippet: "db.query(`SELECT * FROM users WHERE id = ${userId}`)",
       recommendation: "Use parameterized queries or an ORM",
       estimatedImpact: "High - Could allow unauthorized data access",
     },
@@ -277,9 +286,8 @@ function generateSuggestions(_review: unknown) {
       description: "Replace raw SQL with parameterized query",
       filePath: "src/api/users.ts",
       lineNumber: 45,
-      originalCode: 'db.query(`SELECT * FROM users WHERE id = ${userId}`)',
-      suggestedCode:
-        "db.query('SELECT * FROM users WHERE id = ?', [userId])",
+      originalCode: "db.query(`SELECT * FROM users WHERE id = ${userId}`)",
+      suggestedCode: "db.query('SELECT * FROM users WHERE id = ?', [userId])",
       reasoning:
         "Prepared statements prevent SQL injection by separating SQL logic from data",
     },
@@ -295,13 +303,15 @@ function calculateScores(findings: Finding[]) {
   };
   let totalDeduction = 0;
   findings.forEach((f) => {
-    totalDeduction += severityWeights[f.severity as keyof typeof severityWeights] || 0;
+    totalDeduction +=
+      severityWeights[f.severity as keyof typeof severityWeights] || 0;
   });
   const overallScore = Math.max(0, 100 - totalDeduction);
   const securityFindings = findings.filter((f) => f.category === "SECURITY");
   const securityDeduction = securityFindings.reduce(
-    (acc, f) => acc + (severityWeights[f.severity as keyof typeof severityWeights] || 0),
-    0
+    (acc, f) =>
+      acc + (severityWeights[f.severity as keyof typeof severityWeights] || 0),
+    0,
   );
   return {
     overallScore,

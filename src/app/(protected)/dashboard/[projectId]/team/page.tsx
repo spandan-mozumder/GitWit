@@ -42,9 +42,12 @@ import {
 export default function TeamPage() {
   const { projectId } = useProject();
   const [selectedUserId, setSelectedUserId] = useState("");
-  const [selectedRole, setSelectedRole] = useState<"ADMIN" | "COLLABORATOR" | "VIEWER">("VIEWER");
+  const [selectedRole, setSelectedRole] = useState<
+    "ADMIN" | "COLLABORATOR" | "VIEWER"
+  >("VIEWER");
   const { data: myRole } = api.projectMembers.getMyRole.useQuery({ projectId });
-  const { data: members, refetch } = api.projectMembers.getProjectMembers.useQuery({ projectId });
+  const { data: members, refetch } =
+    api.projectMembers.getProjectMembers.useQuery({ projectId });
   const assignRole = api.projectMembers.assignRole.useMutation();
   const removeMember = api.projectMembers.removeMember.useMutation();
   const isAdmin = myRole === "ADMIN";
@@ -63,7 +66,9 @@ export default function TeamPage() {
       await refetch();
       setSelectedUserId("");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to assign role");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to assign role",
+      );
     }
   };
   const handleRemoveMember = async (userId: string) => {
@@ -75,7 +80,9 @@ export default function TeamPage() {
       toast.success("Member removed successfully");
       await refetch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to remove member");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to remove member",
+      );
     }
   };
   const getRoleBadge = (role: string) => {
@@ -149,9 +156,17 @@ export default function TeamPage() {
               </div>
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>• <strong>Admin:</strong> Full access, can delete workspace and manage all settings</p>
-              <p>• <strong>Collaborator:</strong> Can host meetings and contribute to the project</p>
-              <p>• <strong>Viewer:</strong> Read-only access to project resources</p>
+              <p>
+                • <strong>Admin:</strong> Full access, can delete workspace and
+                manage all settings
+              </p>
+              <p>
+                • <strong>Collaborator:</strong> Can host meetings and
+                contribute to the project
+              </p>
+              <p>
+                • <strong>Viewer:</strong> Read-only access to project resources
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -173,7 +188,9 @@ export default function TeamPage() {
                 <TableHead>User ID</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Joined</TableHead>
-                {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                {isAdmin && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -200,10 +217,12 @@ export default function TeamPage() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Remove team member?</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              Remove team member?
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              This will remove the user from the project. They will lose access
-                              to all project resources.
+                              This will remove the user from the project. They
+                              will lose access to all project resources.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -223,7 +242,10 @@ export default function TeamPage() {
               ))}
               {!members?.length && (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 4 : 3} className="text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={isAdmin ? 4 : 3}
+                    className="text-center text-muted-foreground"
+                  >
                     No team members yet
                   </TableCell>
                 </TableRow>

@@ -7,14 +7,16 @@ export const meetingsEnhancedRouter = createTRPCRouter({
         meetingId: z.string(),
         title: z.string(),
         description: z.string(),
-        priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]).default("MEDIUM"),
+        priority: z
+          .enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"])
+          .default("MEDIUM"),
         dueDate: z.date().optional(),
         assigneeId: z.string().optional(),
         filePath: z.string().optional(),
         lineNumber: z.number().optional(),
         jiraId: z.string().optional(),
         linearId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const actionItem = await ctx.db.actionItem.create({
@@ -46,8 +48,10 @@ export const meetingsEnhancedRouter = createTRPCRouter({
     .input(
       z.object({
         meetingId: z.string(),
-        status: z.enum(["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "CANCELLED"]).optional(),
-      })
+        status: z
+          .enum(["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "CANCELLED"])
+          .optional(),
+      }),
     )
     .query(async ({ ctx, input }) => {
       return await ctx.db.actionItem.findMany({
@@ -80,8 +84,10 @@ export const meetingsEnhancedRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string().optional(),
-        status: z.enum(["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "CANCELLED"]).optional(),
-      })
+        status: z
+          .enum(["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "CANCELLED"])
+          .optional(),
+      }),
     )
     .query(async ({ ctx, input }) => {
       return await ctx.db.actionItem.findMany({
@@ -118,11 +124,13 @@ export const meetingsEnhancedRouter = createTRPCRouter({
     .input(
       z.object({
         actionItemId: z.string(),
-        status: z.enum(["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "CANCELLED"]).optional(),
+        status: z
+          .enum(["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "CANCELLED"])
+          .optional(),
         assigneeId: z.string().optional(),
         dueDate: z.date().optional(),
         priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { actionItemId, ...data } = input;
@@ -168,7 +176,7 @@ export const meetingsEnhancedRouter = createTRPCRouter({
         actionItemId: z.string(),
         service: z.enum(["jira", "linear", "asana"]),
         externalId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const updates: Record<string, string> = {};

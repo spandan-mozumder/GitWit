@@ -22,6 +22,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
+import { Spinner } from "~/components/ui/spinner";
 import { toast } from "sonner";
 import { MessageSquare, Plus, Users, Trash2, UserPlus, X } from "lucide-react";
 import {
@@ -44,11 +45,13 @@ export default function ChatRoomsPage() {
   const [newRoomDescription, setNewRoomDescription] = useState("");
   const [newParticipantId, setNewParticipantId] = useState("");
   const { data: myRole } = api.projectMembers.getMyRole.useQuery({ projectId });
-  const { data: rooms, refetch: refetchRooms } = api.chatRooms.getRooms.useQuery({ projectId });
-  const { data: participants, refetch: refetchParticipants } = api.chatRooms.getRoomParticipants.useQuery(
-    { roomId: selectedRoomId },
-    { enabled: !!selectedRoomId }
-  );
+  const { data: rooms, refetch: refetchRooms } =
+    api.chatRooms.getRooms.useQuery({ projectId });
+  const { data: participants, refetch: refetchParticipants } =
+    api.chatRooms.getRoomParticipants.useQuery(
+      { roomId: selectedRoomId },
+      { enabled: !!selectedRoomId },
+    );
   const createRoom = api.chatRooms.createRoom.useMutation();
   const deleteRoom = api.chatRooms.deleteRoom.useMutation();
   const addParticipants = api.chatRooms.addParticipants.useMutation();
@@ -71,7 +74,9 @@ export default function ChatRoomsPage() {
       setNewRoomName("");
       setNewRoomDescription("");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create room");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create room",
+      );
     }
   };
   const handleDeleteRoom = async (roomId: string) => {
@@ -80,7 +85,9 @@ export default function ChatRoomsPage() {
       toast.success("Chat room deleted successfully");
       await refetchRooms();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete room");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete room",
+      );
     }
   };
   const handleAddParticipant = async () => {
@@ -97,7 +104,9 @@ export default function ChatRoomsPage() {
       await refetchParticipants();
       setNewParticipantId("");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to add participant");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to add participant",
+      );
     }
   };
   const handleRemoveParticipant = async (userId: string) => {
@@ -110,7 +119,9 @@ export default function ChatRoomsPage() {
       toast.success("Participant removed successfully");
       await refetchParticipants();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to remove participant");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to remove participant",
+      );
     }
   };
   return (
@@ -148,7 +159,9 @@ export default function ChatRoomsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Description (Optional)</label>
+                  <label className="text-sm font-medium">
+                    Description (Optional)
+                  </label>
                   <Textarea
                     placeholder="What is this room for?"
                     value={newRoomDescription}
@@ -161,6 +174,7 @@ export default function ChatRoomsPage() {
                 <Button
                   onClick={handleCreateRoom}
                   disabled={createRoom.isPending}
+                  className="min-w-[100px]"
                 >
                   {createRoom.isPending ? "Creating..." : "Create Room"}
                 </Button>
@@ -189,8 +203,8 @@ export default function ChatRoomsPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete chat room?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will permanently delete &quot;{room.name}&quot; and all its messages.
-                          This action cannot be undone.
+                          This will permanently delete &quot;{room.name}&quot;
+                          and all its messages. This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -250,9 +264,11 @@ export default function ChatRoomsPage() {
           </Card>
         )}
       </div>
-      {
-}
-      <Dialog open={participantsDialogOpen} onOpenChange={setParticipantsDialogOpen}>
+      {}
+      <Dialog
+        open={participantsDialogOpen}
+        onOpenChange={setParticipantsDialogOpen}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Manage Participants</DialogTitle>
@@ -270,9 +286,16 @@ export default function ChatRoomsPage() {
               <Button
                 onClick={handleAddParticipant}
                 disabled={addParticipants.isPending}
+                className="min-w-[80px]"
               >
-                <UserPlus className="h-4 w-4 mr-2" />
-                Add
+                {addParticipants.isPending ? (
+                  "Adding..."
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add
+                  </>
+                )}
               </Button>
             </div>
             <div className="border rounded-lg divide-y max-h-64 overflow-y-auto">

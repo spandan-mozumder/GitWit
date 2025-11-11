@@ -7,13 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { toast } from "sonner";
-import {
-  Mic,
-  Users,
-  Upload,
-  StopCircle,
-  PlayCircle,
-} from "lucide-react";
+import { Mic, Users, Upload, StopCircle, PlayCircle } from "lucide-react";
 import { UploadButton } from "@/lib/uploadthing";
 import { Spinner } from "~/components/ui/spinner";
 import {
@@ -48,7 +42,10 @@ export default function LiveMeetingPage() {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state === "recording"
+      ) {
         mediaRecorderRef.current.stop();
       }
     };
@@ -57,7 +54,7 @@ export default function LiveMeetingPage() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm',
+        mimeType: "audio/webm",
       });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
@@ -67,15 +64,15 @@ export default function LiveMeetingPage() {
         }
       };
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioBlob(blob);
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
       mediaRecorder.start(1000);
       setIsRecording(true);
       setRecordingTime(0);
       timerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
+        setRecordingTime((prev) => prev + 1);
       }, 1000);
       toast.success("Recording started");
     } catch (error) {
@@ -83,7 +80,10 @@ export default function LiveMeetingPage() {
     }
   };
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === "recording"
+    ) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       if (timerRef.current) {
@@ -125,13 +125,15 @@ export default function LiveMeetingPage() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{meeting?.title || "Live Meeting"}</h1>
+          <h1 className="text-3xl font-bold">
+            {meeting?.title || "Live Meeting"}
+          </h1>
           <p className="text-muted-foreground">
             {meeting?.description || "Recording and collaboration session"}
           </p>
@@ -149,8 +151,7 @@ export default function LiveMeetingPage() {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {
-}
+        {}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -219,7 +220,8 @@ export default function LiveMeetingPage() {
                           toast.error(`Upload failed: ${error.message}`);
                         }}
                         appearance={{
-                          button: "bg-primary text-primary-foreground hover:bg-primary/90",
+                          button:
+                            "bg-primary text-primary-foreground hover:bg-primary/90",
                         }}
                         content={{
                           button: () => (
@@ -281,7 +283,9 @@ export default function LiveMeetingPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push(`/meetings/live/${params.meetingId}/summary`)}
+                  onClick={() =>
+                    router.push(`/meetings/live/${params.meetingId}/summary`)
+                  }
                 >
                   View Transcript
                 </Button>
@@ -289,8 +293,7 @@ export default function LiveMeetingPage() {
             )}
           </CardContent>
         </Card>
-        {
-}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -323,8 +326,7 @@ export default function LiveMeetingPage() {
           </CardContent>
         </Card>
       </div>
-      {
-}
+      {}
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
@@ -333,25 +335,22 @@ export default function LiveMeetingPage() {
               {meeting?.status === "ENDED" && "Meeting has ended"}
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={handleLeaveMeeting}
-              >
+              <Button variant="outline" onClick={handleLeaveMeeting}>
                 Leave Meeting
               </Button>
               {isHost && meeting?.status === "IN_PROGRESS" && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive">
-                      End Meeting
-                    </Button>
+                    <Button variant="destructive">End Meeting</Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>End meeting for everyone?</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        End meeting for everyone?
+                      </AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will end the meeting for all participants. Make sure all
-                        recordings are uploaded before ending.
+                        This will end the meeting for all participants. Make
+                        sure all recordings are uploaded before ending.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

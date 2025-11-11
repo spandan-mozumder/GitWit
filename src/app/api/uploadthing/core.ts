@@ -1,6 +1,12 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { auth } from "@clerk/nextjs/server";
-import { validateFileSize, validateFileType, sanitizeFilename, ALLOWED_FILE_TYPES, MAX_FILE_SIZES } from "@/lib/validation";
+import {
+  validateFileSize,
+  validateFileType,
+  sanitizeFilename,
+  ALLOWED_FILE_TYPES,
+  MAX_FILE_SIZES,
+} from "@/lib/validation";
 import { checkRateLimitForEndpoint, RATE_LIMITS } from "@/lib/rate-limit";
 
 const f = createUploadthing();
@@ -20,7 +26,7 @@ export const ourFileRouter = {
       const { success } = await checkRateLimitForEndpoint(
         user.userId,
         "file_upload",
-        RATE_LIMITS.FILE_UPLOAD
+        RATE_LIMITS.FILE_UPLOAD,
       );
 
       if (!success) {
@@ -47,7 +53,6 @@ export const ourFileRouter = {
       return { userId: user.userId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-
       return { url: file.url, name: sanitizeFilename(file.name) };
     }),
 
@@ -61,7 +66,7 @@ export const ourFileRouter = {
       const { success } = await checkRateLimitForEndpoint(
         user.userId,
         "meeting_recording",
-        RATE_LIMITS.FILE_UPLOAD
+        RATE_LIMITS.FILE_UPLOAD,
       );
 
       if (!success) {
@@ -70,18 +75,21 @@ export const ourFileRouter = {
 
       for (const file of files) {
         if (!validateFileType(file.type, ALLOWED_FILE_TYPES.AUDIO)) {
-          throw new Error(`Only audio files are allowed for meeting recordings`);
+          throw new Error(
+            `Only audio files are allowed for meeting recordings`,
+          );
         }
 
         if (!validateFileSize(file.size, MAX_FILE_SIZES.AUDIO)) {
-          throw new Error(`File size exceeds maximum of ${MAX_FILE_SIZES.AUDIO}MB`);
+          throw new Error(
+            `File size exceeds maximum of ${MAX_FILE_SIZES.AUDIO}MB`,
+          );
         }
       }
 
       return { userId: user.userId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-
       return { url: file.url, name: sanitizeFilename(file.name) };
     }),
 } satisfies FileRouter;

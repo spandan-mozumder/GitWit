@@ -11,95 +11,98 @@ import {
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { Keyboard, Command } from "lucide-react";
-import { getShortcutText, type KeyboardShortcut } from "@/hooks/use-keyboard-shortcuts";
+import {
+  getShortcutText,
+  type KeyboardShortcut,
+} from "@/hooks/use-keyboard-shortcuts";
 interface ShortcutsModalProps {
   shortcuts?: KeyboardShortcut[];
 }
 const GLOBAL_SHORTCUTS: KeyboardShortcut[] = [
   {
-    key: 'k',
+    key: "k",
     metaKey: true,
-    description: 'Open quick navigation',
+    description: "Open quick navigation",
     action: () => {},
   },
   {
-    key: '/',
+    key: "/",
     metaKey: true,
-    description: 'Show keyboard shortcuts',
+    description: "Show keyboard shortcuts",
     action: () => {},
   },
   {
-    key: '?',
-    description: 'Show keyboard shortcuts (alternative)',
+    key: "?",
+    description: "Show keyboard shortcuts (alternative)",
     action: () => {},
   },
   {
-    key: 'Escape',
-    description: 'Close modals and dialogs',
+    key: "Escape",
+    description: "Close modals and dialogs",
     action: () => {},
   },
 ];
 const PAGE_SHORTCUTS: Record<string, KeyboardShortcut[]> = {
   dashboard: [
     {
-      key: 'n',
+      key: "n",
       metaKey: true,
-      description: 'Create new project',
+      description: "Create new project",
       action: () => {},
     },
   ],
   analytics: [
     {
-      key: 'r',
+      key: "r",
       metaKey: true,
-      description: 'Refresh analytics data',
+      description: "Refresh analytics data",
       action: () => {},
     },
     {
-      key: 'e',
+      key: "e",
       metaKey: true,
-      description: 'Export analytics report',
+      description: "Export analytics report",
       action: () => {},
     },
   ],
   codeReview: [
     {
-      key: 'n',
+      key: "n",
       metaKey: true,
-      description: 'Create new code review',
+      description: "Create new code review",
       action: () => {},
     },
     {
-      key: 'f',
+      key: "f",
       metaKey: true,
-      description: 'Filter reviews',
+      description: "Filter reviews",
       action: () => {},
     },
   ],
   teamChat: [
     {
-      key: 'Enter',
-      description: 'Send message',
+      key: "Enter",
+      description: "Send message",
       action: () => {},
     },
     {
-      key: 'Enter',
+      key: "Enter",
       shiftKey: true,
-      description: 'New line (in code mode)',
+      description: "New line (in code mode)",
       action: () => {},
     },
     {
-      key: 'c',
+      key: "c",
       metaKey: true,
       shiftKey: true,
-      description: 'Open code snippet dialog',
+      description: "Open code snippet dialog",
       action: () => {},
     },
     {
-      key: 'u',
+      key: "u",
       metaKey: true,
       shiftKey: true,
-      description: 'Upload file',
+      description: "Upload file",
       action: () => {},
     },
   ],
@@ -133,7 +136,7 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
         <div className="space-y-6">
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
-              {shortcuts ? 'Custom' : 'Global'}
+              {shortcuts ? "Custom" : "Global"}
             </h3>
             <div className="space-y-2">
               {displayShortcuts.map((shortcut, index) => (
@@ -232,7 +235,8 @@ export function KeyboardShortcutsModal({ shortcuts }: ShortcutsModalProps) {
         </div>
         <div className="pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">
-            Press <Kbd className="mx-1">?</Kbd> or <Kbd className="mx-1">⌘/</Kbd> to toggle this help
+            Press <Kbd className="mx-1">?</Kbd> or{" "}
+            <Kbd className="mx-1">⌘/</Kbd> to toggle this help
           </p>
         </div>
       </DialogContent>

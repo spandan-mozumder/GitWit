@@ -1,7 +1,7 @@
 export const fetchWithTimeout = async (
   url: string,
   options: RequestInit = {},
-  timeout: number = 30000
+  timeout: number = 30000,
 ): Promise<Response> => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
@@ -15,7 +15,7 @@ export const fetchWithTimeout = async (
     return response;
   } catch (error) {
     clearTimeout(id);
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (error instanceof Error && error.name === "AbortError") {
       throw new Error(`Request timeout after ${timeout}ms`);
     }
     throw error;
@@ -25,7 +25,7 @@ export const fetchWithTimeout = async (
 export const withRetry = async <T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
-  delay: number = 1000
+  delay: number = 1000,
 ): Promise<T> => {
   let lastError: Error | unknown;
 
@@ -35,7 +35,9 @@ export const withRetry = async <T>(
     } catch (error) {
       lastError = error;
       if (i < maxRetries - 1) {
-        await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
+        await new Promise((resolve) =>
+          setTimeout(resolve, delay * Math.pow(2, i)),
+        );
       }
     }
   }
@@ -46,12 +48,18 @@ export const withRetry = async <T>(
 export const withTimeout = async <T>(
   promise: Promise<T>,
   timeout: number,
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<T> => {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(errorMessage || `Operation timeout after ${timeout}ms`)), timeout)
+      setTimeout(
+        () =>
+          reject(
+            new Error(errorMessage || `Operation timeout after ${timeout}ms`),
+          ),
+        timeout,
+      ),
     ),
   ]);
 };

@@ -1,12 +1,13 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 const alertVariants = cva(
   "relative w-full rounded-xl border-2 px-5 py-4 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-1 items-start shadow-lg backdrop-blur-sm transition-all duration-300 [&>svg]:size-5 [&>svg]:translate-y-0.5 [&>svg]:text-current [&>svg]:drop-shadow-md",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-br from-card via-card to-card/95 text-card-foreground border-border/50 shadow-primary/5",
+        default:
+          "bg-gradient-to-br from-card via-card to-card/95 text-card-foreground border-border/50 shadow-primary/5",
         destructive:
           "text-destructive bg-gradient-to-br from-destructive/10 via-card to-card/95 border-destructive/30 shadow-destructive/10 [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
       },
@@ -14,8 +15,8 @@ const alertVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
-)
+  },
+);
 function Alert({
   className,
   variant,
@@ -28,7 +29,7 @@ function Alert({
       className={cn(alertVariants({ variant }), className)}
       {...props}
     />
-  )
+  );
 }
 function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -36,11 +37,11 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="alert-title"
       className={cn(
         "col-start-2 line-clamp-1 min-h-4 font-semibold tracking-tight text-base",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 function AlertDescription({
   className,
@@ -51,10 +52,10 @@ function AlertDescription({
       data-slot="alert-description"
       className={cn(
         "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
-export { Alert, AlertTitle, AlertDescription }
+export { Alert, AlertTitle, AlertDescription };

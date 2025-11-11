@@ -1,12 +1,7 @@
 import { db } from "~/server/db";
 
-/**
- * Diagnostic function to check the state of embeddings and code indexing
- * This helps debug why questions aren't being answered correctly
- */
 export async function checkProjectIndexing(projectId: string) {
   try {
-    // Check if project exists
     const project = await db.project.findUnique({
       where: { id: projectId },
     });
@@ -18,12 +13,10 @@ export async function checkProjectIndexing(projectId: string) {
       };
     }
 
-    // Get total count of embeddings
     const totalEmbeddings = await db.sourceCodeEmbedding.count({
       where: { projectId },
     });
 
-    // Get sample embeddings
     const sampleEmbeddings = await db.sourceCodeEmbedding.findMany({
       where: { projectId },
       select: {
@@ -38,13 +31,16 @@ export async function checkProjectIndexing(projectId: string) {
       projectId,
       projectName: project.name,
       totalEmbeddings,
-      sampleFiles: sampleEmbeddings.map((e: { fileName: string; summary: string | null }) => ({
-        fileName: e.fileName,
-        summaryPreview: e.summary?.slice(0, 100) || "No summary",
-      })),
-      message: totalEmbeddings === 0 
-        ? "No embeddings found. The repository needs to be indexed." 
-        : `Found ${totalEmbeddings} embeddings ready for Q&A.`,
+      sampleFiles: sampleEmbeddings.map(
+        (e: { fileName: string; summary: string | null }) => ({
+          fileName: e.fileName,
+          summaryPreview: e.summary?.slice(0, 100) || "No summary",
+        }),
+      ),
+      message:
+        totalEmbeddings === 0
+          ? "No embeddings found. The repository needs to be indexed."
+          : `Found ${totalEmbeddings} embeddings ready for Q&A.`,
     };
   } catch (error) {
     return {
@@ -54,26 +50,24 @@ export async function checkProjectIndexing(projectId: string) {
   }
 }
 
-/**
- * Test the question answering system with a diagnostic query
- */
-export async function testQuestionAnswering(projectId: string, testQuestion: string) {
+export async function testQuestionAnswering(
+  projectId: string,
+  testQuestion: string,
+) {
   try {
     const { generateEmbedding } = await import("~/lib/gemini");
 
-    // Generate embedding for test question
     const queryVector = await generateEmbedding(testQuestion);
     const vectorQuery = `[${queryVector.join(",")}]`;
 
-    // Search for relevant code
-    const searchResults = await db.$queryRaw`
+    const searchResults = (await db.$queryRaw`
       SELECT "fileName", "summary",
       1-("summaryEmbedding" <=> ${vectorQuery}::vector) AS "similarity"
       FROM "SourceCodeEmbedding"
       WHERE "projectId" = ${projectId}
       ORDER BY "similarity" DESC 
       LIMIT 5
-    ` as Array<{
+    `) as Array<{
       fileName: string;
       summary: string;
       similarity: number;
