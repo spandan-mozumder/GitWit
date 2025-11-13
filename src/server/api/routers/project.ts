@@ -2,6 +2,14 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { pollCommits } from "~/lib/github";
 import { indexGithubRepo } from "~/lib/github-loader";
+
+function getPeriodDays(period: string | undefined): number | undefined {
+  if (period === "week") return 7;
+  if (period === "month") return 30;
+  if (period === "quarter") return 90;
+  return undefined;
+}
+
 export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure
     .input(
@@ -84,18 +92,11 @@ export const projectRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const { projectId, period } = input;
-      pollCommits(projectId)
-        .then(() => {})
-        .catch((error: Error) => {});
+      pollCommits(projectId).catch((error) => {
+        console.error("Failed to poll commits:", error);
+      });
 
-      const daysBack =
-        period === "week"
-          ? 7
-          : period === "month"
-            ? 30
-            : period === "quarter"
-              ? 90
-              : undefined;
+      const daysBack = getPeriodDays(period);
       const dateFrom = daysBack ? new Date() : undefined;
       if (dateFrom) {
         dateFrom.setDate(dateFrom.getDate() - daysBack!);

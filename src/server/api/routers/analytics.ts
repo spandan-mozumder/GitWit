@@ -6,6 +6,14 @@ import {
   getContributorStats,
   getCodeHotspots,
 } from "@/lib/github-analytics";
+
+function getDaysFromPeriod(period: string): number {
+  if (period === "week") return 7;
+  if (period === "month") return 30;
+  if (period === "quarter") return 90;
+  return 7;
+}
+
 export const analyticsRouter = createTRPCRouter({
   getDeveloperMetrics: protectedProcedure
     .input(
@@ -64,8 +72,7 @@ export const analyticsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const daysBack =
-        input.period === "week" ? 7 : input.period === "month" ? 30 : 90;
+      const daysBack = getDaysFromPeriod(input.period);
       const dateFrom = new Date();
       dateFrom.setDate(dateFrom.getDate() - daysBack);
 
@@ -289,8 +296,7 @@ export const analyticsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const daysBack =
-        input.period === "week" ? 7 : input.period === "month" ? 30 : 90;
+      const daysBack = getDaysFromPeriod(input.period);
       const dateFrom = new Date();
       dateFrom.setDate(dateFrom.getDate() - daysBack);
 

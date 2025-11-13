@@ -103,12 +103,14 @@ const BrainstormingPage = () => {
   const generateIdeas =
     api.featureBrainstorming.generateFeatureIdeas.useMutation({
       onSuccess: () => {
-        toast.success("🎉 Feature ideas generated!");
+        toast.success("Feature ideas generated successfully!");
         refetch();
         setUserInput("");
       },
       onError: (error) => {
-        toast.error("Failed to generate ideas: " + error.message);
+        toast.error("Unable to generate ideas", {
+          description: error.message || "Please try again in a moment",
+        });
       },
     });
   const voteFeature = api.featureBrainstorming.voteFeature.useMutation({
@@ -135,7 +137,10 @@ const BrainstormingPage = () => {
       refetch();
     },
     onError: (error) => {
-      toast.error("Failed to create issue: " + error.message);
+      toast.error("Failed to create GitHub issue", {
+        description:
+          error.message || "Please check your repository permissions",
+      });
     },
   });
   const deleteFeature = api.featureBrainstorming.deleteFeature.useMutation({
@@ -146,12 +151,14 @@ const BrainstormingPage = () => {
   });
   const updateFeature = api.featureBrainstorming.updateFeature.useMutation({
     onSuccess: () => {
-      toast.success("Feature updated");
+      toast.success("Feature updated successfully");
       setEditingFeatureId(null);
       refetch();
     },
     onError: (error) => {
-      toast.error("Failed to update feature: " + error.message);
+      toast.error("Unable to update feature", {
+        description: error.message || "Please try again",
+      });
     },
   });
   const handleOpenEdit = (feature: any) => {

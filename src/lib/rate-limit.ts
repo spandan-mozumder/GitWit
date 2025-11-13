@@ -28,9 +28,7 @@ export function getRateLimiter() {
   return ratelimit;
 }
 
-export async function checkRateLimit(
-  identifier: string,
-): Promise<{
+export async function checkRateLimit(identifier: string): Promise<{
   success: boolean;
   limit: number;
   remaining: number;

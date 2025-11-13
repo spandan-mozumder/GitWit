@@ -37,6 +37,14 @@ import {
   BarChart3,
   Sparkles,
 } from "lucide-react";
+
+function getDaysFromPeriod(period: string): number {
+  if (period === "week") return 7;
+  if (period === "month") return 30;
+  if (period === "quarter") return 90;
+  return 7;
+}
+
 export default function AnalyticsPage() {
   const params = useParams<{ projectId: string }>();
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("week");
@@ -52,7 +60,7 @@ export default function AnalyticsPage() {
   const { data: velocityTrends, isLoading: loadingVelocity } =
     api.analytics.getVelocityTrends.useQuery({
       projectId: params.projectId,
-      days: period === "week" ? 7 : period === "month" ? 30 : 90,
+      days: getDaysFromPeriod(period),
     });
   const { data: leaderboard, isLoading: loadingLeaderboard } =
     api.analytics.getDeveloperLeaderboard.useQuery({

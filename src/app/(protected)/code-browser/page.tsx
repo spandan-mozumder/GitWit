@@ -127,11 +127,13 @@ const CodeBrowserPage = () => {
   );
   const syncPRs = api.codeBrowser.syncPullRequests.useMutation({
     onSuccess: () => {
-      toast.success("Pull requests synced!");
+      toast.success("Pull requests synced successfully!");
       refetchPRs();
     },
     onError: (error) => {
-      toast.error("Failed to sync: " + error.message);
+      toast.error("Unable to sync pull requests", {
+        description: error.message || "Please check your repository connection",
+      });
     },
   });
 
