@@ -220,6 +220,46 @@ export const projectRouter = createTRPCRouter({
         where: { id: input.projectId },
       });
     }),
+  reindexProject: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const project = await ctx.db.project.findUnique({
+        where: { id: input.projectId },
+      });
+
+      if (!project) {
+        throw new Error("Project not found");
+      }
+
+      // Delete existing embeddings
+      await ctx.db.sourceCodeEmbedding.deleteMany({
+        where: { projectId: input.projectId },
+      });
+
+      // Reindex the repository
+      await indexGithubRepo(project.id, project.repoUrl);
+
+      return { success: true };
+    }),
+  getIndexStatus: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const count = await ctx.db.sourceCodeEmbedding.count({
+        where: { projectId: input.projectId },
+      });
+      return {
+        indexedFiles: count,
+        isIndexed: count > 0,
+      };
+    }),
   getTeamMembers: protectedProcedure
     .input(
       z.object({

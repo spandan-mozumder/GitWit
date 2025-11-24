@@ -77,7 +77,7 @@ function DialogContent({
           <DialogPrimitive.Close
             data-slot="dialog-close"
             className={cn(
-              "ring-offset-background focus:ring-ring",
+              "cursor-pointer ring-offset-background focus:ring-ring",
               "data-[state=open]:bg-accent/50 data-[state=open]:text-muted-foreground",
               "absolute top-4 right-4 z-10",
               "rounded-full p-1.5",

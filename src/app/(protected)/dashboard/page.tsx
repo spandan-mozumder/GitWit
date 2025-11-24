@@ -43,77 +43,92 @@ const DashboardPage = () => {
     return <EmptyProjectState />;
   }
   return (
-    <div className="space-y-8 animate-fade-in">
-      <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/70 p-6 md:p-8">
-        <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-primary/30 via-border/60 to-transparent" />
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary/12 text-primary">
-                <Sparkles className="h-5 w-5" />
-              </span>
+    <div className="space-y-8 animate-fade-in pb-10">
+      <section className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-card/30 p-8 shadow-sm backdrop-blur-sm">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
+        <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-primary via-primary/50 to-transparent rounded-l-3xl" />
+        
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between relative z-10">
+          <div className="space-y-6 max-w-2xl">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+                <span className="relative inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 text-primary shadow-inner">
+                  <Sparkles className="h-6 w-6" />
+                </span>
+              </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                  Active workspace
-                </p>
-                <h1 className="text-2xl font-semibold md:text-3xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold bg-primary/5 text-primary border-primary/20 px-2 py-0.5 h-5">
+                    Active Workspace
+                  </Badge>
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight md:text-4xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   {project?.name || "Untitled initiative"}
                 </h1>
               </div>
             </div>
-            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+            <p className="text-base leading-relaxed text-muted-foreground/90">
               This hub keeps your squads aligned across analysis, updates, and
               decision logs. Review core signals, act on AI insights, and keep
               leadership informed without extra status pings.
             </p>
           </div>
-          <aside className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-background/70 p-5 text-sm">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+          
+          <aside className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-background/40 p-5 text-sm backdrop-blur-md shadow-sm min-w-[300px]">
+            <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-black shadow-sm">
                 <Github className="h-5 w-5" />
               </span>
-              <div className="min-w-0">
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  Connected repository
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">
+                  Repository
                 </p>
                 <Link
                   href={project?.repoUrl ?? "#"}
                   target="_blank"
-                  className="inline-flex items-center gap-1 truncate text-sm text-foreground transition-colors hover:text-primary"
+                  className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground transition-colors hover:text-primary group"
                 >
-                  <span className="truncate">
-                    {project?.repoUrl || "Link a repository to unlock insights"}
+                  <span className="truncate max-w-[180px]">
+                    {project?.repoUrl?.replace("https://github.com/", "") || "Link repository"}
                   </span>
-                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                  <ExternalLink className="h-3 w-3 flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <TeamMembers />
+              <div className="h-4 w-px bg-border/60 mx-1" />
               <InviteButton />
               <DeleteButton />
             </div>
           </aside>
         </div>
       </section>
+      
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <AskQuestionCard />
-        <MeetingCard />
+        <div className="lg:col-span-3 h-full">
+          <AskQuestionCard />
+        </div>
+        <div className="lg:col-span-2 h-full">
+          <MeetingCard />
+        </div>
       </div>
-      <section className="space-y-4">
+      
+      <section className="space-y-6 pt-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Platform Features</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Platform Features</h2>
             <p className="text-sm text-muted-foreground mt-1">
               Powerful tools to boost your team&apos;s productivity
             </p>
           </div>
           <Badge
             variant="secondary"
-            className="bg-primary/10 text-primary border-primary/20"
+            className="bg-gradient-to-r from-primary/10 to-purple-500/10 text-primary border-primary/20 px-3 py-1"
           >
-            <Sparkles className="size-3 mr-1" />
-            AI-Powered
+            <Sparkles className="size-3.5 mr-1.5" />
+            AI-Powered Suite
           </Badge>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

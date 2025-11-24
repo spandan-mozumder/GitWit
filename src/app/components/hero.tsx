@@ -52,13 +52,13 @@ export function Hero() {
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Button size="lg" asChild>
-                <Link href="/sign-in" className="group">
+                <Link href="/sign-in" className="group flex items-center">
                   Book a live session
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="#features" className="group">
+                <Link href="#features" className="group flex items-center">
                   <Play className="mr-2 h-4 w-4 group-hover:scale-105" />
                   Watch a 3-min walkthrough
                 </Link>

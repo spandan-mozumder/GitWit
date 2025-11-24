@@ -18,8 +18,15 @@ import { toast } from "sonner";
 import useRefetch from "~/hooks/use-refetch";
 import { askQuestion } from "./action";
 import CodeRefrence from "./code-refrence";
-import { Compass, Send, Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { Compass, Send, Save, CheckCircle2, AlertCircle, Database, RefreshCw } from "lucide-react";
 import { Spinner } from "~/components/ui/spinner";
+import { Badge } from "~/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 const AskQuestionCard = () => {
   const { project } = useProject();
   const { theme } = useTheme();
@@ -31,8 +38,16 @@ const AskQuestionCard = () => {
   >([]);
   const [answer, setAnswer] = useState("");
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const answerRef = useRef<HTMLDivElement | null>(null);
   const filesAnchorRef = useRef<HTMLDivElement | null>(null);
   const saveAnswer = api.project.saveAnswer.useMutation();
+  
+  const { data: indexStatus, refetch: refetchIndexStatus } = api.project.getIndexStatus.useQuery(
+    { projectId: project?.id ?? "" },
+    { enabled: !!project?.id }
+  );
+  
+  const reindexProject = api.project.reindexProject.useMutation();
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setAnswer("");
     setFilesReferences([]);
@@ -77,17 +92,38 @@ const AskQuestionCard = () => {
       }
 
       let streamedContent = "";
+      let hasReceivedContent = false;
+      let chunkCount = 0;
+      
+      console.log("Starting to consume stream...");
+      
       for await (const delta of output) {
+        chunkCount++;
+        console.log(`Received chunk ${chunkCount}:`, delta?.substring(0, 50));
+        
         if (delta) {
+          hasReceivedContent = true;
           streamedContent += delta;
           setAnswer(streamedContent);
         }
       }
+      
+      console.log(`Stream complete. Total chunks: ${chunkCount}, Content length: ${streamedContent.length}`);
 
-      toast.success("Analysis complete", {
-        description: `Answer generated with ${filesRefrences.length} file references`,
-        icon: <CheckCircle2 className="h-4 w-4" />,
-      });
+      if (!hasReceivedContent || !streamedContent.trim()) {
+        toast.warning("No response generated", {
+          description: "The AI didn't return any content. Try rephrasing your question.",
+          duration: 5000,
+        });
+        setAnswer(
+          `# No Response Generated\n\nThe AI model didn't return any content for your question.\n\n**Possible reasons:**\n\n1. The question might be too broad or unclear\n2. The indexed code might not contain relevant information\n3. There was an issue with the AI service\n\n**Please try:**\n\n- Rephrasing your question more specifically\n- Checking the index status (${filesRefrences.length} files found)\n- Asking about specific files or features in your codebase`
+        );
+      } else {
+        toast.success("Analysis complete", {
+          description: `Answer generated with ${filesRefrences.length} file references`,
+          icon: <CheckCircle2 className="h-4 w-4" />,
+        });
+      }
     } catch (error) {
       toast.dismiss(loadingToast);
 
@@ -132,6 +168,13 @@ const AskQuestionCard = () => {
       contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [answer, loading]);
+
+  useEffect(() => {
+    if (loading && answerRef.current) {
+      answerRef.current.scrollTop = answerRef.current.scrollHeight;
+    }
+  }, [answer, loading]);
+
   const refetch = useRefetch();
   return (
     <>
@@ -204,7 +247,10 @@ const AskQuestionCard = () => {
             ref={contentRef}
             className="flex-1 overflow-y-auto px-6 py-4 space-y-6"
           >
-            <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
+            <div 
+              ref={answerRef}
+              className="rounded-2xl border border-border/60 bg-card/80 p-4 max-h-[60vh] overflow-y-scroll scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
+            >
               {loading && !answer ? (
                 <div className="flex items-center justify-center py-8">
                   <Spinner className="h-5 w-5" />
@@ -212,7 +258,7 @@ const AskQuestionCard = () => {
               ) : (
                 <MarkdownPreview
                   source={answer || "Waiting for response..."}
-                  className="prose prose-sm dark:prose-invert max-w-none"
+                  className="prose prose-sm dark:prose-invert max-w-none overflow-scroll max-h-[60vh]"
                   style={{ padding: "0", background: "transparent" }}
                   wrapperElement={{
                     "data-color-mode": theme === "dark" ? "dark" : "light",
@@ -249,6 +295,72 @@ const AskQuestionCard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {indexStatus && (
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border/60 bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Index Status:</span>
+                {indexStatus.isIndexed ? (
+                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    {indexStatus.indexedFiles} files indexed
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Not indexed
+                  </Badge>
+                )}
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={reindexProject.isPending}
+                      onClick={() => {
+                        if (!project?.id) return;
+                        const loadingToast = toast.loading("Reindexing project...", {
+                          description: "This may take a few minutes",
+                        });
+                        reindexProject.mutate(
+                          { projectId: project.id },
+                          {
+                            onSuccess: () => {
+                              toast.dismiss(loadingToast);
+                              toast.success("Project reindexed successfully", {
+                                description: "All code files have been processed",
+                              });
+                              refetchIndexStatus();
+                            },
+                            onError: (error) => {
+                              toast.dismiss(loadingToast);
+                              toast.error("Failed to reindex project", {
+                                description: error.message,
+                              });
+                            },
+                          }
+                        );
+                      }}
+                      className="gap-2"
+                    >
+                      {reindexProject.isPending ? (
+                        <Spinner className="h-4 w-4" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                      Reindex
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Rebuild the code embeddings for better Q&A accuracy</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">

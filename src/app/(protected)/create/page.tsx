@@ -187,11 +187,10 @@ const Create = () => {
               type="submit"
               className="w-full gap-2 rounded-full transition-all"
               size="lg"
+              loading={createProject.isPending}
               disabled={createProject.isPending || isRedirecting}
             >
-              {createProject.isPending ? (
-                <Spinner className="h-4 w-4" />
-              ) : isRedirecting ? (
+              {isRedirecting ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 animate-success-pulse" />
                   Redirecting…

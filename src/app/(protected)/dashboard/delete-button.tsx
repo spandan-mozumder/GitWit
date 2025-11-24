@@ -66,18 +66,13 @@ const DeleteButton = () => {
       <AlertDialogTrigger asChild>
         <Button
           disabled={deleteProject.isPending}
+          loading={deleteProject.isPending}
           size={"sm"}
           variant={"destructive"}
           className="min-w-[80px]"
         >
-          {deleteProject.isPending ? (
-            <Spinner className="h-4 w-4" />
-          ) : (
-            <>
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </>
-          )}
+          <Trash2 className="h-4 w-4" />
+          Delete
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

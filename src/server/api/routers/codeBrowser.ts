@@ -200,7 +200,7 @@ export const codeBrowserRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const apiKey = env.GEMINI_API_KEY;
       const google = createGoogleGenerativeAI({ apiKey: apiKey });
-      const geminiFlashModel = google("gemini-2.0-flash-exp");
+      const geminiFlashModel = google("gemini-2.5-flash-lite");
 
       const project = await ctx.db.project.findUnique({
         where: { id: input.projectId },

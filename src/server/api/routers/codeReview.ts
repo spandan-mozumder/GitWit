@@ -52,31 +52,39 @@ export const codeReviewRouter = createTRPCRouter({
             status: "COMPLETED",
           },
         });
-        await ctx.db.codeReviewFinding.createMany({
-          data: analysis.findings.map((finding) => ({
-            reviewId: review.id,
-            severity: finding.severity,
-            category: finding.category,
-            title: finding.title,
-            description: finding.description,
-            filePath: finding.filePath,
-            lineNumber: finding.lineNumber,
-            codeSnippet: finding.suggestion,
-            recommendation: finding.suggestion || "Review and fix this issue",
-          })),
-        });
-        await ctx.db.codeReviewSuggestion.createMany({
-          data: analysis.suggestions.map((suggestion) => ({
-            reviewId: review.id,
-            title: suggestion.title,
-            description: suggestion.description,
-            filePath: "general",
-            reasoning: suggestion.impact,
-            impact: suggestion.impact,
-            effort: suggestion.effort,
-            suggestedCode: suggestion.code || "",
-          })),
-        });
+        // Create findings with proper field mapping
+        if (analysis.findings.length > 0) {
+          await ctx.db.codeReviewFinding.createMany({
+            data: analysis.findings.map((finding) => ({
+              reviewId: review.id,
+              severity: finding.severity,
+              category: finding.category,
+              title: finding.title,
+              description: finding.description,
+              filePath: finding.filePath,
+              lineNumber: finding.lineNumber ?? null,
+              codeSnippet: finding.suggestion ?? null,
+              recommendation: finding.suggestion || "Review and fix this issue",
+              estimatedImpact: `${finding.severity} severity - ${finding.category} issue`,
+              cveId: null,
+            })),
+          });
+        }
+        // Create suggestions with proper field mapping
+        if (analysis.suggestions.length > 0) {
+          await ctx.db.codeReviewSuggestion.createMany({
+            data: analysis.suggestions.map((suggestion) => ({
+              reviewId: review.id,
+              title: suggestion.title,
+              description: suggestion.description,
+              filePath: "general",
+              lineNumber: null,
+              originalCode: null,
+              suggestedCode: suggestion.code || "",
+              reasoning: suggestion.impact,
+            })),
+          });
+        }
         return await ctx.db.codeReview.findUnique({
           where: { id: review.id },
           include: {
@@ -85,15 +93,22 @@ export const codeReviewRouter = createTRPCRouter({
           },
         });
       } catch (error) {
+        console.error("Code review analysis failed:", error);
+        // Update review status to FAILED
         await ctx.db.codeReview.update({
           where: { id: review.id },
           data: {
             status: "FAILED",
           },
         });
-        throw new Error(
-          `Code analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
+        
+        // Provide more detailed error message
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Unknown error occurred during code analysis";
+        
+        throw new Error(`Code analysis failed: ${errorMessage}`);
       }
     }),
   getReview: protectedProcedure
@@ -156,6 +171,13 @@ export const codeReviewRouter = createTRPCRouter({
         reviews,
         nextCursor,
       };
+    }),
+  deleteReview: protectedProcedure
+    .input(z.object({ reviewId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.codeReview.delete({
+        where: { id: input.reviewId },
+      });
     }),
   applySuggestion: protectedProcedure
     .input(z.object({ suggestionId: z.string() }))
