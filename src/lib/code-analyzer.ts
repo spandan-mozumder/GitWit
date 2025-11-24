@@ -209,7 +209,7 @@ async function collectCodeFiles(
           return await octokit.rest.repos.getContent({
             owner,
             repo,
-            path: item.path,
+            path: item.path as string,
             ref: branch,
           });
         });
@@ -241,7 +241,7 @@ async function collectCodeFiles(
           return await octokit.rest.repos.getContent({
             owner,
             repo,
-            path: item.path,
+            path: item.path as string,
             ref: branch,
           });
         });
